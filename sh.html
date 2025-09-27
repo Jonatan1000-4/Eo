@@ -30,7 +30,7 @@
             padding: 0;
             background-color: var(--color-bg-dark);
             color: var(--color-text-light);
-            display: flex; /* Usamos flex para la estructura de dashboard */
+            display: flex;
             min-height: 100vh;
         }
 
@@ -40,14 +40,70 @@
             background-color: var(--color-bg-light);
             box-shadow: 2px 0 10px rgba(0, 0, 0, 0.5);
             padding: 2rem 0;
-            position: sticky;
+            position: fixed; /* Usar fixed para el menú desplegable */
             top: 0;
+            left: 0;
             height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
+            z-index: 1000;
+            transition: transform 0.3s ease-in-out;
+            /* Por defecto, está oculto en la izquierda */
+            transform: translateX(-250px); 
         }
 
+        /* Clase para mostrar el sidebar */
+        .sidebar.open {
+            transform: translateX(0);
+        }
+        
+        /* Contenido principal se ajusta */
+        .main-content {
+            flex-grow: 1;
+            padding: 2rem;
+            width: 100%; /* Ocupa todo el ancho */
+            margin-left: 0; /* No tiene margen al inicio */
+            transition: margin-left 0.3s ease-in-out;
+        }
+        
+        /* En escritorio, el sidebar se muestra y el main-content tiene margen */
+        @media (min-width: 992px) {
+            .sidebar {
+                position: sticky; /* Vuelve a ser fijo en la posición */
+                transform: translateX(0); /* Siempre visible */
+            }
+            body {
+                display: flex; /* Vuelve al modo flex tradicional de dashboard */
+            }
+            .main-content {
+                margin-left: 250px; /* Ajusta el contenido al lado del sidebar */
+            }
+            .menu-toggle {
+                display: none !important; /* Oculta el botón en escritorio */
+            }
+        }
+        
+        /* Botón de Menú para Responsive */
+        .menu-toggle {
+            position: fixed;
+            top: 1rem;
+            left: 1rem;
+            background: var(--color-primary);
+            color: var(--color-bg-dark);
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1001;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+            font-size: 1.2rem;
+        }
+        
         .logo {
             font-size: 1.5rem;
             font-weight: 700;
@@ -92,11 +148,6 @@
         }
 
         /* 2. Contenido Principal */
-        .main-content {
-            flex-grow: 1;
-            padding: 2rem;
-        }
-
         header {
             background: none;
             color: var(--color-text-light);
@@ -104,6 +155,13 @@
             text-align: left;
             border-bottom: 1px solid var(--color-border);
             margin-bottom: 2rem;
+            /* Pequeño margen para que el título no se superponga con el menú desplegable en móvil */
+            padding-top: 50px; 
+        }
+        @media (min-width: 992px) {
+            header {
+                padding-top: 0; /* Eliminar margen en escritorio */
+            }
         }
         header h1 {
             margin: 0;
@@ -272,14 +330,6 @@
             background: #d32f2f;
         }
 
-        .card-actions button.move {
-            background: #616161; /* Gris oscuro para movimiento */
-            color: var(--color-text-light);
-        }
-        .card-actions button.move:hover {
-            background: #424242;
-        }
-
         /* 5. Cargador */
         .loader {
             text-align: center;
@@ -292,12 +342,16 @@
 </head>
 <body>
     
-    <nav class="sidebar">
+    <button class="menu-toggle" id="menu-toggle">
+        <i class="fas fa-bars"></i>
+    </button>
+    
+    <nav class="sidebar" id="sidebar">
         <div class="logo">Nexus Admin</div>
         <div class="nav-links">
-            <button id="btn-productos" class="active" onclick="mostrarSeccion('productos', this)"><i class="fas fa-box"></i> Productos</button>
-            <button id="btn-servicios" onclick="mostrarSeccion('servicios', this)"><i class="fas fa-handshake"></i> Servicios</button>
-            <button id="btn-publicidad" onclick="mostrarSeccion('publicidad', this)"><i class="fas fa-ad"></i> Publicidad</button>
+            <button id="btn-productos" class="active" onclick="mostrarSeccion('productos', this); cerrarSidebar();"><i class="fas fa-box"></i> Productos</button>
+            <button id="btn-servicios" onclick="mostrarSeccion('servicios', this); cerrarSidebar();"><i class="fas fa-handshake"></i> Servicios</button>
+            <button id="btn-publicidad" onclick="mostrarSeccion('publicidad', this); cerrarSidebar();"><i class="fas fa-ad"></i> Publicidad</button>
         </div>
     </nav>
 
@@ -312,7 +366,8 @@
     </div>
 
     <script>
-        const API_URL = "https://script.google.com/macros/s/AKfycby7R1QM5_ljLesLJeQjaurh1JFZVqXBDUOUjQOllEmeQDukqkhzD98KXzm8SvaiQ_hfLw/exec";
+        // *** TU API URL AQUÍ ***
+        const API_URL = "https://script.google.com/macros/s/AKfycby7R1QM5_ljLesLJeQjaurh1JFZVqXBDUOUjQOllEmeQDukqkhzD98KXzm8SvaiQ_hfLw/exec"
         const API_IMGBB = "86db997f09d5db12c1f731dc79e4d83d";
 
         let secciones = {
@@ -342,6 +397,33 @@
             "FechaFin": ["date", null],
             // Otros campos serán por defecto "text"
         };
+
+        // =======================================================
+        // LÓGICA DE RESPONSIVIDAD DEL MENÚ (NUEVO)
+        // =======================================================
+        const sidebar = document.getElementById('sidebar');
+        const menuToggle = document.getElementById('menu-toggle');
+
+        function abrirSidebar() {
+            sidebar.classList.add('open');
+            // Opcional: Agregar un overlay para cerrar al tocar fuera
+        }
+
+        function cerrarSidebar() {
+            sidebar.classList.remove('open');
+        }
+
+        menuToggle.addEventListener('click', () => {
+            if (sidebar.classList.contains('open')) {
+                cerrarSidebar();
+            } else {
+                abrirSidebar();
+            }
+        });
+        
+        // =======================================================
+        // FUNCIONES EXISTENTES
+        // =======================================================
 
         function capitalize(s) {
             return s.charAt(0).toUpperCase() + s.slice(1);
@@ -526,7 +608,7 @@
                 alert("Error al intentar guardar. Verifique la conexión.");
             })
             .finally(() => {
-                btn.textContent = isEditing ? "Guardar " + capitalize(tipo.slice(0, -1)) : "Guardar " + capitalize(tipo.slice(0, -1));
+                btn.textContent = isEditing ? "Actualizar " + capitalize(tipo.slice(0, -1)) : "Guardar " + capitalize(tipo.slice(0, -1));
                 btn.disabled = false;
             });
         }
@@ -580,19 +662,8 @@
                         btnEliminar.className = "delete";
                         btnEliminar.onclick = () => eliminarItem(item.ID, tipo);
 
-                        const btnArriba = document.createElement("button");
-                        btnArriba.innerHTML = `<i class="fas fa-arrow-up"></i>`;
-                        btnArriba.title = "Subir Posición";
-                        btnArriba.className = "move up";
-                        btnArriba.onclick = () => moverItem(item.ID, tipo, -1);
-
-                        const btnAbajo = document.createElement("button");
-                        btnAbajo.innerHTML = `<i class="fas fa-arrow-down"></i>`;
-                        btnAbajo.title = "Bajar Posición";
-                        btnAbajo.className = "move down";
-                        btnAbajo.onclick = () => moverItem(item.ID, tipo, 1);
-
-                        actions.append(btnEditar, btnEliminar, btnArriba, btnAbajo);
+                        // Eliminados botones de Mover (Arriba/Abajo)
+                        actions.append(btnEditar, btnEliminar);
 
                         card.append(info, actions);
                         contenedor.appendChild(card);
@@ -611,12 +682,9 @@
 
             // Llenar los campos del formulario
             secciones[tipo].campos.forEach(campo => {
-                // Selecciona el input, textarea o select por su nombre (dentro de su grupo)
                 const input = form.querySelector(`[name="${campo}"]`);
                 if (input) {
-                    // Manejo especial para el campo de Imagen (solo se llena si no es un input de tipo file)
                     if (campo === "Imagen") {
-                        // Si el valor ya existe, crea un input oculto para la URL (que es la que se envía)
                         if (item.Imagen) {
                             let hidden = form.querySelector('input[type="hidden"][name="Imagen"]');
                             if(!hidden) {
@@ -653,7 +721,7 @@
         function eliminarItem(id, tipo) {
             if (!confirm("⚠️ ¿Estás seguro de que quieres eliminar este item de forma permanente?")) return;
             fetch(`${API_URL}?tipo=${tipo}&accion=eliminar&id=${id}`, {
-                method: "POST" // Usar POST para acciones de modificación es más seguro
+                method: "POST"
             })
             .then(res => res.text())
             .then(() => {
@@ -666,21 +734,6 @@
             });
         }
 
-        function moverItem(id, tipo, direccion) {
-            fetch(`${API_URL}?tipo=${tipo}&accion=mover&id=${id}&direccion=${direccion}`, {
-                method: "POST"
-            })
-            .then(res => res.text())
-            .then(() => {
-                cargarLista(tipo);
-            })
-            .catch(error => {
-                console.error("Error al mover:", error);
-                alert("Error al intentar mover el item.");
-            });
-        }
-
-        // Inicializar al cargar
         document.addEventListener('DOMContentLoaded', () => {
             mostrarSeccion("productos");
         });
