@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panel de Administración - Tienda</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f4f6f8;
+    }
+    header {
+      background: #2d3e50;
+      color: #fff;
+      padding: 1rem;
+      text-align: center;
+    }
+    .switches {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      padding: 1rem;
+    }
+    .switches button {
+      padding: 0.5rem 1rem;
+      border: none;
+      background: #3498db;
+      color: white;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .form-section {
+      display: none;
+      padding: 1rem;
+      background: white;
+      margin: 1rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+    .form-section.active {
+      display: block;
+    }
+    form input, form select, form textarea {
+      display: block;
+      width: 100%;
+      margin: 0.5rem 0;
+      padding: 0.5rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+    form button {
+      background: #2ecc71;
+      color: white;
+      border: none;
+      padding: 0.7rem 1.2rem;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .listado {
+      padding: 1rem;
+      margin: 1rem;
+    }
+    .card {
+      background: #fff;
+      border: 1px solid #ddd;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    }
+    .card button {
+      margin-right: 0.5rem;
+      background: #e74c3c;
+    }
+    .loader {
+      display: none;
+      text-align: center;
+      margin: 1rem;
+      color: #555;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Administrador de Tienda</h1>
+  </header>
+
+  <div class="switches">
+    <button onclick="mostrarSeccion('productos')">Productos</button>
+    <button onclick="mostrarSeccion('servicios')">Servicios</button>
+    <button onclick="mostrarSeccion('publicidad')">Publicidad</button>
+  </div>
+
+  <div class="loader" id="loader">Cargando...</div>
+
+  <div id="formulario-container"></div>
+  <div id="listado-container" class="listado"></div>
+
+  <script>
+    const API_URL = "https://script.google.com/macros/s/AKfycbzZWR6Hx2dBmlY3aZWP5B7wBvmuYBwiL7USKdYyufzFRbZVw0-q6P1znGshQHHtiP62xQ/exec";
+    const API_IMGBB = "86db997f09d5db12c1f731dc79e4d83d";
+
+    const formularios = {
+      productos: `
+        <form onsubmit="guardarItem(event, 'productos')">
+          <input type="text" name="Nombre" placeholder="Nombre del producto" required>
+          <textarea name="Descripción" placeholder="Descripción"></textarea>
+          <input type="number" name="Precio" placeholder="Precio">
+          <select name="Condición">
+            <option value="Nuevo">Nuevo</option>
+            <option value="Usado">Usado</option>
+          </select>
+          <input type="file" accept="image/*" onchange="subirImagen(event, this)">
+          <input type="hidden" name="Imagen">
+          <input type="text" name="Vendedor" placeholder="Vendedor">
+          <input type="text" name="WhatsApp" placeholder="WhatsApp">
+          <input type="text" name="Tienda" placeholder="Tienda">
+          <input type="text" name="DNI" placeholder="DNI">
+          <input type="text" name="Ubicación" placeholder="Ubicación">
+          <input type="text" name="Tipo" value="producto" readonly>
+          <input type="text" name="Categoría" placeholder="Categoría">
+          <select name="Envío">
+            <option value="Gratis">Gratis</option>
+            <option value="A coordinar">A coordinar</option>
+          </select>
+          <button type="submit">Guardar Producto</button>
+        </form>`
+      ,
+      servicios: `
+        <form onsubmit="guardarItem(event, 'servicios')">
+          <input type="text" name="Nombre" placeholder="Nombre del servicio" required>
+          <textarea name="Descripción" placeholder="Descripción"></textarea>
+          <input type="number" name="Precio" placeholder="Precio">
+          <select name="Condición">
+            <option value="Nuevo">Nuevo</option>
+            <option value="Usado">Usado</option>
+          </select>
+          <input type="file" accept="image/*" onchange="subirImagen(event, this)">
+          <input type="hidden" name="Imagen">
+          <input type="text" name="Vendedor" placeholder="Vendedor">
+          <input type="text" name="WhatsApp" placeholder="WhatsApp">
+          <input type="text" name="Tienda" placeholder="Tienda">
+          <input type="text" name="DNI" placeholder="DNI">
+          <input type="text" name="Ubicación" placeholder="Ubicación">
+          <input type="text" name="Tipo" value="servicio" readonly>
+          <input type="text" name="Categoría" placeholder="Categoría">
+          <select name="Envío">
+            <option value="Gratis">Gratis</option>
+            <option value="A coordinar">A coordinar</option>
+          </select>
+          <button type="submit">Guardar Servicio</button>
+        </form>`
+      ,
+      publicidad: `
+        <form onsubmit="guardarItem(event, 'publicidad')">
+          <input type="text" name="Título" placeholder="Título del anuncio" required>
+          <input type="file" accept="image/*" onchange="subirImagen(event, this)">
+          <input type="hidden" name="Imagen">
+          <input type="text" name="Link" placeholder="Link de destino">
+          <input type="text" name="Posición" placeholder="Posición (ej: 3)">
+          <input type="date" name="FechaInicio">
+          <input type="date" name="FechaFin">
+          <select name="Estado">
+            <option value="activo">Activo</option>
+            <option value="inactivo">Inactivo</option>
+          </select>
+          <select name="Tipo">
+            <option value="horizontal">Horizontal</option>
+            <option value="cuadrado">Cuadrado</option>
+          </select>
+          <button type="submit">Guardar Publicidad</button>
+        </form>`
+    };
+
+    let seccionActual = "productos";
+
+    function mostrarSeccion(seccion) {
+      seccionActual = seccion;
+      document.getElementById("formulario-container").innerHTML = formularios[seccion];
+      document.getElementById("listado-container").innerHTML = "";
+      cargarLista(seccion);
+    }
+
+    function subirImagen(event, input) {
+      const file = input.files[0];
+      if (!file) return;
+      document.getElementById("loader").style.display = "block";
+      const formData = new FormData();
+      formData.append("image", file);
+      fetch("https://api.imgbb.com/1/upload?key=" + API_IMGBB, {
+        method: "POST",
+        body: formData
+      })
+      .then(res => res.json())
+      .then(data => {
+        document.getElementById("loader").style.display = "none";
+        if (data.success) {
+          input.parentElement.querySelector('input[name="Imagen"]').value = data.data.url;
+        } else {
+          alert("Error al subir imagen");
+        }
+      });
+    }
+
+    function guardarItem(e, tipo) {
+      e.preventDefault();
+      const form = e.target;
+      const data = {};
+      [...form.elements].forEach(el => {
+        if (el.name) data[el.name] = el.value;
+      });
+      document.getElementById("loader").style.display = "block";
+      fetch(API_URL + `?tipo=${tipo}`, {
+        method: "POST",
+        body: JSON.stringify(data)
+      })
+      .then(res => res.text())
+      .then(r => {
+        document.getElementById("loader").style.display = "none";
+        alert("Guardado correctamente");
+        form.reset();
+        cargarLista(tipo);
+      });
+    }
+
+    function cargarLista(tipo) {
+      document.getElementById("loader").style.display = "block";
+      fetch(API_URL + `?tipo=${tipo}`)
+        .then(res => res.json())
+        .then(items => {
+          const cont = document.getElementById("listado-container");
+          cont.innerHTML = "";
+          items.forEach(item => {
+            const div = document.createElement("div");
+            div.className = "card";
+            div.innerHTML = `<strong>${item.Nombre || item.Título}</strong><br>${item.Precio || ''} <br>Clics: ${item.Clicks || 0}`;
+            cont.appendChild(div);
+          });
+          document.getElementById("loader").style.display = "none";
+        });
+    }
+
+    mostrarSeccion("productos");
+  </script>
+</body>
+</html>
