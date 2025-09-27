@@ -1,249 +1,690 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Panel de Administración - Tienda</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
-  <style>
-    body {
-      font-family: 'Poppins', sans-serif;
-      margin: 0;
-      padding: 0;
-      background: #f4f6f8;
-    }
-    header {
-      background: #2d3e50;
-      color: #fff;
-      padding: 1rem;
-      text-align: center;
-    }
-    .switches {
-      display: flex;
-      justify-content: center;
-      gap: 1rem;
-      padding: 1rem;
-    }
-    .switches button {
-      padding: 0.5rem 1rem;
-      border: none;
-      background: #3498db;
-      color: white;
-      border-radius: 8px;
-      cursor: pointer;
-    }
-    .form-section {
-      display: none;
-      padding: 1rem;
-      background: white;
-      margin: 1rem;
-      border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    }
-    .form-section.active {
-      display: block;
-    }
-    form input, form select, form textarea {
-      display: block;
-      width: 100%;
-      margin: 0.5rem 0;
-      padding: 0.5rem;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-    }
-    form button {
-      background: #2ecc71;
-      color: white;
-      border: none;
-      padding: 0.7rem 1.2rem;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-    .listado {
-      padding: 1rem;
-      margin: 1rem;
-    }
-    .card {
-      background: #fff;
-      border: 1px solid #ddd;
-      padding: 1rem;
-      margin-bottom: 1rem;
-      border-radius: 8px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-    }
-    .card button {
-      margin-right: 0.5rem;
-      background: #e74c3c;
-    }
-    .loader {
-      display: none;
-      text-align: center;
-      margin: 1rem;
-      color: #555;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexus Admin - Panel de Gestión</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Variables y Reset Básico */
+        :root {
+            --color-bg-dark: #121212;
+            --color-bg-light: #1e1e1e;
+            --color-primary: #00bcd4; /* Azul cian vibrante */
+            --color-secondary: #ff9800; /* Naranja para advertencias/énfasis */
+            --color-success: #4CAF50;
+            --color-danger: #F44336;
+            --color-text-light: #e0e0e0;
+            --color-border: #333;
+            --font-stack: 'Poppins', sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-stack);
+            margin: 0;
+            padding: 0;
+            background-color: var(--color-bg-dark);
+            color: var(--color-text-light);
+            display: flex; /* Usamos flex para la estructura de dashboard */
+            min-height: 100vh;
+        }
+
+        /* 1. Barra de Navegación Lateral (Sidebar) */
+        .sidebar {
+            width: 250px;
+            background-color: var(--color-bg-light);
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.5);
+            padding: 2rem 0;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 3rem;
+            color: var(--color-primary);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .nav-links {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+        }
+
+        .nav-links button {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            padding: 1rem 2rem;
+            border: none;
+            background: none;
+            color: var(--color-text-light);
+            text-align: left;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s, color 0.3s, border-left 0.3s;
+            border-left: 5px solid transparent;
+        }
+
+        .nav-links button i {
+            margin-right: 10px;
+            font-size: 1.2rem;
+        }
+
+        .nav-links button:hover,
+        .nav-links button.active {
+            background-color: rgba(0, 188, 212, 0.1);
+            color: var(--color-primary);
+            border-left: 5px solid var(--color-primary);
+        }
+
+        /* 2. Contenido Principal */
+        .main-content {
+            flex-grow: 1;
+            padding: 2rem;
+        }
+
+        header {
+            background: none;
+            color: var(--color-text-light);
+            padding: 0 0 2rem 0;
+            text-align: left;
+            border-bottom: 1px solid var(--color-border);
+            margin-bottom: 2rem;
+        }
+        header h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            font-weight: 700;
+        }
+        
+        /* 3. Secciones de Formulario y Listado */
+        .form-section {
+            display: none;
+            background: var(--color-bg-light);
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--color-border);
+            margin-bottom: 2rem;
+        }
+
+        .form-section.active {
+            display: block;
+        }
+
+        /* Estilo de Formulario */
+        form {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        form label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--color-primary);
+        }
+
+        form input, form select, form textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+            background-color: var(--color-bg-dark);
+            color: var(--color-text-light);
+            font-family: var(--font-stack);
+            font-size: 1rem;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        form input:focus, form select:focus, form textarea:focus {
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 2px rgba(0, 188, 212, 0.5);
+            outline: none;
+        }
+
+        form textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+        
+        .form-action-group {
+            grid-column: 1 / -1; /* Ocupa todo el ancho */
+            display: flex;
+            justify-content: flex-end;
+            padding-top: 1rem;
+        }
+
+        /* Botones generales */
+        button {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.3s, transform 0.1s;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        form button[type="submit"] {
+            background: var(--color-success);
+            color: var(--color-bg-dark);
+        }
+
+        form button[type="submit"]:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+        }
+        
+        /* 4. Listado de Items (Tarjetas) */
+        .listado {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .card {
+            display: flex;
+            flex-direction: column;
+            background: var(--color-bg-light);
+            border: 1px solid var(--color-border);
+            border-radius: 12px;
+            padding: 1rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px dashed var(--color-border);
+            padding-bottom: 0.75rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--color-primary);
+        }
+
+        .card-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+        
+        .card-detail-item strong {
+            color: var(--color-secondary);
+            font-weight: 600;
+        }
+
+        .card-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.5rem;
+            padding-top: 1rem;
+            border-top: 1px dashed var(--color-border);
+        }
+
+        .card-actions button {
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            color: var(--color-bg-dark);
+        }
+
+        .card-actions button.edit {
+            background: var(--color-primary);
+        }
+        .card-actions button.edit:hover {
+            background: #00a4b8;
+        }
+
+        .card-actions button.delete {
+            background: var(--color-danger);
+        }
+        .card-actions button.delete:hover {
+            background: #d32f2f;
+        }
+
+        .card-actions button.move {
+            background: #616161; /* Gris oscuro para movimiento */
+            color: var(--color-text-light);
+        }
+        .card-actions button.move:hover {
+            background: #424242;
+        }
+
+        /* 5. Cargador */
+        .loader {
+            text-align: center;
+            font-weight: 600;
+            color: var(--color-secondary);
+            margin: 2rem 0;
+            font-size: 1.2rem;
+        }
+    </style>
 </head>
 <body>
-  <header>
-    <h1>Administrador de Tienda</h1>
-  </header>
+    
+    <nav class="sidebar">
+        <div class="logo">Nexus Admin</div>
+        <div class="nav-links">
+            <button id="btn-productos" class="active" onclick="mostrarSeccion('productos', this)"><i class="fas fa-box"></i> Productos</button>
+            <button id="btn-servicios" onclick="mostrarSeccion('servicios', this)"><i class="fas fa-handshake"></i> Servicios</button>
+            <button id="btn-publicidad" onclick="mostrarSeccion('publicidad', this)"><i class="fas fa-ad"></i> Publicidad</button>
+        </div>
+    </nav>
 
-  <div class="switches">
-    <button onclick="mostrarSeccion('productos')">Productos</button>
-    <button onclick="mostrarSeccion('servicios')">Servicios</button>
-    <button onclick="mostrarSeccion('publicidad')">Publicidad</button>
-  </div>
+    <div class="main-content">
+        <header>
+            <h1 id="current-title">Gestión de Productos</h1>
+        </header>
 
-  <div class="loader" id="loader">Cargando...</div>
+        <div id="productos" class="form-section active"></div>
+        <div id="servicios" class="form-section"></div>
+        <div id="publicidad" class="form-section"></div>
+    </div>
 
-  <div id="formulario-container"></div>
-  <div id="listado-container" class="listado"></div>
+    <script>
+        const API_URL = "https://script.google.com/macros/s/AKfycbxLB0bRy4hBa7suIl2g0UGHsXEIVj2rL_VAQYG94H3rGG_vHNyUAKLotaIrWyXffaf_zw/exec";
+        const API_IMGBB = "86db997f09d5db12c1f731dc79e4d83d";
 
-  <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbyBr6BbowE4YRdc5PNcxMMVnm8FkmqNM1HVC5n9oOp7uVwCRg8FMVgXHwWxxL4Z_1g2RA/exec";
-    const API_IMGBB = "86db997f09d5db12c1f731dc79e4d83d";
+        let secciones = {
+            productos: {
+                titulo: "Gestión de Productos",
+                campos: ["Nombre", "Descripción", "Precio", "Condición", "Imagen", "Vendedor", "WhatsApp", "Tienda", "DNI", "Ubicación", "Tipo", "Categoría", "Envío"],
+                icon: "fas fa-box"
+            },
+            servicios: {
+                titulo: "Gestión de Servicios",
+                campos: ["Nombre", "Descripción", "Precio", "Condición", "Imagen", "Vendedor", "WhatsApp", "Tienda", "DNI", "Ubicación", "Tipo", "Categoría", "Envío"],
+                icon: "fas fa-handshake"
+            },
+            publicidad: {
+                titulo: "Gestión de Publicidad",
+                campos: ["Título", "Imagen", "Link", "Posición", "FechaInicio", "FechaFin", "Estado", "Tipo"],
+                icon: "fas fa-ad"
+            }
+        };
 
-    const formularios = {
-      productos: `
-        <form onsubmit="guardarItem(event, 'productos')">
-          <input type="text" name="Nombre" placeholder="Nombre del producto" required>
-          <textarea name="Descripción" placeholder="Descripción"></textarea>
-          <input type="number" name="Precio" placeholder="Precio">
-          <select name="Condición">
-            <option value="Nuevo">Nuevo</option>
-            <option value="Usado">Usado</option>
-          </select>
-          <input type="file" accept="image/*" onchange="subirImagen(event, this)">
-          <input type="hidden" name="Imagen">
-          <input type="text" name="Vendedor" placeholder="Vendedor">
-          <input type="text" name="WhatsApp" placeholder="WhatsApp">
-          <input type="text" name="Tienda" placeholder="Tienda">
-          <input type="text" name="DNI" placeholder="DNI">
-          <input type="text" name="Ubicación" placeholder="Ubicación">
-          <input type="text" name="Tipo" value="producto" readonly>
-          <input type="text" name="Categoría" placeholder="Categoría">
-          <select name="Envío">
-            <option value="Gratis">Gratis</option>
-            <option value="A coordinar">A coordinar</option>
-          </select>
-          <button type="submit">Guardar Producto</button>
-        </form>`
-      ,
-      servicios: `
-        <form onsubmit="guardarItem(event, 'servicios')">
-          <input type="text" name="Nombre" placeholder="Nombre del servicio" required>
-          <textarea name="Descripción" placeholder="Descripción"></textarea>
-          <input type="number" name="Precio" placeholder="Precio">
-          <select name="Condición">
-            <option value="Nuevo">Nuevo</option>
-            <option value="Usado">Usado</option>
-          </select>
-          <input type="file" accept="image/*" onchange="subirImagen(event, this)">
-          <input type="hidden" name="Imagen">
-          <input type="text" name="Vendedor" placeholder="Vendedor">
-          <input type="text" name="WhatsApp" placeholder="WhatsApp">
-          <input type="text" name="Tienda" placeholder="Tienda">
-          <input type="text" name="DNI" placeholder="DNI">
-          <input type="text" name="Ubicación" placeholder="Ubicación">
-          <input type="text" name="Tipo" value="servicio" readonly>
-          <input type="text" name="Categoría" placeholder="Categoría">
-          <select name="Envío">
-            <option value="Gratis">Gratis</option>
-            <option value="A coordinar">A coordinar</option>
-          </select>
-          <button type="submit">Guardar Servicio</button>
-        </form>`
-      ,
-      publicidad: `
-        <form onsubmit="guardarItem(event, 'publicidad')">
-          <input type="text" name="Título" placeholder="Título del anuncio" required>
-          <input type="file" accept="image/*" onchange="subirImagen(event, this)">
-          <input type="hidden" name="Imagen">
-          <input type="text" name="Link" placeholder="Link de destino">
-          <input type="text" name="Posición" placeholder="Posición (ej: 3)">
-          <input type="date" name="FechaInicio">
-          <input type="date" name="FechaFin">
-          <select name="Estado">
-            <option value="activo">Activo</option>
-            <option value="inactivo">Inactivo</option>
-          </select>
-          <select name="Tipo">
-            <option value="horizontal">Horizontal</option>
-            <option value="cuadrado">Cuadrado</option>
-          </select>
-          <button type="submit">Guardar Publicidad</button>
-        </form>`
-    };
+        const formElementsMap = {
+            "Descripción": "textarea",
+            "Condición": ["select", ["Nuevo", "Usado"]],
+            "Envío": ["select", ["Gratis", "A coordinar"]],
+            "Imagen": ["file", "image/*"],
+            "FechaInicio": ["date", null],
+            "FechaFin": ["date", null],
+            // Otros campos serán por defecto "text"
+        };
 
-    let seccionActual = "productos";
-
-    function mostrarSeccion(seccion) {
-      seccionActual = seccion;
-      document.getElementById("formulario-container").innerHTML = formularios[seccion];
-      document.getElementById("listado-container").innerHTML = "";
-      cargarLista(seccion);
-    }
-
-    function subirImagen(event, input) {
-      const file = input.files[0];
-      if (!file) return;
-      document.getElementById("loader").style.display = "block";
-      const formData = new FormData();
-      formData.append("image", file);
-      fetch("https://api.imgbb.com/1/upload?key=" + API_IMGBB, {
-        method: "POST",
-        body: formData
-      })
-      .then(res => res.json())
-      .then(data => {
-        document.getElementById("loader").style.display = "none";
-        if (data.success) {
-          input.parentElement.querySelector('input[name="Imagen"]').value = data.data.url;
-        } else {
-          alert("Error al subir imagen");
+        function capitalize(s) {
+            return s.charAt(0).toUpperCase() + s.slice(1);
         }
-      });
-    }
 
-    function guardarItem(e, tipo) {
-      e.preventDefault();
-      const form = e.target;
-      const data = {};
-      [...form.elements].forEach(el => {
-        if (el.name) data[el.name] = el.value;
-      });
-      document.getElementById("loader").style.display = "block";
-      fetch(API_URL + `?tipo=${tipo}`, {
-        method: "POST",
-        body: JSON.stringify(data)
-      })
-      .then(res => res.text())
-      .then(r => {
-        document.getElementById("loader").style.display = "none";
-        alert("Guardado correctamente");
-        form.reset();
-        cargarLista(tipo);
-      });
-    }
+        function crearCampo(campo, tipoSeccion) {
+            const group = document.createElement('div');
+            group.className = 'form-group';
 
-    function cargarLista(tipo) {
-      document.getElementById("loader").style.display = "block";
-      fetch(API_URL + `?tipo=${tipo}`)
-        .then(res => res.json())
-        .then(items => {
-          const cont = document.getElementById("listado-container");
-          cont.innerHTML = "";
-          items.forEach(item => {
-            const div = document.createElement("div");
-            div.className = "card";
-            div.innerHTML = `<strong>${item.Nombre || item.Título}</strong><br>${item.Precio || ''} <br>Clics: ${item.Clicks || 0}`;
-            cont.appendChild(div);
-          });
-          document.getElementById("loader").style.display = "none";
+            const label = document.createElement('label');
+            label.textContent = campo + ":";
+            label.setAttribute('for', `${tipoSeccion}-${campo}`);
+            group.appendChild(label);
+
+            let input;
+            const config = formElementsMap[campo];
+            const elementType = config ? config[0] : "input";
+            const elementParams = config ? config[1] : null;
+
+            if (elementType === "textarea") {
+                input = document.createElement("textarea");
+            } else if (elementType === "select") {
+                input = document.createElement("select");
+                elementParams.forEach(op => {
+                    let opt = document.createElement("option");
+                    opt.value = op;
+                    opt.textContent = op;
+                    input.appendChild(opt);
+                });
+            } else { // input (text, file, date, etc.)
+                input = document.createElement("input");
+                input.type = elementType === "file" ? elementParams : (elementType === "date" ? "date" : "text");
+                if (elementType === "file") {
+                    input.accept = elementParams;
+                    input.onchange = subirImagen;
+                }
+            }
+
+            input.name = campo;
+            input.id = `${tipoSeccion}-${campo}`;
+            input.placeholder = campo === "Tipo" ? tipoSeccion : campo;
+            
+            // Valor predeterminado para el campo 'Tipo'
+            if (campo === "Tipo") {
+                input.value = tipoSeccion;
+                input.readOnly = true; // No editable
+                input.style.opacity = 0.7;
+            }
+
+            group.appendChild(input);
+            return group;
+        }
+
+
+        function mostrarSeccion(seccion, boton) {
+            // Actualizar título y botón activo
+            document.getElementById('current-title').textContent = secciones[seccion].titulo;
+            document.querySelectorAll('.nav-links button').forEach(btn => btn.classList.remove('active'));
+            if (boton) {
+                boton.classList.add('active');
+            } else {
+                document.getElementById(`btn-${seccion}`).classList.add('active');
+            }
+            
+            // Mostrar/Ocultar secciones
+            document.querySelectorAll('.form-section').forEach(div => div.classList.remove('active'));
+            const contenedor = document.getElementById(seccion);
+            contenedor.classList.add('active');
+
+            if (!contenedor.dataset.ready) {
+                const form = document.createElement("form");
+                form.onsubmit = e => guardarItem(e, seccion);
+
+                secciones[seccion].campos.forEach(campo => {
+                    form.appendChild(crearCampo(campo, seccion));
+                });
+                
+                // Agrupar botón de acción
+                const actionGroup = document.createElement('div');
+                actionGroup.className = 'form-action-group';
+
+                const btn = document.createElement("button");
+                btn.type = "submit";
+                btn.textContent = "Guardar " + capitalize(seccion.slice(0, -1)); // Ej: 'Guardar Producto'
+                actionGroup.appendChild(btn);
+                form.appendChild(actionGroup);
+
+                contenedor.appendChild(form);
+                
+                const listado = document.createElement("div");
+                listado.id = "listado-" + seccion;
+                listado.className = "listado";
+                contenedor.appendChild(listado);
+                contenedor.dataset.ready = "true";
+            }
+
+            cargarLista(seccion);
+        }
+
+        function subirImagen(e) {
+            const input = e.target;
+            const file = input.files[0];
+            if (!file) return;
+
+            const formData = new FormData();
+            formData.append("image", file);
+
+            const loader = document.createElement("div");
+            loader.className = "loader";
+            loader.textContent = "Subiendo imagen... 📸";
+            input.parentElement.appendChild(loader);
+
+            fetch("https://api.imgbb.com/1/upload?key=" + API_IMGBB, {
+                method: "POST",
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                loader.remove();
+                if (data.success) {
+                    const url = data.data.url;
+                    // Eliminar cualquier campo de imagen oculto previo
+                    let hidden = input.parentElement.querySelector('input[type="hidden"][name="Imagen"]');
+                    if(hidden) hidden.remove();
+                    
+                    // Crear nuevo campo de imagen oculto con la URL
+                    hidden = document.createElement("input");
+                    hidden.type = "hidden";
+                    hidden.name = "Imagen";
+                    hidden.value = url;
+                    input.parentElement.appendChild(hidden);
+                    alert("Imagen subida con éxito: " + url);
+                } else {
+                    alert("Error al subir imagen: " + data.error.message);
+                }
+            })
+            .catch(error => {
+                loader.remove();
+                console.error("Error en la subida:", error);
+                alert("Error de red al subir la imagen.");
+            });
+        }
+
+        function guardarItem(e, tipo) {
+            e.preventDefault();
+            const form = e.target;
+            const data = {};
+            [...form.elements].forEach(el => {
+                // Solo incluir elementos con nombre y que no sean el input de tipo 'file' visible
+                if (el.name && el.type !== "file") {
+                    data[el.name] = el.value;
+                }
+            });
+
+            // Verificar si estamos editando (si existe el campo ID)
+            const isEditing = data.ID;
+            const action = isEditing ? 'editar' : 'guardar';
+
+            const btn = form.querySelector('button[type="submit"]');
+            btn.textContent = isEditing ? "Actualizando..." : "Guardando...";
+            btn.disabled = true;
+
+            fetch(`${API_URL}?tipo=${tipo}&accion=${action}`, {
+                method: "POST",
+                headers: {
+                    'Content-Type': 'text/plain;charset=utf-8' // Necesario para Google Apps Script
+                },
+                body: JSON.stringify(data)
+            })
+            .then(res => res.text())
+            .then(() => {
+                alert(isEditing ? "Actualizado correctamente ✅" : "Guardado correctamente ✅");
+                form.reset();
+                // Eliminar el campo ID si existía después de la operación
+                const hiddenID = form.querySelector('input[name="ID"]');
+                if (hiddenID) hiddenID.remove();
+                
+                cargarLista(tipo);
+            })
+            .catch(error => {
+                console.error("Error al guardar/actualizar:", error);
+                alert("Error al intentar guardar. Verifique la conexión.");
+            })
+            .finally(() => {
+                btn.textContent = isEditing ? "Guardar " + capitalize(tipo.slice(0, -1)) : "Guardar " + capitalize(tipo.slice(0, -1));
+                btn.disabled = false;
+            });
+        }
+
+        function cargarLista(tipo) {
+            const contenedor = document.getElementById("listado-" + tipo);
+            contenedor.innerHTML = "<div class='loader'><i class='fas fa-spinner fa-spin'></i> Cargando datos...</div>";
+
+            fetch(`${API_URL}?tipo=${tipo}`)
+                .then(res => {
+                    if (!res.ok) throw new Error("Error en la respuesta de la API");
+                    return res.json();
+                })
+                .then(items => {
+                    contenedor.innerHTML = "";
+                    if (items.length === 0) {
+                        contenedor.innerHTML = "<div class='loader'>No hay items registrados.</div>";
+                        return;
+                    }
+                    
+                    items.forEach((item, index) => {
+                        const card = document.createElement("div");
+                        card.className = "card";
+
+                        // Construcción de la información de la tarjeta
+                        const infoHTML = `
+                            <div class="card-header">
+                                <span class="card-title">${item.Nombre || item.Título || 'Item sin Nombre'}</span>
+                            </div>
+                            <div class="card-details">
+                                <div class="card-detail-item"><strong>Precio:</strong> ${item.Precio || 'N/A'}</div>
+                                <div class="card-detail-item"><strong>Estado:</strong> ${item.Condición || item.Estado || 'N/A'}</div>
+                                ${item.Clicks ? `<div class="card-detail-item"><strong>Clics:</strong> ${item.Clicks}</div>` : ''}
+                                ${item.Vendedor ? `<div class="card-detail-item"><strong>Vendedor:</strong> ${item.Vendedor}</div>` : ''}
+                            </div>
+                        `;
+                        
+                        const info = document.createElement("div");
+                        info.innerHTML = infoHTML;
+
+                        const actions = document.createElement("div");
+                        actions.className = "card-actions";
+
+                        const btnEditar = document.createElement("button");
+                        btnEditar.textContent = "Editar";
+                        btnEditar.className = "edit";
+                        btnEditar.onclick = () => editarItem(item, tipo);
+
+                        const btnEliminar = document.createElement("button");
+                        btnEliminar.textContent = "Eliminar";
+                        btnEliminar.className = "delete";
+                        btnEliminar.onclick = () => eliminarItem(item.ID, tipo);
+
+                        const btnArriba = document.createElement("button");
+                        btnArriba.innerHTML = `<i class="fas fa-arrow-up"></i>`;
+                        btnArriba.title = "Subir Posición";
+                        btnArriba.className = "move up";
+                        btnArriba.onclick = () => moverItem(item.ID, tipo, -1);
+
+                        const btnAbajo = document.createElement("button");
+                        btnAbajo.innerHTML = `<i class="fas fa-arrow-down"></i>`;
+                        btnAbajo.title = "Bajar Posición";
+                        btnAbajo.className = "move down";
+                        btnAbajo.onclick = () => moverItem(item.ID, tipo, 1);
+
+                        actions.append(btnEditar, btnEliminar, btnArriba, btnAbajo);
+
+                        card.append(info, actions);
+                        contenedor.appendChild(card);
+                    });
+                })
+                .catch(error => {
+                    console.error("Error al cargar la lista:", error);
+                    contenedor.innerHTML = `<div class='loader' style="color:var(--color-danger);">Error al cargar: ${error.message}</div>`;
+                });
+        }
+
+        function editarItem(item, tipo) {
+            const contenedor = document.getElementById(tipo);
+            const form = contenedor.querySelector("form");
+            form.scrollIntoView({ behavior: 'smooth' }); // Subir al formulario para editar
+
+            // Llenar los campos del formulario
+            secciones[tipo].campos.forEach(campo => {
+                // Selecciona el input, textarea o select por su nombre (dentro de su grupo)
+                const input = form.querySelector(`[name="${campo}"]`);
+                if (input) {
+                    // Manejo especial para el campo de Imagen (solo se llena si no es un input de tipo file)
+                    if (campo === "Imagen") {
+                        // Si el valor ya existe, crea un input oculto para la URL (que es la que se envía)
+                        if (item.Imagen) {
+                            let hidden = form.querySelector('input[type="hidden"][name="Imagen"]');
+                            if(!hidden) {
+                                hidden = document.createElement("input");
+                                hidden.type = "hidden";
+                                hidden.name = "Imagen";
+                                input.parentElement.appendChild(hidden);
+                            }
+                            hidden.value = item.Imagen;
+                            alert(`URL de Imagen actual cargada: ${item.Imagen.substring(0, 30)}...`);
+                        }
+                    } else {
+                        input.value = item[campo] || "";
+                    }
+                }
+            });
+
+            // Añadir el campo ID oculto para la operación de edición
+            let hiddenID = form.querySelector('input[name="ID"]');
+            if (!hiddenID) {
+                hiddenID = document.createElement("input");
+                hiddenID.type = "hidden";
+                hiddenID.name = "ID";
+                form.appendChild(hiddenID);
+            }
+            hiddenID.value = item.ID;
+            
+            // Actualizar el texto del botón
+            const btn = form.querySelector('button[type="submit"]');
+            btn.textContent = "Actualizar " + capitalize(tipo.slice(0, -1));
+        }
+
+
+        function eliminarItem(id, tipo) {
+            if (!confirm("⚠️ ¿Estás seguro de que quieres eliminar este item de forma permanente?")) return;
+            fetch(`${API_URL}?tipo=${tipo}&accion=eliminar&id=${id}`, {
+                method: "POST" // Usar POST para acciones de modificación es más seguro
+            })
+            .then(res => res.text())
+            .then(() => {
+                alert("Eliminado correctamente 🗑️");
+                cargarLista(tipo);
+            })
+            .catch(error => {
+                console.error("Error al eliminar:", error);
+                alert("Error al intentar eliminar.");
+            });
+        }
+
+        function moverItem(id, tipo, direccion) {
+            fetch(`${API_URL}?tipo=${tipo}&accion=mover&id=${id}&direccion=${direccion}`, {
+                method: "POST"
+            })
+            .then(res => res.text())
+            .then(() => {
+                cargarLista(tipo);
+            })
+            .catch(error => {
+                console.error("Error al mover:", error);
+                alert("Error al intentar mover el item.");
+            });
+        }
+
+        // Inicializar al cargar
+        document.addEventListener('DOMContentLoaded', () => {
+            mostrarSeccion("productos");
         });
-    }
+    </script>
 
-    mostrarSeccion("productos");
-  </script>
 </body>
 </html>
