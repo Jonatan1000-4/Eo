@@ -1,743 +1,941 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nexus Admin - Panel de Gestión</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Nexus Marketplace - Tienda Online</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <style>
-        /* Variables y Reset Básico */
-        :root {
-            --color-bg-dark: #121212;
-            --color-bg-light: #1e1e1e;
-            --color-primary: #00bcd4; /* Azul cian vibrante */
-            --color-secondary: #ff9800; /* Naranja para advertencias/énfasis */
-            --color-success: #4CAF50;
-            --color-danger: #F44336;
-            --color-text-light: #e0e0e0;
-            --color-border: #333;
-            --font-stack: 'Poppins', sans-serif;
-        }
-
-        * {
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: var(--font-stack);
-            margin: 0;
-            padding: 0;
-            background-color: var(--color-bg-dark);
-            color: var(--color-text-light);
-            display: flex;
-            min-height: 100vh;
-        }
-
-        /* 1. Barra de Navegación Lateral (Sidebar) */
-        .sidebar {
-            width: 250px;
-            background-color: var(--color-bg-light);
-            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.5);
-            padding: 2rem 0;
-            position: fixed; /* Usar fixed para el menú desplegable */
-            top: 0;
-            left: 0;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            z-index: 1000;
-            transition: transform 0.3s ease-in-out;
-            /* Por defecto, está oculto en la izquierda */
-            transform: translateX(-250px); 
-        }
-
-        /* Clase para mostrar el sidebar */
-        .sidebar.open {
-            transform: translateX(0);
-        }
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+   <style>
+    /* Variables de Color y Tipografía */
+    :root {
+        /* Modo Claro (Light Mode) */
+        --color-primary: #007bff; /* Azul profesional */
+        --color-secondary: #2ecc71; /* Verde (WhatsApp, Éxito) */
+        --color-background: #f4f6f9; /* Fondo suave */
+        --color-surface: #ffffff; /* Fondo de tarjetas */
+        --color-text: #333;
+        --color-text-light: #777;
+        --color-hover: #0056b3;
+        --color-advertisement: #ffaa00; /* Naranja/Amarillo para anuncios */
+        --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+        --border-radius: 12px;
         
-        /* Contenido principal se ajusta */
-        .main-content {
-            flex-grow: 1;
-            padding: 2rem;
-            width: 100%; /* Ocupa todo el ancho */
-            margin-left: 0; /* No tiene margen al inicio */
-            transition: margin-left 0.3s ease-in-out;
+        /* Modo Oscuro (Dark Mode) - Variables */
+        --color-dark-primary: #8ab4f8; /* Azul claro para contraste */
+        --color-dark-secondary: #5cb85c;
+        --color-dark-background: #121212; /* Fondo muy oscuro */
+        --color-dark-surface: #1e1e1e; /* Fondo de tarjetas más claro que el fondo */
+        --color-dark-text: #e0e0e0;
+        --color-dark-text-light: #aaaaaa;
+        --color-dark-hover: #0084ff;
+        --color-dark-advertisement: #f8c440;
+        --color-danger: #e74c3c; /* Color para mensajes de error */
+    }
+
+    /* Aplicación del Modo Oscuro */
+    body.dark-mode {
+        background: var(--color-dark-background);
+        color: var(--color-dark-text);
+    }
+    body.dark-mode header,
+    body.dark-mode .filter-bar,
+    body.dark-mode .card,
+    body.dark-mode .modal-content {
+        background: var(--color-dark-surface);
+        color: var(--color-dark-text);
+    }
+    body.dark-mode header h1 { color: var(--color-dark-primary); }
+    body.dark-mode .switches button {
+        border-color: var(--color-dark-primary);
+        color: var(--color-dark-primary);
+    }
+    body.dark-mode .switches button.active {
+        background: var(--color-dark-primary);
+        color: var(--color-dark-background);
+    }
+    body.dark-mode .btn-info { background: var(--color-dark-primary); }
+    body.dark-mode .btn-info:hover { background: var(--color-dark-hover); }
+    body.dark-mode .btn-whatsapp { background: var(--color-dark-secondary); }
+    
+    /* Ajustes específicos para Dark Mode en la Tarjeta de Publicidad (ad-card) */
+    body.dark-mode .ad-card {
+        border: 3px solid var(--color-dark-advertisement);
+        box-shadow: 0 4px 12px rgba(248, 196, 64, 0.2); 
+    }
+    body.dark-mode .ad-card-body h4 {
+        color: var(--color-dark-advertisement);
+    }
+    body.dark-mode .ad-card .ad-cta {
+        background: var(--color-dark-advertisement);
+        color: var(--color-dark-background) !important;
+    }
+
+    body.dark-mode .cta-register-banner { 
+        background: #202b3a; 
+        border: 2px solid var(--color-dark-primary);
+    }
+    body.dark-mode .cta-register-banner h3 { color: var(--color-dark-primary); }
+    body.dark-mode .btn-register { background: var(--color-dark-primary); }
+
+    
+    /* Estilos Generales */
+    * { box-sizing: border-box; }
+    
+    body {
+        font-family: 'Poppins', sans-serif;
+        margin: 0;
+        background: var(--color-background);
+        color: var(--color-text);
+        line-height: 1.6;
+        transition: background 0.3s, color 0.3s;
+    }
+
+    /* 1. Encabezado */
+    header {
+        background: var(--color-surface);
+        color: var(--color-text);
+        padding: 1.5rem 1rem;
+        text-align: center;
+        box-shadow: var(--shadow-md);
+        margin-bottom: 1rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    header h1 {
+        margin: 0;
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: var(--color-primary);
+    }
+    /* Botón Modo Oscuro */
+    #darkModeToggle {
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-size: 1.5rem;
+        color: var(--color-primary);
+        transition: transform 0.2s;
+    }
+    body.dark-mode #darkModeToggle {
+        color: var(--color-dark-primary);
+    }
+
+    /* 2. Navegación / Switches */
+    .nav-section {
+        padding: 0 1rem;
+        max-width: 1200px;
+        margin: 0 auto 1.5rem auto;
+    }
+    .switches {
+        display: flex;
+        justify-content: center;
+        gap: 0.5rem;
+        margin-bottom: 1.5rem;
+    }
+    .switches button {
+        padding: 0.75rem 1.5rem;
+        border: 2px solid var(--color-primary);
+        border-radius: 8px;
+        cursor: pointer;
+        background: transparent;
+        color: var(--color-primary);
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    .switches button.active {
+        background: var(--color-primary);
+        color: var(--color-surface);
+        box-shadow: 0 4px 8px rgba(0, 123, 255, 0.3);
+    }
+    .btn-publish-nav {
+        background: var(--color-secondary); 
+        color: white !important;
+        text-decoration: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        font-weight: 700;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: background 0.3s;
+        border: 2px solid var(--color-secondary); 
+    }
+
+    /* 3. Barra de Búsqueda y Filtros */
+    .filter-bar {
+        background: var(--color-surface);
+        padding: 1rem; 
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-md);
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 1rem;
+        align-items: center;
+    }
+    .filter-bar input, .filter-bar select {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        font-family: inherit;
+        font-size: 1rem;
+        background: var(--color-background); /* Hacemos el input más claro/oscuro que el contenedor */
+        color: var(--color-text); 
+    }
+    body.dark-mode .filter-bar input, body.dark-mode .filter-bar select {
+         background: #2b2b2b; /* Oscuro */
+         border-color: #444;
+         color: var(--color-dark-text);
+    }
+    .filter-group label {
+        font-size: 0.8rem; 
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+        color: var(--color-text-light);
+        display: block;
+    }
+    @media (min-width: 768px) {
+        .filter-bar {
+            padding: 1.5rem;
+            grid-template-columns: 2fr 1fr 1fr;
         }
+    }
+    
+    /* 4. Contenedor Principal (Grid) */
+    .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 1.5rem;
+        padding: 0 1rem 2rem 1rem;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+    
+    /* 5. Tarjetas (Cards) */
+    .card {
+        background: var(--color-surface);
+        border-radius: 16px;
+        box-shadow: var(--shadow-md);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s;
+    }
+    .card-image-container {
+        width: 100%;
+        height: 220px;
+        overflow: hidden;
+    }
+    .card img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    .card-body {
+        padding: 1rem 1.25rem;
+        flex-grow: 1;
+    }
+    .card-body h3 {
+        font-size: 1.2rem;
+        margin-top: 0;
+        margin-bottom: 5px;
+    }
+    .card-body .price {
+        font-size: 1.5rem;
+        color: var(--color-primary);
+        font-weight: 700;
+        margin-bottom: 10px;
+    }
+    .card-footer {
+        padding: 1rem 1.25rem;
+        border-top: 1px solid #eee;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+    }
+    body.dark-mode .card-footer {
+        border-top: 1px solid #333;
+    }
+
+    /* Botones */
+    .btn-info, .btn-whatsapp, .btn-share {
+        border: none;
+        padding: 0.6rem 1rem;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        text-decoration: none;
+        font-size: 0.95rem;
+        white-space: nowrap;
+    }
+    .btn-info { background: var(--color-primary); color: white; }
+    .btn-whatsapp { background: var(--color-secondary); color: white; }
+    .btn-share { 
+        background: #95a5a6; 
+        color: white; 
+        font-size: 0.85rem; 
+        padding: 0.5rem 1rem; 
+        margin-top: 10px; 
+        cursor: pointer;
+    }
+
+    /* 6. Banner CTA de Registro */
+    .cta-register-banner {
+        grid-column: 1 / -1; /* Ocupa todo el ancho en el grid */
+        background: #ebf5ff; 
+        border: 2px solid var(--color-primary);
+        padding: 1.5rem;
+        border-radius: var(--border-radius);
+        margin-bottom: 1.5rem;
+        text-align: center;
+    }
+    .cta-register-banner h3 {
+        margin-top: 0;
+        color: var(--color-primary);
+        font-weight: 700;
+        font-size: 1.5rem;
+    }
+    .btn-register {
+        background: var(--color-primary);
+        color: white !important;
+        padding: 0.75rem 2rem;
+        border-radius: 8px;
+        font-weight: 700;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 10px;
+        transition: background 0.3s;
+    }
+
+    /* 7. Modal de Detalle y Imagen */
+    .modal, .img-modal {
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        background: rgba(0, 0, 0, 0.75);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.3s ease, visibility 0.3s ease;
+    }
+    /* Clase para mostrar el modal */
+    .modal.is-open, .img-modal.is-open {
+        opacity: 1;
+        visibility: visible;
+    }
+    .modal-content { 
+        background: var(--color-surface);
+        padding: 2.5rem;
+        border-radius: 16px;
+        max-width: 600px;
+        width: 90%;
+        max-height: 90vh;
+        overflow-y: auto;
+        position: relative;
+        transform: scale(0.95);
+        transition: transform 0.3s ease, background 0.3s;
+    }
+    .modal.is-open .modal-content {
+        transform: scale(1);
+    }
+    .modal-close {
+        position: absolute;
+        top: 10px; right: 10px;
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        cursor: pointer;
+        color: var(--color-text-light);
+    }
+    .modal-details-grid p {
+        margin-bottom: 8px;
+        border-bottom: 1px dashed #eee;
+        padding-bottom: 5px;
+    }
+    body.dark-mode .modal-details-grid p {
+        border-bottom: 1px dashed #444;
+    }
+    .modal-full-description {
+        padding: 15px;
+        background: var(--color-background);
+        border-radius: 8px;
+        margin-bottom: 20px;
+        color: var(--color-text) !important; 
+        background: var(--color-surface);
+    }
+    body.dark-mode .modal-full-description {
+        color: var(--color-dark-text) !important;
+        background: var(--color-dark-surface);
+    }
+    .modal-full-description h4 {
+        color: inherit; 
+        margin-top: 0;
+    }
+
+    .img-modal-content {
+        max-width: 90%;
+        max-height: 90%;
+        display: block;
+    }
+    .img-modal-content img {
+        width: auto;
+        max-width: 100%;
+        height: auto;
+        max-height: 100vh;
+        display: block;
+        border-radius: 12px;
+        cursor: pointer;
+    }
+
+    /* Responsive */
+    @media (max-width: 600px) {
+        .switches { flex-direction: column; }
+        .switches button, .btn-publish-nav { width: 100%; margin-bottom: 5px; justify-content: center; }
+        .modal-content { padding: 1.5rem; }
+        header { padding: 1rem 1rem; }
+        .card-footer { flex-direction: column; }
+        .btn-info, .btn-whatsapp { width: 100%; justify-content: center; }
+    }
+
+    ---
+
+    /* --- ESTILOS PARA LA TARJETA DE PUBLICIDAD INTEGRADA --- */
+
+    /* 🔑 8. Tarjeta de Publicidad (Se integra al Grid de productos) */
+    .ad-card {
+        /* Hereda la base de una tarjeta normal */
+        background: var(--color-surface);
+        border-radius: 16px;
+        box-shadow: var(--shadow-md); 
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s;
         
-        /* En escritorio, el sidebar se muestra y el main-content tiene margen */
-        @media (min-width: 992px) {
-            .sidebar {
-                position: sticky; /* Vuelve a ser fijo en la posición */
-                transform: translateX(0); /* Siempre visible */
-            }
-            body {
-                display: flex; /* Vuelve al modo flex tradicional de dashboard */
-            }
-            .main-content {
-                margin-left: 250px; /* Ajusta el contenido al lado del sidebar */
-            }
-            .menu-toggle {
-                display: none !important; /* Oculta el botón en escritorio */
-            }
-        }
-        
-        /* Botón de Menú para Responsive */
-        .menu-toggle {
-            position: fixed;
-            top: 1rem;
-            left: 1rem;
-            background: var(--color-primary);
-            color: var(--color-bg-dark);
-            width: 40px;
-            height: 40px;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1001;
-            cursor: pointer;
-            border: none;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
-            font-size: 1.2rem;
-        }
-        
-        .logo {
-            font-size: 1.5rem;
-            font-weight: 700;
-            margin-bottom: 3rem;
-            color: var(--color-primary);
-            text-transform: uppercase;
-            letter-spacing: 2px;
-        }
+        /* Distinción Visual: Borde del color de anuncio */
+        border: 3px solid var(--color-advertisement);
+    }
 
-        .nav-links {
-            display: flex;
-            flex-direction: column;
-            width: 100%;
-        }
+    body.dark-mode .ad-card {
+        border: 3px solid var(--color-dark-advertisement);
+        box-shadow: 0 4px 12px rgba(248, 196, 64, 0.2); 
+    }
 
-        .nav-links button {
-            display: flex;
-            align-items: center;
-            width: 100%;
-            padding: 1rem 2rem;
-            border: none;
-            background: none;
-            color: var(--color-text-light);
-            text-align: left;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background-color 0.3s, color 0.3s, border-left 0.3s;
-            border-left: 5px solid transparent;
-        }
+    .ad-card-body {
+        padding: 1rem 1.25rem;
+        flex-grow: 1;
+        text-align: center;
+    }
 
-        .nav-links button i {
-            margin-right: 10px;
-            font-size: 1.2rem;
-        }
+    .ad-card-body h4 {
+        color: var(--color-advertisement);
+        font-size: 1.3rem;
+        margin-top: 0;
+        margin-bottom: 5px;
+        font-weight: 700;
+    }
 
-        .nav-links button:hover,
-        .nav-links button.active {
-            background-color: rgba(0, 188, 212, 0.1);
-            color: var(--color-primary);
-            border-left: 5px solid var(--color-primary);
-        }
+    body.dark-mode .ad-card-body h4 {
+        color: var(--color-dark-advertisement);
+    }
 
-        /* 2. Contenido Principal */
-        header {
-            background: none;
-            color: var(--color-text-light);
-            padding: 0 0 2rem 0;
-            text-align: left;
-            border-bottom: 1px solid var(--color-border);
-            margin-bottom: 2rem;
-            /* Pequeño margen para que el título no se superponga con el menú desplegable en móvil */
-            padding-top: 50px; 
-        }
-        @media (min-width: 992px) {
-            header {
-                padding-top: 0; /* Eliminar margen en escritorio */
-            }
-        }
-        header h1 {
-            margin: 0;
-            font-size: 2.5rem;
-            font-weight: 700;
-        }
-        
-        /* 3. Secciones de Formulario y Listado */
-        .form-section {
-            display: none;
-            background: var(--color-bg-light);
-            padding: 2rem;
-            border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-            border: 1px solid var(--color-border);
-            margin-bottom: 2rem;
-        }
+    .ad-card-body p {
+        font-size: 0.95rem;
+        color: var(--color-text-light);
+        margin: 0;
+    }
 
-        .form-section.active {
-            display: block;
-        }
+    .ad-card .ad-cta {
+        display: block;
+        background: var(--color-advertisement);
+        color: white !important;
+        padding: 0.75rem 1rem;
+        font-weight: 600;
+        text-align: center;
+        text-decoration: none;
+        transition: background 0.3s;
+    }
+    body.dark-mode .ad-card .ad-cta {
+        background: var(--color-dark-advertisement);
+        color: var(--color-dark-background) !important;
+    }
 
-        /* Estilo de Formulario */
-        form {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-        }
-
-        form label {
-            display: block;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-            color: var(--color-primary);
-        }
-
-        form input, form select, form textarea {
-            width: 100%;
-            padding: 0.75rem;
-            border: 1px solid var(--color-border);
-            border-radius: 8px;
-            background-color: var(--color-bg-dark);
-            color: var(--color-text-light);
-            font-family: var(--font-stack);
-            font-size: 1rem;
-            transition: border-color 0.3s, box-shadow 0.3s;
-        }
-
-        form input:focus, form select:focus, form textarea:focus {
-            border-color: var(--color-primary);
-            box-shadow: 0 0 0 2px rgba(0, 188, 212, 0.5);
-            outline: none;
-        }
-
-        form textarea {
-            resize: vertical;
-            min-height: 100px;
-        }
-        
-        .form-action-group {
-            grid-column: 1 / -1; /* Ocupa todo el ancho */
-            display: flex;
-            justify-content: flex-end;
-            padding-top: 1rem;
-        }
-
-        /* Botones generales */
-        button {
-            padding: 0.75rem 1.5rem;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: background 0.3s, transform 0.1s;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-
-        form button[type="submit"] {
-            background: var(--color-success);
-            color: var(--color-bg-dark);
-        }
-
-        form button[type="submit"]:hover {
-            background: #45a049;
-            transform: translateY(-2px);
-        }
-        
-        /* 4. Listado de Items (Tarjetas) */
-        .listado {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-            gap: 1.5rem;
-        }
-
-        .card {
-            display: flex;
-            flex-direction: column;
-            background: var(--color-bg-light);
-            border: 1px solid var(--color-border);
-            border-radius: 12px;
-            padding: 1rem;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-            transition: transform 0.3s, box-shadow 0.3s;
-        }
-
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
-        }
-
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px dashed var(--color-border);
-            padding-bottom: 0.75rem;
-            margin-bottom: 0.75rem;
-        }
-
-        .card-title {
-            font-size: 1.1rem;
-            font-weight: 700;
-            color: var(--color-primary);
-        }
-
-        .card-details {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 0.5rem;
-            font-size: 0.9rem;
-            margin-bottom: 1rem;
-        }
-        
-        .card-detail-item strong {
-            color: var(--color-secondary);
-            font-weight: 600;
-        }
-
-        .card-actions {
-            display: flex;
-            justify-content: flex-end;
-            gap: 0.5rem;
-            padding-top: 1rem;
-            border-top: 1px dashed var(--color-border);
-        }
-
-        .card-actions button {
-            padding: 0.5rem 1rem;
-            border-radius: 6px;
-            font-size: 0.9rem;
-            color: var(--color-bg-dark);
-        }
-
-        .card-actions button.edit {
-            background: var(--color-primary);
-        }
-        .card-actions button.edit:hover {
-            background: #00a4b8;
-        }
-
-        .card-actions button.delete {
-            background: var(--color-danger);
-        }
-        .card-actions button.delete:hover {
-            background: #d32f2f;
-        }
-
-        /* 5. Cargador */
-        .loader {
-            text-align: center;
-            font-weight: 600;
-            color: var(--color-secondary);
-            margin: 2rem 0;
-            font-size: 1.2rem;
-        }
-    </style>
+    /* Contenedor de la imagen (o icono) */
+    .ad-card-image-container {
+        width: 100%;
+        height: 150px; 
+        overflow: hidden;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    .ad-card-image-container img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+</style>
 </head>
-<body>
-    
-    <button class="menu-toggle" id="menu-toggle">
-        <i class="fas fa-bars"></i>
-    </button>
-    
-    <nav class="sidebar" id="sidebar">
-        <div class="logo">Nexus Admin</div>
-        <div class="nav-links">
-            <button id="btn-productos" class="active" onclick="mostrarSeccion('productos', this); cerrarSidebar();"><i class="fas fa-box"></i> Productos</button>
-            <button id="btn-servicios" onclick="mostrarSeccion('servicios', this); cerrarSidebar();"><i class="fas fa-handshake"></i> Servicios</button>
-            <button id="btn-publicidad" onclick="mostrarSeccion('publicidad', this); cerrarSidebar();"><i class="fas fa-ad"></i> Publicidad</button>
+<body class="light-mode">
+    <header>
+        <h1><i class="fas fa-store"></i> Nexus Marketplace</h1>
+        <button id="darkModeToggle" onclick="toggleDarkMode()">
+            <i class="fas fa-moon"></i>
+        </button>
+    </header>
+    <main class="tienda-container">
+        <div class="nav-section">
+            <div class="switches">
+                <button onclick="cambiarVista('productos')" class="active"><i class="fas fa-box"></i> Productos</button>
+                <button onclick="cambiarVista('servicios')"><i class="fas fa-handshake"></i> Servicios</button>
+                <a href="#" class="btn-publish-nav" target="_blank"><i class="fas fa-cloud-upload-alt"></i> Publica Ahora</a> 
+            </div>
+
+            <div class="filter-bar">
+                <div class="filter-group">
+                    <label for="search-input"><i class="fas fa-search"></i> Buscar por nombre/descripción</label>
+                    <input type="text" id="search-input" placeholder="Ej: Zapatillas, Consultoría..." onkeyup="debouncedAplicarFiltros()">
+                </div>
+                
+                <div class="filter-group">
+                    <label for="category-filter"><i class="fas fa-tags"></i> Categoría</label>
+                    <select id="category-filter" onchange="aplicarFiltros()">
+                        <option value="">Todas</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label for="sort-filter"><i class="fas fa-sort"></i> Ordenar por</label>
+                    <select id="sort-filter" onchange="aplicarFiltros()">
+                        <option value="default">Relevancia</option>
+                        <option value="price_asc">Precio ↑</option>
+                        <option value="price_desc">Precio ↓</option>
+                        <option value="date_desc">Más Reciente</option>
+                        <option value="date_asc">Más Antiguo</option>
+                    </select>
+                </div>
+            </div>
         </div>
-    </nav>
+        
+        <div class="grid main-content-grid" id="contenedor">
+        </div>
 
-    <div class="main-content">
-        <header>
-            <h1 id="current-title">Gestión de Productos</h1>
-        </header>
-
-        <div id="productos" class="form-section active"></div>
-        <div id="servicios" class="form-section"></div>
-        <div id="publicidad" class="form-section"></div>
+        <div class="grid" id="cta-registro-final">
+            <div class="cta-register-banner">
+                <h3>¿Quieres vender o publicar un servicio? 🚀</h3>
+                <p>¡Únete a nuestra comunidad de vendedores! Es fácil, rápido y te ayuda a llegar a más clientes.</p>
+                <a href="#" class="btn-register" target="_blank"><i class="fas fa-hand-point-up"></i> ¡Publica Ahora!</a>
+            </div>
+        </div>
+        
+    </main>
+    <div class="modal" id="modalInfo">
+        <div class="modal-content" id="modalDetalle">
+            <button class="modal-close" onclick="cerrarModal('modalInfo')"><i class="fas fa-times"></i></button>
+            <h2 id="modal-titulo">Detalle del Item</h2>
+            
+            <button class="btn-share" id="btnShareModal" style="margin-bottom: 20px;"><i class="fas fa-share-alt"></i> Copiar Enlace</button>
+            
+            <div class="modal-full-description">
+                <h4>Descripción Completa</h4>
+                <p id="modal-description"></p>
+            </div>
+            
+            <div class="modal-details-grid" id="modalContenido">
+            </div>
+        </div>
     </div>
 
-    <script>
-        // *** TU API URL AQUÍ ***
-        const API_URL = "https://script.google.com/macros/s/AKfycby7R1QM5_ljLesLJeQjaurh1JFZVqXBDUOUjQOllEmeQDukqkhzD98KXzm8SvaiQ_hfLw/exec"
-        const API_IMGBB = "86db997f09d5db12c1f731dc79e4d83d";
+    <div class="img-modal" id="modalImg" onclick="cerrarModal('modalImg')">
+        <div class="img-modal-content">
+            <img id="imgAmpliada" src="" alt="Imagen ampliada">
+        </div>
+    </div>
+</body>
 
-        let secciones = {
-            productos: {
-                titulo: "Gestión de Productos",
-                campos: ["Nombre", "Descripción", "Precio", "Condición", "Imagen", "Vendedor", "WhatsApp", "Tienda", "DNI", "Ubicación", "Tipo", "Categoría", "Envío"],
-                icon: "fas fa-box"
-            },
-            servicios: {
-                titulo: "Gestión de Servicios",
-                campos: ["Nombre", "Descripción", "Precio", "Condición", "Imagen", "Vendedor", "WhatsApp", "Tienda", "DNI", "Ubicación", "Tipo", "Categoría", "Envío"],
-                icon: "fas fa-handshake"
-            },
-            publicidad: {
-                titulo: "Gestión de Publicidad",
-                campos: ["Título", "Imagen", "Link", "Posición", "FechaInicio", "FechaFin", "Estado", "Tipo"],
-                icon: "fas fa-ad"
-            }
+<script>
+    const API_URL = "https://script.google.com/macros/s/AKfycbwg4ebnxJarEGaFU0UPfDzncxTD6QDJFGH8eD5IHuaX9bgFl-P5puxqzuiHtg0np_qL-g/exec"; 
+    
+    let vistaActual = 'productos';
+    let datosOriginales = []; 
+    let publicidadActiva = []; 
+    let currentItem = null;
+    const CAMPOS_A_EXCLUIR = ['ID', 'Estado', 'Imagen', 'DNI', 'Tipo', 'FechaInicio', 'FechaFin', 'Descripción', 'Clicks', 'Vendedor', 'Tienda', 'DíasPublicados', 'Posición', 'Título', 'Enlace', 'Link', 'Clics']; 
+    
+    // Función de Debouncing (para filtros)
+    function debounce(func, delay) {
+        let timeoutId;
+        return function(...args) {
+            clearTimeout(timeoutId);
+            timeoutId = setTimeout(() => {
+                func.apply(this, args);
+            }, delay);
         };
+    }
+    const debouncedAplicarFiltros = debounce(aplicarFiltros, 300);
 
-        const formElementsMap = {
-            "Descripción": "textarea",
-            "Condición": ["select", ["Nuevo", "Usado"]],
-            "Envío": ["select", ["Gratis", "A coordinar"]],
-            "Imagen": ["file", "image/*"],
-            "FechaInicio": ["date", null],
-            "FechaFin": ["date", null],
-            // Otros campos serán por defecto "text"
-        };
+    // Formato de Moneda
+    function formatPrice(price) {
+        const num = parseFloat(price);
+        if (isNaN(num)) return price;
+        return new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', minimumFractionDigits: 0 }).format(num).replace('ARS', '$');
+    }
 
-        // =======================================================
-        // LÓGICA DE RESPONSIVIDAD DEL MENÚ (NUEVO)
-        // =======================================================
-        const sidebar = document.getElementById('sidebar');
-        const menuToggle = document.getElementById('menu-toggle');
-
-        function abrirSidebar() {
-            sidebar.classList.add('open');
-            // Opcional: Agregar un overlay para cerrar al tocar fuera
+    // --- FUNCIONES DE MODO OSCURO (Mantenidas) ---
+    function toggleDarkMode() {
+        const body = document.body;
+        const isDarkMode = body.classList.toggle('dark-mode');
+        const toggleButton = document.getElementById('darkModeToggle');
+        
+        if (isDarkMode) {
+            localStorage.setItem('darkMode', 'enabled');
+            toggleButton.innerHTML = '<i class="fas fa-sun"></i>';
+            body.classList.remove('light-mode');
+        } else {
+            localStorage.setItem('darkMode', 'disabled');
+            toggleButton.innerHTML = '<i class="fas fa-moon"></i>';
+            body.classList.add('light-mode');
         }
+    }
 
-        function cerrarSidebar() {
-            sidebar.classList.remove('open');
+    function loadDarkModePreference() {
+        const preference = localStorage.getItem('darkMode');
+        const toggleButton = document.getElementById('darkModeToggle');
+        
+        if (preference === 'enabled') {
+            document.body.classList.add('dark-mode');
+            toggleButton.innerHTML = '<i class="fas fa-sun"></i>';
+        } else {
+             document.body.classList.remove('dark-mode');
+            toggleButton.innerHTML = '<i class="fas fa-moon"></i>';
         }
+    }
 
-        menuToggle.addEventListener('click', () => {
-            if (sidebar.classList.contains('open')) {
-                cerrarSidebar();
-            } else {
-                abrirSidebar();
+
+    // --- FUNCIONES DE LA TIENDA ---
+
+    function cambiarVista(tipo) {
+        vistaActual = tipo;
+        document.querySelectorAll('.switches button').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('.switches button').forEach(btn => {
+            if (btn.textContent.toLowerCase().includes(tipo)) btn.classList.add('active');
+        });
+        document.getElementById('search-input').value = '';
+        document.getElementById('category-filter').value = '';
+        document.getElementById('sort-filter').value = 'default';
+        cargarDatos();
+    }
+
+    function llenarFiltroCategorias(data) {
+        const select = document.getElementById('category-filter');
+        select.innerHTML = '<option value="">Todas</option>'; 
+        const categorias = new Set();
+        data.forEach(item => {
+            if (item.Categoría && String(item.Categoría).trim() !== "") {
+                categorias.add(item.Categoría);
             }
         });
         
-        // =======================================================
-        // FUNCIONES EXISTENTES
-        // =======================================================
+        const categoriasOrdenadas = Array.from(categorias).sort();
 
-        function capitalize(s) {
-            return s.charAt(0).toUpperCase() + s.slice(1);
-        }
-
-        function crearCampo(campo, tipoSeccion) {
-            const group = document.createElement('div');
-            group.className = 'form-group';
-
-            const label = document.createElement('label');
-            label.textContent = campo + ":";
-            label.setAttribute('for', `${tipoSeccion}-${campo}`);
-            group.appendChild(label);
-
-            let input;
-            const config = formElementsMap[campo];
-            const elementType = config ? config[0] : "input";
-            const elementParams = config ? config[1] : null;
-
-            if (elementType === "textarea") {
-                input = document.createElement("textarea");
-            } else if (elementType === "select") {
-                input = document.createElement("select");
-                elementParams.forEach(op => {
-                    let opt = document.createElement("option");
-                    opt.value = op;
-                    opt.textContent = op;
-                    input.appendChild(opt);
-                });
-            } else { // input (text, file, date, etc.)
-                input = document.createElement("input");
-                input.type = elementType === "file" ? elementParams : (elementType === "date" ? "date" : "text");
-                if (elementType === "file") {
-                    input.accept = elementParams;
-                    input.onchange = subirImagen;
-                }
-            }
-
-            input.name = campo;
-            input.id = `${tipoSeccion}-${campo}`;
-            input.placeholder = campo === "Tipo" ? tipoSeccion : campo;
-            
-            // Valor predeterminado para el campo 'Tipo'
-            if (campo === "Tipo") {
-                input.value = tipoSeccion;
-                input.readOnly = true; // No editable
-                input.style.opacity = 0.7;
-            }
-
-            group.appendChild(input);
-            return group;
-        }
-
-
-        function mostrarSeccion(seccion, boton) {
-            // Actualizar título y botón activo
-            document.getElementById('current-title').textContent = secciones[seccion].titulo;
-            document.querySelectorAll('.nav-links button').forEach(btn => btn.classList.remove('active'));
-            if (boton) {
-                boton.classList.add('active');
-            } else {
-                document.getElementById(`btn-${seccion}`).classList.add('active');
-            }
-            
-            // Mostrar/Ocultar secciones
-            document.querySelectorAll('.form-section').forEach(div => div.classList.remove('active'));
-            const contenedor = document.getElementById(seccion);
-            contenedor.classList.add('active');
-
-            if (!contenedor.dataset.ready) {
-                const form = document.createElement("form");
-                form.onsubmit = e => guardarItem(e, seccion);
-
-                secciones[seccion].campos.forEach(campo => {
-                    form.appendChild(crearCampo(campo, seccion));
-                });
-                
-                // Agrupar botón de acción
-                const actionGroup = document.createElement('div');
-                actionGroup.className = 'form-action-group';
-
-                const btn = document.createElement("button");
-                btn.type = "submit";
-                btn.textContent = "Guardar " + capitalize(seccion.slice(0, -1)); // Ej: 'Guardar Producto'
-                actionGroup.appendChild(btn);
-                form.appendChild(actionGroup);
-
-                contenedor.appendChild(form);
-                
-                const listado = document.createElement("div");
-                listado.id = "listado-" + seccion;
-                listado.className = "listado";
-                contenedor.appendChild(listado);
-                contenedor.dataset.ready = "true";
-            }
-
-            cargarLista(seccion);
-        }
-
-        function subirImagen(e) {
-            const input = e.target;
-            const file = input.files[0];
-            if (!file) return;
-
-            const formData = new FormData();
-            formData.append("image", file);
-
-            const loader = document.createElement("div");
-            loader.className = "loader";
-            loader.textContent = "Subiendo imagen... 📸";
-            input.parentElement.appendChild(loader);
-
-            fetch("https://api.imgbb.com/1/upload?key=" + API_IMGBB, {
-                method: "POST",
-                body: formData
-            })
-            .then(res => res.json())
-            .then(data => {
-                loader.remove();
-                if (data.success) {
-                    const url = data.data.url;
-                    // Eliminar cualquier campo de imagen oculto previo
-                    let hidden = input.parentElement.querySelector('input[type="hidden"][name="Imagen"]');
-                    if(hidden) hidden.remove();
-                    
-                    // Crear nuevo campo de imagen oculto con la URL
-                    hidden = document.createElement("input");
-                    hidden.type = "hidden";
-                    hidden.name = "Imagen";
-                    hidden.value = url;
-                    input.parentElement.appendChild(hidden);
-                    alert("Imagen subida con éxito: " + url);
-                } else {
-                    alert("Error al subir imagen: " + data.error.message);
-                }
-            })
-            .catch(error => {
-                loader.remove();
-                console.error("Error en la subida:", error);
-                alert("Error de red al subir la imagen.");
-            });
-        }
-
-        function guardarItem(e, tipo) {
-            e.preventDefault();
-            const form = e.target;
-            const data = {};
-            [...form.elements].forEach(el => {
-                // Solo incluir elementos con nombre y que no sean el input de tipo 'file' visible
-                if (el.name && el.type !== "file") {
-                    data[el.name] = el.value;
-                }
-            });
-
-            // Verificar si estamos editando (si existe el campo ID)
-            const isEditing = data.ID;
-            const action = isEditing ? 'editar' : 'guardar';
-
-            const btn = form.querySelector('button[type="submit"]');
-            btn.textContent = isEditing ? "Actualizando..." : "Guardando...";
-            btn.disabled = true;
-
-            fetch(`${API_URL}?tipo=${tipo}&accion=${action}`, {
-                method: "POST",
-                headers: {
-                    'Content-Type': 'text/plain;charset=utf-8' // Necesario para Google Apps Script
-                },
-                body: JSON.stringify(data)
-            })
-            .then(res => res.text())
-            .then(() => {
-                alert(isEditing ? "Actualizado correctamente ✅" : "Guardado correctamente ✅");
-                form.reset();
-                // Eliminar el campo ID si existía después de la operación
-                const hiddenID = form.querySelector('input[name="ID"]');
-                if (hiddenID) hiddenID.remove();
-                
-                cargarLista(tipo);
-            })
-            .catch(error => {
-                console.error("Error al guardar/actualizar:", error);
-                alert("Error al intentar guardar. Verifique la conexión.");
-            })
-            .finally(() => {
-                btn.textContent = isEditing ? "Actualizar " + capitalize(tipo.slice(0, -1)) : "Guardar " + capitalize(tipo.slice(0, -1));
-                btn.disabled = false;
-            });
-        }
-
-        function cargarLista(tipo) {
-            const contenedor = document.getElementById("listado-" + tipo);
-            contenedor.innerHTML = "<div class='loader'><i class='fas fa-spinner fa-spin'></i> Cargando datos...</div>";
-
-            fetch(`${API_URL}?tipo=${tipo}`)
-                .then(res => {
-                    if (!res.ok) throw new Error("Error en la respuesta de la API");
-                    return res.json();
-                })
-                .then(items => {
-                    contenedor.innerHTML = "";
-                    if (items.length === 0) {
-                        contenedor.innerHTML = "<div class='loader'>No hay items registrados.</div>";
-                        return;
-                    }
-                    
-                    items.forEach((item, index) => {
-                        const card = document.createElement("div");
-                        card.className = "card";
-
-                        // Construcción de la información de la tarjeta
-                        const infoHTML = `
-                            <div class="card-header">
-                                <span class="card-title">${item.Nombre || item.Título || 'Item sin Nombre'}</span>
-                            </div>
-                            <div class="card-details">
-                                <div class="card-detail-item"><strong>Precio:</strong> ${item.Precio || 'N/A'}</div>
-                                <div class="card-detail-item"><strong>Estado:</strong> ${item.Condición || item.Estado || 'N/A'}</div>
-                                ${item.Clicks ? `<div class="card-detail-item"><strong>Clics:</strong> ${item.Clicks}</div>` : ''}
-                                ${item.Vendedor ? `<div class="card-detail-item"><strong>Vendedor:</strong> ${item.Vendedor}</div>` : ''}
-                            </div>
-                        `;
-                        
-                        const info = document.createElement("div");
-                        info.innerHTML = infoHTML;
-
-                        const actions = document.createElement("div");
-                        actions.className = "card-actions";
-
-                        const btnEditar = document.createElement("button");
-                        btnEditar.textContent = "Editar";
-                        btnEditar.className = "edit";
-                        btnEditar.onclick = () => editarItem(item, tipo);
-
-                        const btnEliminar = document.createElement("button");
-                        btnEliminar.textContent = "Eliminar";
-                        btnEliminar.className = "delete";
-                        btnEliminar.onclick = () => eliminarItem(item.ID, tipo);
-
-                        // Eliminados botones de Mover (Arriba/Abajo)
-                        actions.append(btnEditar, btnEliminar);
-
-                        card.append(info, actions);
-                        contenedor.appendChild(card);
-                    });
-                })
-                .catch(error => {
-                    console.error("Error al cargar la lista:", error);
-                    contenedor.innerHTML = `<div class='loader' style="color:var(--color-danger);">Error al cargar: ${error.message}</div>`;
-                });
-        }
-
-        function editarItem(item, tipo) {
-            const contenedor = document.getElementById(tipo);
-            const form = contenedor.querySelector("form");
-            form.scrollIntoView({ behavior: 'smooth' }); // Subir al formulario para editar
-
-            // Llenar los campos del formulario
-            secciones[tipo].campos.forEach(campo => {
-                const input = form.querySelector(`[name="${campo}"]`);
-                if (input) {
-                    if (campo === "Imagen") {
-                        if (item.Imagen) {
-                            let hidden = form.querySelector('input[type="hidden"][name="Imagen"]');
-                            if(!hidden) {
-                                hidden = document.createElement("input");
-                                hidden.type = "hidden";
-                                hidden.name = "Imagen";
-                                input.parentElement.appendChild(hidden);
-                            }
-                            hidden.value = item.Imagen;
-                            alert(`URL de Imagen actual cargada: ${item.Imagen.substring(0, 30)}...`);
-                        }
-                    } else {
-                        input.value = item[campo] || "";
-                    }
-                }
-            });
-
-            // Añadir el campo ID oculto para la operación de edición
-            let hiddenID = form.querySelector('input[name="ID"]');
-            if (!hiddenID) {
-                hiddenID = document.createElement("input");
-                hiddenID.type = "hidden";
-                hiddenID.name = "ID";
-                form.appendChild(hiddenID);
-            }
-            hiddenID.value = item.ID;
-            
-            // Actualizar el texto del botón
-            const btn = form.querySelector('button[type="submit"]');
-            btn.textContent = "Actualizar " + capitalize(tipo.slice(0, -1));
-        }
-
-
-        function eliminarItem(id, tipo) {
-            if (!confirm("⚠️ ¿Estás seguro de que quieres eliminar este item de forma permanente?")) return;
-            fetch(`${API_URL}?tipo=${tipo}&accion=eliminar&id=${id}`, {
-                method: "POST"
-            })
-            .then(res => res.text())
-            .then(() => {
-                alert("Eliminado correctamente 🗑️");
-                cargarLista(tipo);
-            })
-            .catch(error => {
-                console.error("Error al eliminar:", error);
-                alert("Error al intentar eliminar.");
-            });
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            mostrarSeccion("productos");
+        categoriasOrdenadas.forEach(cat => {
+            const option = document.createElement('option');
+            option.value = cat;
+            option.textContent = cat;
+            select.appendChild(option);
         });
-    </script>
+    }
 
+    function aplicarFiltros() {
+        const searchText = document.getElementById('search-input').value.toLowerCase();
+        const category = document.getElementById('category-filter').value;
+        const sortCriteria = document.getElementById('sort-filter').value;
+        
+        let datosFiltrados = [...datosOriginales];
+        
+        // 1. Filtrar por texto
+        if (searchText) {
+            datosFiltrados = datosFiltrados.filter(item => 
+                (item.Nombre && String(item.Nombre).toLowerCase().includes(searchText)) ||
+                (item.Descripción && String(item.Descripción).toLowerCase().includes(searchText))
+            );
+        }
+        
+        // 2. Filtrar por Categoría
+        if (category) {
+            datosFiltrados = datosFiltrados.filter(item => item.Categoría === category);
+        }
+
+        // 3. Aplicar Ordenamiento
+        switch (sortCriteria) {
+            case 'price_asc':
+                datosFiltrados.sort((a, b) => (parseFloat(a.Precio) || 0) - (parseFloat(b.Precio) || 0));
+                break;
+            case 'price_desc':
+                datosFiltrados.sort((a, b) => (parseFloat(b.Precio) || 0) - (parseFloat(a.Precio) || 0));
+                break;
+            case 'date_desc':
+                datosFiltrados.sort((a, b) => (String(b.ID).localeCompare(String(a.ID)))); 
+                break;
+            case 'date_asc':
+                datosFiltrados.sort((a, b) => (String(a.ID).localeCompare(String(b.ID))));
+                break;
+        }
+
+        // 4. Mostrar los datos (aquí se combina con la publicidad)
+        mostrarDatos(datosFiltrados, publicidadActiva); 
+    }
+    
+    // 🔑 FUNCIÓN DE CARGA PRINCIPAL (Carga Ítems Y Publicidad)
+    function cargarDatos() {
+        const contenedor = document.getElementById('contenedor');
+        contenedor.innerHTML = '<p style="grid-column: 1 / -1; text-align: center;"><i class="fas fa-spinner fa-spin"></i> Cargando...</p>';
+
+        // Hacemos las dos llamadas a la API de forma paralela
+        Promise.all([
+            fetch(`${API_URL}?tipo=${vistaActual}`).then(res => res.json()),
+            fetch(`${API_URL}?tipo=publicidad`).then(res => res.json())
+        ])
+        .then(([datosItems, datosPublicidad]) => {
+            // 1. Procesar Ítems (Productos/Servicios)
+            datosOriginales = datosItems.filter(item => item.Estado && String(item.Estado).toLowerCase() === 'activo');
+            
+            // 2. Procesar Publicidad
+            publicidadActiva = datosPublicidad.map(ad => {
+                // Como el JSON ahora es correcto, solo necesitamos asegurar que la posición es numérica.
+                ad.Posición = parseInt(ad.Posición); 
+                return ad;
+            }).filter(ad => 
+                ad.Estado && String(ad.Estado).toLowerCase() === 'activo' && 
+                !isNaN(ad.Posición) // Filtrar solo si la posición es un número válido
+            );
+
+            console.log(`[DEBUG PUBLICIDAD] Anuncios activos y con posición válida: ${publicidadActiva.length}`);
+            
+            // 3. Rellenar filtros y aplicar filtros/renderizado
+            llenarFiltroCategorias(datosOriginales);
+            aplicarFiltros(); 
+        })
+        .catch(error => {
+            contenedor.innerHTML = '<p style="grid-column: 1 / -1; text-align: center; color: #e74c3c;"><i class="fas fa-exclamation-triangle"></i> **ERROR CRÍTICO DE CARGA:** No se pudo conectar a la API o el JSON está malformado. Revisa tu consola.</p>';
+            console.error("Error al cargar datos:", error);
+            datosOriginales = [];
+            publicidadActiva = [];
+            mostrarDatos([]);
+        });
+    }
+
+    // 🔑 FUNCIÓN AUXILIAR: Crea el HTML de la tarjeta de publicidad
+    function crearCardPublicidad(item) {
+        // 🚨 CORRECCIÓN CRÍTICA: Usar item.Enlace (como lo devuelve tu JSON) en lugar de item.Link
+        const adLink = item.Enlace || '#'; 
+        
+        return `
+            <div class="ad-card" data-ad-id="${item.ID}">
+                <a href="${adLink}" target="_blank" onclick="registrarClickPublicidad('${item.ID}')" style="text-decoration: none;">
+                    ${item.Imagen && item.Imagen.startsWith('http') ? `
+                        <div class="ad-card-image-container">
+                            <img src="${item.Imagen}" alt="${item.Título || 'Anuncio'}" loading="lazy">
+                        </div>
+                    ` : `
+                        <div class="ad-card-image-container" style="background: var(--color-surface); display: flex; justify-content: center; align-items: center; min-height: 100px;">
+                            <i class="fas fa-bullhorn fa-4x" style="color: var(--color-advertisement);"></i>
+                        </div>
+                    `}
+                    <div class="ad-card-body">
+                        <h4><i class="fas fa-bullhorn"></i> ${item.Título || 'Promoción Especial'}</h4>
+                        <p>${item.Descripción || '¡Haz crecer tu negocio hoy mismo!'}</p>
+                    </div>
+                    <div class="ad-cta">
+                        ¡Más Información! <i class="fas fa-arrow-right"></i>
+                    </div>
+                </a>
+            </div>
+        `;
+    }
+
+    // 🔑 FUNCIÓN DE RENDERIZADO (combina Ítems y Publicidad)
+    function mostrarDatos(items, ads = []) {
+        const contenedor = document.getElementById('contenedor');
+        contenedor.innerHTML = ''; 
+        
+        if (!items || items.length === 0) {
+            const searchActive = document.getElementById('search-input').value || document.getElementById('category-filter').value;
+            
+            const mensaje = !searchActive
+                ? '<p style="grid-column: 1 / -1; text-align: center; color: var(--color-danger);"><i class="fas fa-exclamation-triangle"></i> **NO HAY ITEMS ACTIVOS.**</p>'
+                : '<p style="grid-column: 1 / -1; text-align: center;"><i class="fas fa-info-circle"></i> No hay ítems que coincidan con los filtros aplicados en esta sección.</p>';
+            
+            contenedor.innerHTML = mensaje;
+            return;
+        }
+
+        // 1. Crear un fragmento para optimizar la inserción en el DOM
+        const fragment = document.createDocumentFragment();
+
+        // 2. Convertir los items a Nodos DOM (elementos <div class="card">)
+        const itemNodes = items.map(item => {
+            const card = document.createElement('div');
+            card.className = 'card';
+            
+            const imgUrl = item.Imagen && item.Imagen.startsWith('http') ? item.Imagen : 'https://via.placeholder.com/400x220?text=Sin+Imagen';
+            const price = formatPrice(item.Precio) || 'Consultar';
+            const desc = item.Descripción || 'Sin descripción disponible.';
+            
+            card.innerHTML = `
+                <div class="card-image-container">
+                    <img src="${imgUrl}" alt="${item.Nombre || item.Titulo}" loading="lazy" onclick="event.stopPropagation(); mostrarImg('${imgUrl}');">
+                </div>
+                <div class="card-body">
+                    <h3>${item.Nombre || item.Titulo}</h3>
+                    <div class="price">${price}</div>
+                    <p class="description">${desc}</p>
+                </div>
+                <div class="card-footer">
+                    <button class="btn-info" onclick="mostrarInfo(datosOriginales.find(i => i.ID === '${item.ID}')); registrarClick('${item.ID}');">
+                        <i class="fas fa-info-circle"></i> Detalle
+                    </button>
+                    <a href="https://wa.me/${item.WhatsApp}?text=Hola! Vi tu ${vistaActual.slice(0, -1)}: ${item.Nombre || item.Titulo}. Me interesa!" 
+                       class="btn-whatsapp" target="_blank" onclick="registrarClick('${item.ID}')">
+                        <i class="fab fa-whatsapp"></i> Contactar
+                    </a>
+                </div>
+            `;
+            return card;
+        });
+
+        // 3. Insertar la publicidad
+        if (ads && ads.length > 0) {
+             console.log(`[DEBUG PUBLICIDAD] Procesando ${ads.length} anuncios para inserción.`);
+
+            // Ordenamos por la posición numérica
+            ads.sort((a, b) => a.Posición - b.Posición);
+
+            // Insertamos de atrás hacia adelante para no alterar los índices
+            for (let i = ads.length - 1; i >= 0; i--) {
+                const ad = ads[i];
+                const posicion = ad.Posición; 
+
+                // Convertir el HTML del anuncio a un elemento DOM para la inserción
+                const adNodeHTML = crearCardPublicidad(ad); 
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = adNodeHTML;
+                const adElement = tempDiv.firstChild;
+                
+                if (adElement) {
+                    if (posicion >= 1 && posicion <= itemNodes.length) { 
+                        // Insertar en la posición indicada (los arrays son base 0, la posición es base 1)
+                        itemNodes.splice(posicion, 0, adElement); 
+                        console.log(`[DEBUG PUBLICIDAD] Anuncio ID: ${ad.ID} insertado en posición: ${posicion}`);
+                    } else if (posicion > itemNodes.length) {
+                        // Insertar al final si la posición es mayor que el número de ítems
+                        itemNodes.push(adElement);
+                        console.log(`[DEBUG PUBLICIDAD] Anuncio ID: ${ad.ID} añadido al final.`);
+                    } else {
+                         console.warn(`[DEBUG PUBLICIDAD] Anuncio ID: ${ad.ID} NO insertado. Posición inválida (0 o negativa): ${posicion}`);
+                    }
+                } else {
+                    console.error(`[DEBUG PUBLICIDAD] Falló la creación del elemento DOM para el Anuncio ID: ${ad.ID}`);
+                }
+            }
+        }
+        
+        // 4. Renderizar el array final al contenedor usando un fragmento
+        itemNodes.forEach(node => {
+            fragment.appendChild(node);
+        });
+
+        contenedor.appendChild(fragment); // Única inserción al DOM, más rápido
+    }
+    
+    // --- REGISTROS Y MODALES (Mantenidos) ---
+
+    function registrarClick(itemID) {
+         if (!itemID) return;
+         fetch(`${API_URL}?tipo=${vistaActual}&accion=click&id=${itemID}`, { method: 'POST' })
+         .then(res => {
+             if (res.ok) console.log(`Click registrado para el item ID: ${itemID} (${vistaActual})`);
+         })
+         .catch(error => console.error("Error al registrar click:", error));
+    }
+
+    function registrarClickPublicidad(adID) {
+        fetch(`${API_URL}?tipo=publicidad&accion=click&id=${adID}`, { method: 'POST' })
+        .then(res => {
+            if (res.ok) console.log(`Click registrado para el anuncio ID: ${adID}`);
+        })
+        .catch(error => console.error("Error al registrar click de publicidad:", error));
+    }
+
+    function mostrarInfo(item) {
+        currentItem = item; 
+        const modal = document.getElementById('modalInfo');
+        const titulo = document.getElementById('modal-titulo');
+        const contenido = document.getElementById('modalContenido');
+        const descripcionCompleta = document.getElementById('modal-description');
+        const btnShare = document.getElementById('btnShareModal');
+        
+        titulo.textContent = `Detalle de: ${item.Nombre || item.Titulo}`;
+        descripcionCompleta.textContent = item.Descripción || 'No hay una descripción completa disponible.';
+
+        let detailHTML = '';
+        for (const [key, value] of Object.entries(item)) {
+            // Excluimos las claves relevantes pero también las de publicidad
+            if (!CAMPOS_A_EXCLUIR.includes(key) && value) {
+                const displayKey = key === 'WhatsApp' ? 'Contacto' : key;
+                const displayValue = (key === 'Precio' && !isNaN(value)) ? formatPrice(value) : value;
+                detailHTML += `<p><strong>${displayKey}:</strong> ${displayValue}</p>`;
+            }
+        }
+        contenido.innerHTML = detailHTML;
+        
+        btnShare.onclick = () => {
+            const url = `${window.location.origin}${window.location.pathname}?tipo=${vistaActual}&id=${item.ID}`;
+            if (navigator.clipboard) {
+                 navigator.clipboard.writeText(url).then(() => {
+                     alert('Enlace copiado al portapapeles!');
+                 }).catch(err => {
+                     console.error('Error al copiar el enlace:', err);
+                     alert('Error al copiar. Por favor, copia la URL de la barra de direcciones.');
+                 });
+            } else {
+                 alert('Tu navegador no soporta la copia automática. Por favor, copia la URL de la barra de direcciones.');
+            }
+        };
+
+        modal.classList.add('is-open'); 
+    }
+    
+    function mostrarImg(src) {
+        const modal = document.getElementById('modalImg');
+        document.getElementById('imgAmpliada').src = src && src.startsWith('http') ? src : 'https://via.placeholder.com/600x400?text=Imagen+No+Disponible';
+        modal.classList.add('is-open'); 
+    }
+
+    function cerrarModal(id) {
+        document.getElementById(id).classList.remove('is-open');
+    }
+
+    window.onclick = e => {
+        if (e.target.id === 'modalInfo') cerrarModal('modalInfo');
+        if (e.target.id === 'modalImg') cerrarModal('modalImg');
+    };
+
+    document.addEventListener('DOMContentLoaded', () => {
+        loadDarkModePreference();
+        cambiarVista('productos');
+    });
+</script>
 </body>
 </html>
