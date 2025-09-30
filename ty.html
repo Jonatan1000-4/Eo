@@ -1,65 +1,56 @@
 <!DOCTYPE html>
-<html lang="es">
+<html>
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Carga y Análisis de M3U</title>
+<title>Carga M3U</title>
 <style>
-:root { --bg: #1e1e1e; --fg: #f0f0f0; --accent: #007bff; --muted: #777; }
-body { font-family: Arial, sans-serif; background: var(--bg); color: var(--fg); margin:0; padding:15px; font-size:14px; }
-h1,h2 { border-bottom:1px solid #333; padding-bottom:5px; }
-input,button { font-size:14px; padding:8px; margin:5px 0; }
-input[type="text"], input[type="file"] { width:100%; background:#2b2b2b; color:var(--fg); border:1px solid #555; }
-button { background: var(--accent); color:white; border:none; cursor:pointer; }
-#categories label { display:inline-block; background:#2b2b2b; padding:5px 10px; margin:3px; border:1px solid #555; cursor:pointer; }
-table { width:100%; border-collapse:collapse; margin-top:10px; }
-th,td { border:1px solid #444; padding:5px; font-size:12px; word-break:break-all; }
-#loading { color:yellow; }
+body{background:#1e1e1e;color:#f0f0f0;font-family:sans-serif;font-size:14px;padding:15px;}
+input,button{padding:6px;font-size:14px;margin:3px;}
+input[type="text"],input[type="file"]{width:100%;background:#2b2b2b;color:#fff;border:1px solid #555;}
+button{background:#007bff;color:white;border:none;cursor:pointer;}
+#categories label{display:inline-block;background:#2b2b2b;padding:4px 8px;margin:3px;border:1px solid #555;cursor:pointer;}
+table{width:100%;border-collapse:collapse;margin-top:10px;}
+th,td{border:1px solid #444;padding:4px;font-size:12px;word-break:break-all;}
 </style>
 </head>
 <body>
-<h1>Cargar y Analizar M3U</h1>
+<h1>Cargar M3U</h1>
 <input type="file" id="fileInput"><br>
-<input type="text" id="urlInput" placeholder="O pega una URL M3U">
+<input type="text" id="urlInput" placeholder="o URL M3U">
 <button onclick="loadM3U()">Cargar</button>
 <p id="loading" style="display:none;">Procesando...</p>
 
 <div id="metadata" style="display:none;">
-  <h2>Metadatos</h2>
-  <p>Total de Canales: <span id="total"></span></p>
-  <p>Idiomas: <span id="langs"></span></p>
-  <p>EPG: <span id="epg"></span></p>
-  <p>Expiración: <span id="exp"></span></p>
+<p>Total: <span id="total"></span></p>
+<p>Idiomas: <span id="langs"></span></p>
+<p>EPG: <span id="epg"></span></p>
+<p>Expira: <span id="exp"></span></p>
 </div>
 
 <h2>Categorías</h2>
 <div id="categories"></div>
 
 <h2>Canales (<span id="count">0</span>)</h2>
-<button id="exportBtn" onclick="exportToSheets()" disabled>Exportar Seleccionados a Sheets</button>
-<table>
-<thead><tr><th>Nombre</th><th>EPG</th><th>Categoría</th><th>URL</th></tr></thead>
-<tbody id="channelBody"></tbody>
-</table>
+<button id="exportBtn" onclick="exportToSheets()" disabled>Exportar a Sheets</button>
+<table><thead><tr><th>Nombre</th><th>EPG</th><th>Cat</th><th>URL</th></tr></thead><tbody id="channelBody"></tbody></table>
 
 <script>
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzIrdiQYYNiqb7e5OtFA8stogIjGJfmKyW0nHgPsAKnchvGTlAOIuYlccf9gk0YkTpP_w/exec"; 
 let allChannels=[];
 
 function parseM3U(txt){
  let lines=txt.split("\n").map(l=>l.trim()).filter(l=>l);
- let chs=[], cats=new Set(), langs=new Set(), epg=false, exp="No detectada";
+ let chs=[],cats=new Set(),langs=new Set(),epg=false,exp="No";
  let cur=null;
  for(let line of lines){
    if(line.startsWith("#EXTM3U") && line.includes("url-tvg")) epg=true;
    if(line.startsWith("#EXTINF")){
-     let cat=(line.match(/group-title="([^"]+)"/i)||[])[1]||"Sin Categoría";
+     let cat=(line.match(/group-title="([^"]+)"/i)||[])[1]||"SinCat";
      let epgId=(line.match(/tvg-id="([^"]+)"/i)||[])[1]||"";
      let lang=(line.match(/tvg-language="([^"]+)"/i)||[])[1]||"";
      let name=(line.split(",")[1]||"Canal").trim();
-     cur={name,category:cat,epgID:epgId,url:"",lang};
+     cur={Nombre:name,Categoria:cat,EpgID:epgId,Url:"",Idioma:lang,Fuente:"upload"};
      cats.add(cat); if(lang) langs.add(lang); if(epgId) epg=true;
-   } else if(cur && line.startsWith("http")){ cur.url=line; chs.push(cur); cur=null; }
+   } else if(cur && line.startsWith("http")){cur.Url=line;chs.push(cur);cur=null;}
    if(line.toLowerCase().includes("expire")) exp="Detectada";
  }
  return {channels:chs,cats:[...cats],langs:[...langs],epg,exp};
@@ -67,48 +58,56 @@ function parseM3U(txt){
 
 async function loadM3U(){
  document.getElementById("loading").style.display="block"; allChannels=[];
- let file=document.getElementById("fileInput").files[0]; let url=document.getElementById("urlInput").value.trim(); let txt="";
+ let file=document.getElementById("fileInput").files[0];
+ let url=document.getElementById("urlInput").value.trim(); let txt="";
  try{
-  if(file){ txt=await file.text(); }
+  if(file){txt=await file.text();}
   else if(url){
-    let r=await fetch(APPS_SCRIPT_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"fetchExternalUrl",url})});
-    let j=await r.json(); if(j.status!=="success") throw new Error(j.error); txt=j.m3uContent;
-  } else { alert("Seleccione archivo o URL"); return; }
-  let data=parseM3U(txt); allChannels=data.channels;
-  document.getElementById("metadata").style.display="block";
-  document.getElementById("total").textContent=allChannels.length;
-  document.getElementById("langs").textContent=data.langs.join(", ")||"N/A";
-  document.getElementById("epg").textContent=data.epg?"Sí":"No";
-  document.getElementById("exp").textContent=data.exp;
-  renderCats(data.cats);
- }catch(e){ alert("Error: "+e.message); } finally{ document.getElementById("loading").style.display="none"; }
+    let r=await google.script.run.withSuccessHandler(res=>{
+      if(res.status==="success"){txt=res.m3uContent;finish(txt);}else alert(res.error);
+    }).withFailureHandler(e=>alert("Error:"+e)).fetchExternalUrl(url);
+    return;
+  } else {alert("Seleccione archivo o URL");return;}
+  finish(txt);
+ }catch(e){alert("Error:"+e.message);}finally{document.getElementById("loading").style.display="none";}
+}
+
+function finish(txt){
+ let d=parseM3U(txt);allChannels=d.channels;
+ document.getElementById("metadata").style.display="block";
+ document.getElementById("total").textContent=allChannels.length;
+ document.getElementById("langs").textContent=d.langs.join(",")||"N/A";
+ document.getElementById("epg").textContent=d.epg?"Sí":"No";
+ document.getElementById("exp").textContent=d.exp;
+ renderCats(d.cats);
 }
 
 function renderCats(cats){
  let div=document.getElementById("categories"); div.innerHTML="";
- cats.forEach(c=>{ let l=document.createElement("label");
- l.innerHTML=`<input type="checkbox" value="${c}" onchange="filterChs()"> ${c}`;
- div.appendChild(l); });
+ cats.forEach(c=>{
+  let l=document.createElement("label");
+  l.innerHTML=`<input type="checkbox" value="${c}" onchange="filterChs()"> ${c}`;
+  div.appendChild(l);
+ });
  filterChs();
 }
 
 function filterChs(){
  let sel=[...document.querySelectorAll("#categories input:checked")].map(c=>c.value);
- let body=document.getElementById("channelBody"); body.innerHTML="";
- let chs=allChannels.filter(c=>sel.includes(c.category));
+ let b=document.getElementById("channelBody"); b.innerHTML="";
+ let chs=allChannels.filter(c=>sel.includes(c.Categoria));
  document.getElementById("count").textContent=chs.length;
  document.getElementById("exportBtn").disabled=chs.length===0;
- chs.forEach(ch=>{ let r=body.insertRow();
- r.innerHTML=`<td>${ch.name}</td><td>${ch.epgID||""}</td><td>${ch.category}</td><td style="font-size:11px">${ch.url}</td>`; });
+ chs.forEach(ch=>{
+  let r=b.insertRow();
+  r.innerHTML=`<td>${ch.Nombre}</td><td>${ch.EpgID}</td><td>${ch.Categoria}</td><td>${ch.Url}</td>`;
+ });
 }
 
-async function exportToSheets(){
+function exportToSheets(){
  let sel=[...document.querySelectorAll("#categories input:checked")].map(c=>c.value);
- let data=allChannels.filter(c=>sel.includes(c.category));
- try{
-   let r=await fetch(APPS_SCRIPT_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"appendM3UData",data})});
-   let j=await r.json(); alert(j.status==="success"?"Exportado":"Error: "+j.error);
- }catch(e){alert("Error: "+e.message);}
+ let data=allChannels.filter(c=>sel.includes(c.Categoria));
+ google.script.run.withSuccessHandler(res=>alert(JSON.stringify(res))).appendM3UData(data);
 }
 </script>
 </body>
