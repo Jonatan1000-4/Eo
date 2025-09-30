@@ -1,318 +1,115 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>M3U Load & Export Tool</title>
-    <style>
-        /* CSS Básico - Ajusta según tu diseño */
-        :root {
-            --bg-color: #1e1e1e;
-            --text-color: #f0f0f0;
-            --primary-color: #007bff;
-            --secondary-text: #888;
-        }
-        body {
-            font-family: Arial, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            padding: 20px;
-        }
-        .container { max-width: 900px; margin: 0 auto; }
-        h1, h2 { border-bottom: 1px solid #333; padding-bottom: 10px; margin-top: 30px; }
-        input[type="text"], input[type="file"] {
-            padding: 10px; margin-right: 10px; border: 1px solid #555; background-color: #333; color: var(--text-color);
-            width: calc(100% - 150px);
-        }
-        button { padding: 10px 15px; background-color: var(--primary-color); color: white; border: none; cursor: pointer; }
-        #loading { color: yellow; margin-top: 10px; display: none; }
-        #metadata, #filterSection { border: 1px solid #444; padding: 15px; margin-top: 20px; }
-        #metadata p { margin: 5px 0; }
-        .category-item { display: inline-block; margin: 5px; padding: 5px 10px; border: 1px solid #666; cursor: pointer; background-color: #2b2b2b; }
-        #channelTable { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        #channelTable th, #channelTable td { border: 1px solid #444; padding: 8px; text-align: left; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Carga y Análisis de M3U</title>
+<style>
+:root { --bg: #1e1e1e; --fg: #f0f0f0; --accent: #007bff; --muted: #777; }
+body { font-family: Arial, sans-serif; background: var(--bg); color: var(--fg); margin:0; padding:15px; font-size:14px; }
+h1,h2 { border-bottom:1px solid #333; padding-bottom:5px; }
+input,button { font-size:14px; padding:8px; margin:5px 0; }
+input[type="text"], input[type="file"] { width:100%; background:#2b2b2b; color:var(--fg); border:1px solid #555; }
+button { background: var(--accent); color:white; border:none; cursor:pointer; }
+#categories label { display:inline-block; background:#2b2b2b; padding:5px 10px; margin:3px; border:1px solid #555; cursor:pointer; }
+table { width:100%; border-collapse:collapse; margin-top:10px; }
+th,td { border:1px solid #444; padding:5px; font-size:12px; word-break:break-all; }
+#loading { color:yellow; }
+</style>
 </head>
 <body>
-    <div class="container">
-        <h1>M3U Load & Export Tool</h1>
-        
-        <label for="urlInput">Cargar M3U o ingresar URL:</label>
-        <div>
-            <input type="file" id="fileInput" onchange="document.getElementById('urlInput').value=''">
-            <input type="text" id="urlInput" placeholder="O ingresa una URL M3U aquí..." style="width: 100%; margin-top: 10px;">
-            <button onclick="loadM3U()">Cargar</button>
-        </div>
-        
-        <p id="loading" style="display: none;">Solicitando M3U a través de Google Apps Script...</p>
+<h1>Cargar y Analizar M3U</h1>
+<input type="file" id="fileInput"><br>
+<input type="text" id="urlInput" placeholder="O pega una URL M3U">
+<button onclick="loadM3U()">Cargar</button>
+<p id="loading" style="display:none;">Procesando...</p>
 
-        <div id="metadata" style="display:none; margin-top: 20px;">
-            <h2>Metadatos del M3U</h2>
-            <p>Total de Canales: <span id="totalChannels">0</span></p>
-            <p>EPG (Guía) Encontrada: <span id="epgStatus">No</span></p>
-            <p>Fecha de Expiración: <span id="expirationDate">No Detectada</span></p>
-            <p>Idiomas Detectados: <span id="languages">N/A</span></p>
-        </div>
-
-        <h2>Filtrar por Categoría</h2>
-       <div id="metadata" style="display:none; margin-top: 20px;">
-    </div>
-
-<div id="filterSection">
-    <div id="categoryList">
-        </div>
-    <p id="categoryPlaceholder" style="text-align: center; color: var(--secondary-text);">
-        Carga un M3U para ver las categorías.
-    </p>
+<div id="metadata" style="display:none;">
+  <h2>Metadatos</h2>
+  <p>Total de Canales: <span id="total"></span></p>
+  <p>Idiomas: <span id="langs"></span></p>
+  <p>EPG: <span id="epg"></span></p>
+  <p>Expiración: <span id="exp"></span></p>
 </div>
 
-        <h2>Canales Seleccionados (<span id="selectedCount">0</span>)</h2>
-        <button id="exportBtn" onclick="exportToSheets()" disabled>📤 Exportar Seleccionados a Google Sheets</button>
-        
-        <table id="channelTable">
-            <thead>
-                <tr>
-                    <th>Nombre</th>
-                    <th>EPG ID</th>
-                    <th>Categoría</th>
-                    <th>URL</th>
-                </tr>
-            </thead>
-            <tbody id="channelBody">
-                </tbody>
-        </table>
-    </div>
+<h2>Categorías</h2>
+<div id="categories"></div>
+
+<h2>Canales (<span id="count">0</span>)</h2>
+<button id="exportBtn" onclick="exportToSheets()" disabled>Exportar Seleccionados a Sheets</button>
+<table>
+<thead><tr><th>Nombre</th><th>EPG</th><th>Categoría</th><th>URL</th></tr></thead>
+<tbody id="channelBody"></tbody>
+</table>
 
 <script>
-    /* JS Integrado */
-    // ⚠️ ¡REEMPLAZAR CON TU NUEVA URL DESPLEGADA DE APPS SCRIPT CREADA EN EL PASO 1!
-    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxF6BTPHJ0uPNJfD8ByFiGxoTfGMkvJx9GrH2mCDtwvf8pskkURzd8zcz1Fimbg_3oq2g/exec'; 
-    let allChannels = [];
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzIrdiQYYNiqb7e5OtFA8stogIjGJfmKyW0nHgPsAKnchvGTlAOIuYlccf9gk0YkTpP_w/exec"; 
+let allChannels=[];
 
-    function showLoading(isLoading) {
-        document.getElementById('loading').style.display = isLoading ? 'block' : 'none';
-        document.getElementById('exportBtn').disabled = isLoading || allChannels.length === 0;
-    }
+function parseM3U(txt){
+ let lines=txt.split("\n").map(l=>l.trim()).filter(l=>l);
+ let chs=[], cats=new Set(), langs=new Set(), epg=false, exp="No detectada";
+ let cur=null;
+ for(let line of lines){
+   if(line.startsWith("#EXTM3U") && line.includes("url-tvg")) epg=true;
+   if(line.startsWith("#EXTINF")){
+     let cat=(line.match(/group-title="([^"]+)"/i)||[])[1]||"Sin Categoría";
+     let epgId=(line.match(/tvg-id="([^"]+)"/i)||[])[1]||"";
+     let lang=(line.match(/tvg-language="([^"]+)"/i)||[])[1]||"";
+     let name=(line.split(",")[1]||"Canal").trim();
+     cur={name,category:cat,epgID:epgId,url:"",lang};
+     cats.add(cat); if(lang) langs.add(lang); if(epgId) epg=true;
+   } else if(cur && line.startsWith("http")){ cur.url=line; chs.push(cur); cur=null; }
+   if(line.toLowerCase().includes("expire")) exp="Detectada";
+ }
+ return {channels:chs,cats:[...cats],langs:[...langs],epg,exp};
+}
 
-    // --- M3U Parsing Logic ---
-    function parseM3U(m3uContent) {
-        const lines = m3uContent.split('\n').map(line => line.trim()).filter(line => line.length > 0);
-        const channels = [];
-        const categories = new Set();
-        const languages = new Set();
-        let currentChannel = null;
-        let epgFound = false;
-        let tvgUrl = null;
+async function loadM3U(){
+ document.getElementById("loading").style.display="block"; allChannels=[];
+ let file=document.getElementById("fileInput").files[0]; let url=document.getElementById("urlInput").value.trim(); let txt="";
+ try{
+  if(file){ txt=await file.text(); }
+  else if(url){
+    let r=await fetch(APPS_SCRIPT_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"fetchExternalUrl",url})});
+    let j=await r.json(); if(j.status!=="success") throw new Error(j.error); txt=j.m3uContent;
+  } else { alert("Seleccione archivo o URL"); return; }
+  let data=parseM3U(txt); allChannels=data.channels;
+  document.getElementById("metadata").style.display="block";
+  document.getElementById("total").textContent=allChannels.length;
+  document.getElementById("langs").textContent=data.langs.join(", ")||"N/A";
+  document.getElementById("epg").textContent=data.epg?"Sí":"No";
+  document.getElementById("exp").textContent=data.exp;
+  renderCats(data.cats);
+ }catch(e){ alert("Error: "+e.message); } finally{ document.getElementById("loading").style.display="none"; }
+}
 
-        for (const line of lines) {
-            if (line.startsWith('#EXTM3U')) {
-                const tvgUrlMatch = line.match(/url-tvg="([^"]+)"/i);
-                if (tvgUrlMatch) { tvgUrl = tvgUrlMatch[1]; }
-                continue;
-            }
-            if (line.startsWith('#EXTINF')) {
-                if (currentChannel) { currentChannel = null; }
-                const groupTitleMatch = line.match(/group-title="([^"]+)"/i);
-                const tvgIDMatch = line.match(/tvg-id="([^"]+)"/i);
-                const langMatch = line.match(/tvg-language="([^"]+)"/i);
-                const nameMatch = line.match(/,(.*)$/);
-                const category = groupTitleMatch ? groupTitleMatch[1] : 'Sin Categoría';
-                const name = nameMatch ? nameMatch[1].trim() : 'Canal Desconocido';
-                const epgID = tvgIDMatch ? tvgIDMatch[1] : '';
-                const language = langMatch ? langMatch[1] : '';
-                if (epgID) epgFound = true;
-                if (language) languages.add(language);
-                categories.add(category);
-                currentChannel = { name, category, epgID, url: '', language, tvgUrl: tvgUrl };
-            } else if (currentChannel && line.startsWith('http')) {
-                currentChannel.url = line;
-                channels.push(currentChannel);
-                currentChannel = null;
-            }
-        }
-        const expirationDate = m3uContent.includes('expire') ? 'Detectada (Revisar M3U)' : 'No Detectada';
-        return {
-            channels,
-            categories: [...categories].sort((a, b) => a.localeCompare(b)),
-            epgFound,
-            languages: [...languages].join(', ') || 'N/A',
-            expirationDate
-        };
-    }
+function renderCats(cats){
+ let div=document.getElementById("categories"); div.innerHTML="";
+ cats.forEach(c=>{ let l=document.createElement("label");
+ l.innerHTML=`<input type="checkbox" value="${c}" onchange="filterChs()"> ${c}`;
+ div.appendChild(l); });
+ filterChs();
+}
 
-    // --- FUNCIÓN loadM3U (Carga de URL) ---
-    async function loadM3U() {
-        showLoading(true);
-        allChannels = [];
+function filterChs(){
+ let sel=[...document.querySelectorAll("#categories input:checked")].map(c=>c.value);
+ let body=document.getElementById("channelBody"); body.innerHTML="";
+ let chs=allChannels.filter(c=>sel.includes(c.category));
+ document.getElementById("count").textContent=chs.length;
+ document.getElementById("exportBtn").disabled=chs.length===0;
+ chs.forEach(ch=>{ let r=body.insertRow();
+ r.innerHTML=`<td>${ch.name}</td><td>${ch.epgID||""}</td><td>${ch.category}</td><td style="font-size:11px">${ch.url}</td>`; });
+}
 
-        const file = document.getElementById('fileInput').files[0];
-        const url = document.getElementById('urlInput').value.trim();
-        let m3uContent = '';
-
-        try {
-            if (file) {
-                m3uContent = await file.text();
-                document.getElementById('loading').textContent = 'Analizando archivo M3U local...';
-            } else if (url) {
-                document.getElementById('loading').textContent = 'Solicitando M3U a través de Google Apps Script...';
-                
-                // FALLO AQUÍ: Si el CORS persiste, es la URL del script la que debe ser revisada.
-                const response = await fetch(APPS_SCRIPT_URL, {
-                    method: 'POST',
-                    mode: 'cors',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ action: 'fetchExternalUrl', url: url }) 
-                });
-
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    console.error("Respuesta fallida de Apps Script (HTTP no OK):", errorText);
-                    throw new Error(`Error HTTP: ${response.status}. El error de CORS/Fetch persiste. Debe ser la URL de Apps Script.`);
-                }
-
-                let result;
-                try {
-                    result = await response.json();
-                } catch (e) {
-                    const rawText = await response.text();
-                    console.error("Error al parsear JSON. Respuesta sin formato del script:", rawText);
-                    throw new Error("El Apps Script no devolvió un JSON válido. Revisa el Log del script para errores POST.");
-                }
-                
-                if (result.status === 'success') {
-                    m3uContent = result.m3uContent;
-                } else {
-                    throw new Error(result.error || 'Fallo desconocido en el Apps Script Proxy.');
-                }
-
-            } else {
-                alert('Por favor, selecciona un archivo M3U o ingresa una URL.');
-                showLoading(false);
-                return;
-            }
-
-            // Lógica de análisis y renderizado
-            const data = parseM3U(m3uContent);
-            allChannels = data.channels;
-
-            document.getElementById('totalChannels').textContent = allChannels.length;
-            document.getElementById('epgStatus').textContent = data.epgFound ? 'Sí' : 'No';
-            document.getElementById('expirationDate').textContent = data.expirationDate;
-            document.getElementById('languages').textContent = data.languages;
-            document.getElementById('metadata').style.display = 'block';
-            renderCategories(data.categories);
-
-        } catch (error) {
-            console.error('Error al cargar/analizar M3U:', error);
-            alert('Error Crítico: ' + error.message + '. Revise la consola y los Logs de Apps Script.');
-        } finally {
-            showLoading(false);
-            document.getElementById('loading').textContent = '';
-        }
-    }
-
-    function renderCategories(categories) {
-        const list = document.getElementById('categoryList');
-        const placeholder = document.getElementById('categoryPlaceholder'); 
-        list.innerHTML = ''; 
-
-        if (categories.length === 0) {
-            list.innerHTML = '<p style="color: var(--secondary-text);">No se encontraron categorías en el M3U.</p>';
-            placeholder.style.display = 'block'; 
-            return;
-        }
-
-        placeholder.style.display = 'none'; 
-
-        categories.forEach(category => {
-            const item = document.createElement('label');
-            item.className = 'category-item';
-            item.innerHTML = `<input type="checkbox" data-category="${category}" onchange="filterChannels()">${category}`;
-            list.appendChild(item);
-        });
-        filterChannels();
-    }
-
-    function filterChannels() {
-        const checkboxes = document.querySelectorAll('#categoryList input[type="checkbox"]:checked');
-        const selectedCategories = Array.from(checkboxes).map(cb => cb.dataset.category);
-        const channelBody = document.getElementById('channelBody');
-        channelBody.innerHTML = '';
-        let selectedCount = 0;
-
-        if (selectedCategories.length === 0) {
-            document.getElementById('selectedCount').textContent = '0';
-            document.getElementById('exportBtn').disabled = true;
-            return;
-        }
-
-        const filteredChannels = allChannels.filter(c => selectedCategories.includes(c.category));
-        selectedCount = filteredChannels.length;
-
-        filteredChannels.forEach(channel => {
-            const row = channelBody.insertRow();
-            row.innerHTML = `
-                <td>${channel.name}</td>
-                <td>${channel.epgID || 'N/A'}</td>
-                <td>${channel.category}</td>
-                <td style="font-size: 0.7em;">${channel.url}</td>
-            `;
-        });
-
-        document.getElementById('selectedCount').textContent = selectedCount;
-        document.getElementById('exportBtn').disabled = selectedCount === 0;
-    }
-
-    // --- Export to Sheets Logic (Exportación a Hojas de Cálculo) ---
-    async function exportToSheets() {
-        const checkboxes = document.querySelectorAll('#categoryList input[type="checkbox"]:checked');
-        const selectedCategories = Array.from(checkboxes).map(cb => cb.dataset.category);
-        if (selectedCategories.length === 0) { alert('Selecciona al menos una categoría para exportar.'); return; }
-
-        const dataToExport = allChannels
-            .filter(c => selectedCategories.includes(c.category))
-            .map(c => ({
-                Nombre: c.name, Categoria: c.category, Url: c.url, EpgID: c.epgID, Idioma: c.language,
-                Fuente: document.getElementById('urlInput').value.trim() || 'Archivo Local'
-            }));
-        
-        if (dataToExport.length === 0) { alert('No hay canales para exportar.'); return; }
-
-        document.getElementById('exportBtn').textContent = 'Exportando...';
-        document.getElementById('exportBtn').disabled = true;
-
-        try {
-            // FALLO AQUÍ: El mismo problema de CORS/permisos.
-            const response = await fetch(APPS_SCRIPT_URL, {
-                method: 'POST', mode: 'cors', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: 'appendM3UData', data: dataToExport })
-            });
-
-            if (!response.ok) { 
-                throw new Error(`Error HTTP: ${response.status}. La URL de Apps Script está denegando el acceso.`); 
-            }
-
-            const result = await response.json();
-
-            if (result.status === 'success') {
-                alert(`Exportación exitosa. ${result.appendedRows} canales añadidos a Google Sheets.`);
-            } else {
-                throw new Error(result.error || 'Error desconocido al comunicarse con Google Sheets.');
-            }
-
-        } catch (error) {
-            console.error('Error en la exportación a Sheets:', error);
-            alert('Error al exportar. Detalle: ' + error.message);
-        } finally {
-            document.getElementById('exportBtn').textContent = '📤 Exportar Seleccionados a Google Sheets';
-            document.getElementById('exportBtn').disabled = allChannels.length === 0;
-        }
-    }
-    
-    document.addEventListener('DOMContentLoaded', () => {
-        document.getElementById('exportBtn').disabled = true;
-    });
-
+async function exportToSheets(){
+ let sel=[...document.querySelectorAll("#categories input:checked")].map(c=>c.value);
+ let data=allChannels.filter(c=>sel.includes(c.category));
+ try{
+   let r=await fetch(APPS_SCRIPT_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"appendM3UData",data})});
+   let j=await r.json(); alert(j.status==="success"?"Exportado":"Error: "+j.error);
+ }catch(e){alert("Error: "+e.message);}
+}
 </script>
 </body>
 </html>
