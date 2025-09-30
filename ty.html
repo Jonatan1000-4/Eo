@@ -82,8 +82,8 @@
 
 <script>
     /* JS Integrado */
-    // ⚠️ ¡REEMPLAZAR CON TU NUEVA URL DESPLEGADA DE APPS SCRIPT!
-    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxygmmaqzT8il9nxNwpaSwJRo1QIyDAf-6Xh8mnXKQfil5_1l4xH--nysASpoP9kutQzg/exec'; 
+    // ⚠️ ¡REEMPLAZAR CON TU NUEVA URL DESPLEGADA DE APPS SCRIPT CREADA EN EL PASO 1!
+    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxF6BTPHJ0uPNJfD8ByFiGxoTfGMkvJx9GrH2mCDtwvf8pskkURzd8zcz1Fimbg_3oq2g/exec'; 
     let allChannels = [];
 
     function showLoading(isLoading) {
@@ -93,7 +93,6 @@
 
     // --- M3U Parsing Logic ---
     function parseM3U(m3uContent) {
-        // (Tu lógica de parseM3U es correcta y se mantiene)
         const lines = m3uContent.split('\n').map(line => line.trim()).filter(line => line.length > 0);
         const channels = [];
         const categories = new Set();
@@ -138,7 +137,7 @@
         };
     }
 
-    // --- FUNCIÓN loadM3U CON DIAGNÓSTICO DETALLADO ---
+    // --- FUNCIÓN loadM3U (Carga de URL) ---
     async function loadM3U() {
         showLoading(true);
         allChannels = [];
@@ -154,6 +153,7 @@
             } else if (url) {
                 document.getElementById('loading').textContent = 'Solicitando M3U a través de Google Apps Script...';
                 
+                // FALLO AQUÍ: Si el CORS persiste, es la URL del script la que debe ser revisada.
                 const response = await fetch(APPS_SCRIPT_URL, {
                     method: 'POST',
                     mode: 'cors',
@@ -164,7 +164,7 @@
                 if (!response.ok) {
                     const errorText = await response.text();
                     console.error("Respuesta fallida de Apps Script (HTTP no OK):", errorText);
-                    throw new Error(`Error HTTP: ${response.status}. El error de CORS/Fetch persiste. Revisa el despliegue de Apps Script a 'Cualquier persona'.`);
+                    throw new Error(`Error HTTP: ${response.status}. El error de CORS/Fetch persiste. Debe ser la URL de Apps Script.`);
                 }
 
                 let result;
@@ -188,7 +188,7 @@
                 return;
             }
 
-            // Lógica de análisis y renderizado (ahora sin errores de null)
+            // Lógica de análisis y renderizado
             const data = parseM3U(m3uContent);
             allChannels = data.channels;
 
@@ -201,8 +201,7 @@
 
         } catch (error) {
             console.error('Error al cargar/analizar M3U:', error);
-            // Mensaje de alerta mejorado
-            alert('Error Crítico: ' + error.message + '. Revise la consola y, si usa URL, los Logs de Apps Script.');
+            alert('Error Crítico: ' + error.message + '. Revise la consola y los Logs de Apps Script.');
         } finally {
             showLoading(false);
             document.getElementById('loading').textContent = '';
@@ -211,16 +210,16 @@
 
     function renderCategories(categories) {
         const list = document.getElementById('categoryList');
-        const placeholder = document.getElementById('categoryPlaceholder'); // CORREGIDO
+        const placeholder = document.getElementById('categoryPlaceholder'); 
         list.innerHTML = ''; 
 
         if (categories.length === 0) {
             list.innerHTML = '<p style="color: var(--secondary-text);">No se encontraron categorías en el M3U.</p>';
-            placeholder.style.display = 'block'; // CORREGIDO
+            placeholder.style.display = 'block'; 
             return;
         }
 
-        placeholder.style.display = 'none'; // CORREGIDO
+        placeholder.style.display = 'none'; 
 
         categories.forEach(category => {
             const item = document.createElement('label');
@@ -231,7 +230,6 @@
         filterChannels();
     }
 
-    // (Tu función filterChannels se mantiene)
     function filterChannels() {
         const checkboxes = document.querySelectorAll('#categoryList input[type="checkbox"]:checked');
         const selectedCategories = Array.from(checkboxes).map(cb => cb.dataset.category);
@@ -262,7 +260,7 @@
         document.getElementById('exportBtn').disabled = selectedCount === 0;
     }
 
-    // (Tu función exportToSheets se mantiene)
+    // --- Export to Sheets Logic (Exportación a Hojas de Cálculo) ---
     async function exportToSheets() {
         const checkboxes = document.querySelectorAll('#categoryList input[type="checkbox"]:checked');
         const selectedCategories = Array.from(checkboxes).map(cb => cb.dataset.category);
@@ -281,12 +279,15 @@
         document.getElementById('exportBtn').disabled = true;
 
         try {
+            // FALLO AQUÍ: El mismo problema de CORS/permisos.
             const response = await fetch(APPS_SCRIPT_URL, {
                 method: 'POST', mode: 'cors', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ action: 'appendM3UData', data: dataToExport })
             });
 
-            if (!response.ok) { throw new Error(`Error HTTP: ${response.status}`); }
+            if (!response.ok) { 
+                throw new Error(`Error HTTP: ${response.status}. La URL de Apps Script está denegando el acceso.`); 
+            }
 
             const result = await response.json();
 
