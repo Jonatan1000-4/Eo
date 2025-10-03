@@ -4,299 +4,242 @@
     <meta charset="UTF-8">
     <title>EMTV - Portal Multimedia TV</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Carga de Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Configuración para usar la fuente Inter y colores personalizados -->
     <style>
-        /* --- RESET Y VARIABLES --- */
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+        
+        /* Definiciones de color para Tailwind JIT */
         :root {
-            --color-bg-dark: #070a16; /* Fondo oscuro profundo */
-            --color-card-bg: #10162a; /* Fondo de tarjeta sutil */
-            --color-header-bg: #1a223a; /* Barra de estado superior */
-            --color-primary: #0ea5e9; /* Azul Cian/Cielo (Énfasis en el contenido) */
-            --color-text-light: #e2e8f0;
-            --color-text-mute: #94a3b8;
-            --focus-glow: 0 0 20px 4px rgba(14, 165, 233, 1); /* Brillo intenso para enfoque */
+            --color-bg-dark: #070a16;
+            --color-card-bg: #10162a;
+            --color-header-bg: #1a223a;
+            --color-primary: #0ea5e9;
+            --focus-glow: 0 0 20px 4px rgba(14, 165, 233, 1);
         }
 
         body {
-            font-family: 'Inter', 'Segoe UI', Tahoma, sans-serif;
+            font-family: 'Inter', sans-serif;
             background-color: var(--color-bg-dark);
-            color: var(--color-text-light);
             min-height: 100vh;
-            display: flex;
-            flex-direction: column;
+            /* Ocultar overflow horizontal, clave para TV */
             overflow: hidden; 
         }
 
-        /* --- BARRA DE ESTADO (HEADER) - Estilo Premium --- */
-        .status-header {
-            width: 100%;
-            height: 65px; /* Ligeramente más alto */
-            background-color: var(--color-header-bg);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0 50px; /* Más espaciado a los lados */
-            border-bottom: 2px solid rgba(14, 165, 233, 0.2);
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-            z-index: 1000;
-        }
-
-        .portal-title {
-            font-size: 1.8rem;
-            font-weight: 800; /* Más peso para el logo */
-            color: var(--color-primary);
-            letter-spacing: 1px;
-            text-shadow: 0 0 5px rgba(14, 165, 233, 0.4);
-        }
-
-        .info-group {
-            display: flex;
-            align-items: center;
-            gap: 25px;
-            font-size: 0.95rem; /* Fuente ligeramente más grande */
-            color: var(--color-text-mute);
-        }
-        
-        .info-group span {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .session-status strong {
-            color: var(--color-text-light);
-            font-weight: 500;
-        }
-
-        /* Botón de Cierre de Sesión (Discreto en el Header) */
-        .logout-btn-header {
-            background: none;
-            border: none;
-            color: var(--color-text-mute);
-            cursor: pointer;
-            padding: 5px 10px;
-            border-radius: 4px;
-            font-size: 0.9rem;
-            transition: all 0.3s;
-            text-decoration: none; /* Asegurar que no tenga subrayado */
-        }
-
-        .logout-btn-header:focus, .logout-btn-header:hover {
+        /* Estilo de enfoque (Focus Glow) */
+        .card-focus:focus {
             outline: none;
-            color: #ff5555; /* Rojo sutil para confirmar la acción de peligro */
-            background-color: rgba(255, 85, 85, 0.1);
-            box-shadow: 0 0 5px rgba(255, 85, 85, 0.5);
-        }
-
-        /* --- CONTENIDO PRINCIPAL --- */
-        .main-container {
-            flex-grow: 1;
-            padding: 80px 40px 60px; /* Más espacio vertical */
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .section-title {
-            font-size: 3rem; /* Título más grande y enfocado */
-            font-weight: 200; /* Fuente más delgada para modernidad */
-            margin-bottom: 70px; /* Más espacio sobre las tarjetas */
-            color: var(--color-text-light);
-            text-align: center;
-        }
-
-        /* Grid de Contenido - Central en la Pantalla */
-        .content-grid {
-            display: grid;
-            /* 4 columnas por defecto con más espacio */
-            grid-template-columns: repeat(4, minmax(220px, 1fr)); 
-            gap: 40px;
-            width: 100%;
-            max-width: 1400px;
-        }
-
-        /* Estilo de Card de Contenido (Focusable) - TOQUE MODERNO */
-        .content-card {
-            background-color: var(--color-card-bg);
-            border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6); /* Sombra más profunda */
-            transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s;
-            text-decoration: none;
-            color: var(--color-text-light);
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start; /* Alineación a la izquierda para look premium */
-            text-align: left;
-            padding: 30px;
-            min-height: 220px;
-            border: 4px solid transparent; 
-        }
-
-        .content-card:focus {
-            outline: none;
-            transform: scale(1.05); /* Zoom sutil */
+            transform: scale(1.05);
             border-color: var(--color-primary);
             box-shadow: var(--focus-glow);
             z-index: 10;
         }
-        /* Mantener hover por si se usa ratón, pero el focus es lo importante */
-        .content-card:hover {
-             border-color: var(--color-primary);
-             box-shadow: 0 0 10px rgba(14, 165, 233, 0.5);
-             transform: scale(1.02);
+
+        .header-btn-focus:focus {
+            outline: none;
+            color: #ff5555;
+            background-color: rgba(255, 85, 85, 0.1);
+            box-shadow: 0 0 5px rgba(255, 85, 85, 0.5), inset 0 0 5px rgba(255, 85, 85, 0.5);
         }
 
-        .card-icon {
-            font-size: 3.5rem; /* Iconos más grandes */
-            margin-bottom: 15px;
-            color: var(--color-primary);
+        /* Fuerza el color para el ícono de Cerrar Sesión cuando está enfocado */
+        .header-btn-focus:focus .icon-lock {
+            color: #ff5555;
         }
 
-        .card-title {
-            font-size: 1.5rem;
-            font-weight: 700;
-            margin-bottom: 5px;
-        }
-
-        .card-description {
-            font-size: 0.9rem;
-            color: var(--color-text-mute);
-        }
-
-        /* --- LÓGICA DE NAVEGACIÓN (Control Remoto) --- */
-        /* Asegurar que el foco inicial sea la primera card de contenido */
-        [tabindex]:focus {
-            z-index: 11; /* Asegurar que el foco siempre esté por encima */
-        }
     </style>
 </head>
-<body>
+<body class="flex flex-col antialiased">
 
-    <header class="status-header">
-        <div class="portal-title">EMTV</div>
-        <div class="info-group">
-            <span class="datetime-info">📅<span id="currentDate"></span></span>
-            <span class="datetime-info">⏰<span id="currentTime"></span></span>
-            <span class="session-status">Sesión: <strong id="sessionStatus">Activa (Usuario 123)</strong></span>
+    <!-- BARRA DE ESTADO (HEADER) -->
+    <header class="sticky top-0 w-full h-16 bg-[var(--color-header-bg)] 
+                   flex justify-between items-center px-12 border-b-2 border-sky-500/20 
+                   shadow-xl z-50">
+        
+        <div class="text-3xl font-extrabold text-[var(--color-primary)] tracking-wider 
+                    shadow-sky-500/40" style="text-shadow: 0 0 5px rgba(14, 165, 233, 0.4);">
+            EMTV
+        </div>
+        
+        <div class="flex items-center space-x-8 text-sm text-slate-400">
+            <span class="flex items-center space-x-1">
+                <span class="text-xl">📅</span>
+                <span id="currentDate"></span>
+            </span>
+            <span class="flex items-center space-x-1">
+                <span class="text-xl">⏰</span>
+                <span id="currentTime"></span>
+            </span>
+            <span class="text-sm">
+                Sesión: <strong id="sessionStatus" class="text-slate-200 font-medium">Activa (Usuario 123)</strong>
+            </span>
             
-            <a href="logout.html" class="logout-btn-header" tabindex="5">
-                🔒 Cerrar Sesión
+            <!-- Botón de Cierre de Sesión (Index 4 en la navegación JS) -->
+            <a href="logout.html" id="logoutBtn" class="header-btn-focus transition duration-300 
+                       text-slate-400 hover:text-red-400 p-2 rounded-lg 
+                       focus:scale-[1.05] focus:ring-2 focus:ring-red-500/50 focus:text-red-400 
+                       flex items-center space-x-2" 
+                       tabindex="5">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 icon-lock transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+                <span>Cerrar Sesión</span>
             </a>
         </div>
     </header>
 
-    <div class="main-container">
-        <h1 class="section-title">¿Qué quieres ver hoy?</h1>
+    <!-- CONTENIDO PRINCIPAL (Centrado y Compacto) -->
+    <div class="flex flex-grow justify-center items-center py-20 px-10">
+        <div class="w-full max-w-6xl">
 
-        <div class="content-grid">
-            
-            <a href="ad.html" class="content-card" tabindex="1">
-                <span class="card-icon">📺</span>
-                <h2 class="card-title">TV en Vivo</h2>
-                <p class="card-description">Acceso directo a todos los canales disponibles (M3U).</p>
-            </a>
-            
-            <a href="ac.html" class="content-card" tabindex="2">
-                <span class="card-icon">🎞️</span>
-                <h2 class="card-title">Películas & Cine</h2>
-                <p class="card-description">Explora nuestra colección completa de largometrajes.</p>
-            </a>
-            
-            <a href="ad.html" class="content-card" tabindex="3">
-                <span class="card-icon">📂</span>
-                <h2 class="card-title">Series</h2>
-                <p class="card-description">Lista de reproducción de tus series favoritas (M3U).</p>
-            </a>
+            <h1 class="text-6xl font-extralight text-slate-100 mb-20 text-center">
+                ¿Qué quieres ver hoy?
+            </h1>
 
-             <a href="info.html" class="content-card" tabindex="4">
-                <span class="card-icon">⚙️</span>
-                <h2 class="card-title">Soporte & Info</h2>
-                <p class="card-description">Configuración de cuenta, guías y asistencia técnica.</p>
-            </a>
-            
+            <!-- Grid de Contenido (4 Columnas) -->
+            <div class="grid grid-cols-4 gap-10">
+                
+                <!-- Card 1 (Index 0) -->
+                <a href="ad.html" id="card-0" class="content-card card-focus w-full h-full bg-[var(--color-card-bg)] rounded-xl 
+                   shadow-2xl transition duration-300 hover:shadow-sky-500/30 
+                   border-4 border-transparent p-6 flex flex-col justify-start" 
+                   tabindex="1">
+                    <span class="text-6xl mb-4 text-[var(--color-primary)]">📺</span>
+                    <h2 class="text-2xl font-bold mb-1">TV en Vivo</h2>
+                    <p class="text-sm text-slate-400">Acceso directo a todos los canales disponibles (M3U).</p>
+                </a>
+                
+                <!-- Card 2 (Index 1) -->
+                <a href="ac.html" id="card-1" class="content-card card-focus w-full h-full bg-[var(--color-card-bg)] rounded-xl 
+                   shadow-2xl transition duration-300 hover:shadow-sky-500/30 
+                   border-4 border-transparent p-6 flex flex-col justify-start" 
+                   tabindex="2">
+                    <span class="text-6xl mb-4 text-[var(--color-primary)]">🎞️</span>
+                    <h2 class="text-2xl font-bold mb-1">Películas & Cine</h2>
+                    <p class="text-sm text-slate-400">Explora nuestra colección completa de largometrajes.</p>
+                </a>
+                
+                <!-- Card 3 (Index 2) -->
+                <a href="af.html" id="card-2" class="content-card card-focus w-full h-full bg-[var(--color-card-bg)] rounded-xl 
+                   shadow-2xl transition duration-300 hover:shadow-sky-500/30 
+                   border-4 border-transparent p-6 flex flex-col justify-start" 
+                   tabindex="3">
+                    <span class="text-6xl mb-4 text-[var(--color-primary)]">📂</span>
+                    <h2 class="card-title">Series</h2>
+                    <p class="text-sm text-slate-400">Lista de reproducción de tus series favoritas (M3U).</p>
+                </a>
+
+                <!-- Card 4 (Index 3) -->
+                <a href="info.html" id="card-3" class="content-card card-focus w-full h-full bg-[var(--color-card-bg)] rounded-xl 
+                   shadow-2xl transition duration-300 hover:shadow-sky-500/30 
+                   border-4 border-transparent p-6 flex flex-col justify-start" 
+                   tabindex="4">
+                    <span class="text-6xl mb-4 text-[var(--color-primary)]">⚙️</span>
+                    <h2 class="text-2xl font-bold mb-1">Soporte & Info</h2>
+                    <p class="text-sm text-slate-400">Configuración de cuenta, guías y asistencia técnica.</p>
+                </a>
+                
             </div>
+        </div>
     </div>
 
 <script>
     // --- LÓGICA DE NAVEGACIÓN POR CONTROL REMOTO (FOCUS MANAGEMENT) ---
-    const focusableElements = document.querySelectorAll('.content-card, .logout-btn-header');
-    let currentFocusIndex = 0;
     
-    // Enfocar el primer elemento de contenido (TV en Vivo)
-    const initialFocusElement = document.querySelector('.content-card[tabindex="1"]');
-    if (initialFocusElement) {
-        initialFocusElement.focus();
-        currentFocusIndex = 0;
+    // Obtener todos los elementos enfocables en el orden deseado (Cards 0-3, Header Btn 4)
+    const focusableElements = [
+        document.getElementById('card-0'),
+        document.getElementById('card-1'),
+        document.getElementById('card-2'),
+        document.getElementById('card-3'),
+        document.getElementById('logoutBtn')
+    ].filter(el => el != null); // Filtrar por si acaso alguno no se encuentra
+
+    let currentFocusIndex = 0;
+    const TOTAL_ELEMENTS = focusableElements.length;
+    const GRID_SIZE = 4; // Número de elementos en la fila principal de la cuadrícula
+
+    // Enfocar el primer elemento al cargar
+    if (focusableElements.length > 0) {
+        focusableElements[0].focus();
     }
 
     document.addEventListener('keydown', (e) => {
         let nextIndex = currentFocusIndex;
-        const totalElements = focusableElements.length;
-        const cols = 4; // 4 columnas en el content-grid
+        let preventDefault = true;
 
-        // Lógica de movimiento
         switch (e.key) {
-            case 'ArrowDown':
-            case 'Down':
-                // Si el foco está en la barra superior (Cerrar Sesión)
-                if (currentFocusIndex === totalElements - 1) {
-                    nextIndex = 0; // Bajar a la primera card
-                } else {
-                    nextIndex = currentFocusIndex + cols;
-                    // Asegurar que no exceda el número de cards visibles
-                    if (nextIndex >= totalElements - 1) {
-                         nextIndex = totalElements - 1; // Mover al botón de Cerrar Sesión
-                    }
-                }
-                break;
-            case 'ArrowUp':
-            case 'Up':
-                // Si el foco está en la barra inferior de cards (Ej. Serie o Soporte)
-                if (currentFocusIndex >= 0 && currentFocusIndex <= 3) {
-                    nextIndex = totalElements - 1; // Mover directamente al botón de Cerrar Sesión
-                } else {
-                    nextIndex = currentFocusIndex - cols;
-                }
-                break;
             case 'ArrowRight':
             case 'Right':
-                // Si está en la última card de contenido, saltar al botón de cerrar sesión
-                if (currentFocusIndex === 3) {
-                     nextIndex = totalElements - 1;
+                // Mover a la derecha, envuelve al botón de Logout si está en la última card
+                if (currentFocusIndex === GRID_SIZE - 1) {
+                    nextIndex = TOTAL_ELEMENTS - 1; // Salta de Card 3 a Logout
+                } else if (currentFocusIndex === TOTAL_ELEMENTS - 1) {
+                    nextIndex = 0; // Salta de Logout a Card 0 (wraps around the whole screen)
                 } else {
-                     nextIndex = currentFocusIndex + 1;
+                    nextIndex = (currentFocusIndex + 1);
                 }
                 break;
+
             case 'ArrowLeft':
             case 'Left':
-                // Si está en el botón de cerrar sesión, volver a la última card de contenido
-                if (currentFocusIndex === totalElements - 1) {
-                     nextIndex = 3;
+                // Mover a la izquierda, envuelve de Logout a la última card
+                if (currentFocusIndex === 0) {
+                    nextIndex = TOTAL_ELEMENTS - 1; // Salta de Card 0 a Logout (wraps around)
+                } else if (currentFocusIndex === TOTAL_ELEMENTS - 1) {
+                    nextIndex = GRID_SIZE - 1; // Salta de Logout a Card 3
                 } else {
-                     nextIndex = currentFocusIndex - 1;
+                    nextIndex = (currentFocusIndex - 1);
                 }
                 break;
+
+            case 'ArrowDown':
+            case 'Down':
+                // Si está en la grid principal (0-3), va a Logout (4)
+                if (currentFocusIndex >= 0 && currentFocusIndex <= GRID_SIZE - 1) {
+                    nextIndex = TOTAL_ELEMENTS - 1; 
+                } else {
+                    // Si está en Logout (4), regresa a Card 0
+                    nextIndex = 0;
+                }
+                break;
+
+            case 'ArrowUp':
+            case 'Up':
+                // Si está en Logout (4), regresa a Card 0
+                if (currentFocusIndex === TOTAL_ELEMENTS - 1) {
+                    nextIndex = 0;
+                } else {
+                    // Si está en la grid principal (0-3), va a Logout (4)
+                    nextIndex = TOTAL_ELEMENTS - 1; 
+                }
+                break;
+
             case 'Enter':
             case 'NumpadEnter':
             case 'OK':
                 if (focusableElements[currentFocusIndex]) {
                     focusableElements[currentFocusIndex].click();
                 }
-                return;
+                return; // No prevenir el comportamiento por defecto del Enter (ya que click es suficiente)
+            
+            default:
+                preventDefault = false; // Permitir otras teclas
+                break;
         }
 
         // Aplicar el nuevo foco si es válido
-        if (nextIndex >= 0 && nextIndex < totalElements) {
+        if (nextIndex >= 0 && nextIndex < TOTAL_ELEMENTS) {
             currentFocusIndex = nextIndex;
             focusableElements[currentFocusIndex].focus();
             
-            // Forzar scroll si hay más contenido (aunque aquí es una sola pantalla)
-            if (focusableElements[currentFocusIndex]) {
-                focusableElements[currentFocusIndex].scrollIntoView({ behavior: 'smooth', block: 'center' });
+            // Forzar scroll (importante para elementos que podrían estar fuera de vista)
+            focusableElements[currentFocusIndex].scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+            if (preventDefault) {
+                e.preventDefault(); 
             }
-            e.preventDefault(); 
         }
     });
 
@@ -306,8 +249,12 @@
         const dateOptions = { day: 'numeric', month: 'short', year: 'numeric' };
         const timeOptions = { hour: '2-digit', minute: '2-digit' };
 
-        document.getElementById('currentDate').textContent = now.toLocaleDateString('es-ES', dateOptions);
-        document.getElementById('currentTime').textContent = now.toLocaleTimeString('es-ES', timeOptions);
+        // Evitar errores si los elementos no existen (aunque no debería pasar)
+        const dateEl = document.getElementById('currentDate');
+        const timeEl = document.getElementById('currentTime');
+
+        if (dateEl) dateEl.textContent = now.toLocaleDateString('es-ES', dateOptions);
+        if (timeEl) timeEl.textContent = now.toLocaleTimeString('es-ES', timeOptions);
     }
 
     updateDateTime();
