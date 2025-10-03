@@ -33,11 +33,11 @@
       position: fixed;
       top: 0px;
       left: 0;
-      width: 250px;
+      width: 300px;
       bottom: 0;
       box-shadow: 0 1px 10px rgba(255, 255, 255, 0.159);
       background: linear-gradient(0deg, #0b1c2e, #0e243b);
-      padding: 90px 1rem 1rem; /* deja espacio para logo sistema */
+      padding: 155px 1rem 1rem; /* deja espacio para logo sistema */
       box-sizing: border-box;
       border-radius: 5px;
       border: 1px solid #00aaff79;
@@ -51,8 +51,8 @@
 .logo-sistema1{
   position: absolute;
   top: 0; left: 0;
-  width: 250px;
-  height: 110px;
+  width: 280px;
+  height: 157px;
   font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
   background: linear-gradient(0deg, #0b1c2e, #0e243b); /* fondo oscuro parecido */
   display: flex;
@@ -73,8 +73,8 @@
     .logo-sistema {
   position: absolute;
   top: 0; left: 0;
-  width: 250px;
-  height: 110px;
+  width: 300px;
+  height: 147px;
   font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
   background: linear-gradient(0deg, #0b1c2e, #0e243b); /* fondo oscuro parecido */
   display: flex;
@@ -94,7 +94,7 @@
 
     .canal-overlay h2 {
       color:#ffffff;
-      font-size:1,1rem;
+      font-size:1.5rem;
       margin-bottom:1rem;
       text-align:center;
       
@@ -109,7 +109,7 @@
   border: 1px solid #2a3a4d; /* borde gris azulado */
   color: #a0b3c6; /* texto apagado */
   text-align: left;
-  font-size: 0,6rem;
+  font-size: 1.1rem;
   text-transform: uppercase;
   border-radius: 6px;
   cursor: pointer;
@@ -135,7 +135,7 @@
       top: 0;
       left: 00px;   /* arranca después de la mini guía */
       right: 0;
-      height: 100px;
+      height: 150px;
       background: linear-gradient(0deg, #0b1c2e, #0e243b);
       color: #fff;
       display: none;
@@ -152,8 +152,8 @@
 }
 
     .logo-canal {
-      width: 70px;
-      height: 70px;
+      width: 80px;
+      height: 80px;
       background: #feffff;
       margin: 0 10px 0 300px;
       border-radius: 6px;
@@ -175,18 +175,18 @@
       justify-content: center;
     }
     .canal-nombre {
-      font-size: 1.3rem;
+      font-size: 1.6rem;
       font-family: Verdana, Geneva, Tahoma, sans-serif;
       text-transform: uppercase;
       font-weight: bold;
       margin-bottom: 4px;
     }
     .programa-actual {
-      font-size: 1rem;
+      font-size: 1.2rem;
       margin-bottom: 4px;
     }
     .horarios {
-      font-size: 0.7rem;
+      font-size: 0.9rem;
       display: flex;
       justify-content: space-between;
       color: #ccc;
@@ -206,7 +206,7 @@
       transition: width 0.5s linear;
     }
     .siguiente-programa {
-      font-size: 0.7rem;
+      font-size: 0.9rem;
       color: #aaa;
       margin-top: 4px;
       white-space: nowrap;
@@ -217,11 +217,11 @@
     .hora-fecha {
       text-align: right;
       margin: 0 30px;
-      font-size: 0.8rem;
+      font-size: 1rem;
       min-width: 120px;
     }
     #hora-actual {
-      font-size: 1.2rem;
+      font-size: 1.4rem;
       font-weight: bold;
     }
     
@@ -276,36 +276,11 @@
   display: none;
 }
 
-#btnGuia {
-  position: fixed;
-  bottom: 75px;
-  right: 1px;
-  z-index: 9999;
-  background: #1c222b;
-  border: 1px solid #00aaff;
-  border-right: 5px solid #00aaff;
-  color: #fff;
-  padding: 10px 15px;
-  border-radius: 6px 0 0 6px;
-  font-size: 14px;
-  cursor: pointer;
-  box-shadow: 0 0 12px rgba(0, 170, 255, 0.667);
-  transition: all 0.2s ease;
-  letter-spacing: 1px;
-   border-radius: 6px 0 0 6px;
-}
-#btnGuia:hover {
-  background: #00aaff;
-  color: #000;
-  border: 2px solid black;
-  border-right: 5px solid #000000;
-}
   </style>
 </head>
 <body>
-  <button id="btnGuia">GUÍA</button>
 
-<video id="tv" controls autoplay playsinline></video>
+<video id="tv" autoplay controls></video>
 <div class="capa-negra" id="capaNegra"></div>
 
 <div id="canal-overlay" class="canal-overlay">
@@ -343,10 +318,9 @@
   <div id="nombre-central" class="nombre-central">Canal...</div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 <script>
-  var m3uUrl = "https://proyect1.pages.dev/t.m3u";
-  var epgUrl = "https://updatepg.maniha5625.workers.dev/";
+  var m3uUrl = "https://jonatan1000-4.github.io/mi_app_rv22/canales.m3u";
+  var epgUrl = "https://jonatan1000-4.github.io/mi_app_rv22/xmltv.xml";
 
 
 
@@ -569,29 +543,10 @@ function actualizarProgreso(prog) {
   setTimeout(function(){ actualizarProgreso(prog); }, 60000);
 }
 
-
 function reproducir(url) {
   capaNegra.style.display = "block";
-
-  if (Hls.isSupported()) {
-    // Usa hls.js si el navegador lo necesita
-    var hls = new Hls();
-    hls.loadSource(url);
-    hls.attachMedia(video);
-    hls.on(Hls.Events.MANIFEST_PARSED, function() {
-      video.play();
-    });
-  } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-    // Compatibilidad nativa (Safari / iOS)
-    video.src = url;
-    video.addEventListener('loadedmetadata', function() {
-      video.play();
-    });
-  } else {
-    // fallback básico
-    video.src = url;
-    video.play();
-  }
+  video.src = url;
+  video.play();
 }
 
 /* === Navegación === */
@@ -702,7 +657,7 @@ function seleccionarPorNumero(buffer) {
     var checkStart = setInterval(function() {
       if (video.duration > 0) {
         clearInterval(checkStart);
-        setTimeout(function(){ capaNegra.style.display = "none"; }, 2000);
+        setTimeout(function(){ capaNegra.style.display = "none"; }, 5000);
       }
     }, 300);
   });
@@ -729,11 +684,6 @@ function seleccionarPorNumero(buffer) {
   }
   setInterval(updateReloj, 60000);
   updateReloj();
-
-  document.getElementById("btnGuia").addEventListener("click", function(){
-  overlayVisible = !overlayVisible;
-  overlay.classList.toggle("oculto", !overlayVisible);
-});
 </script>
 
 
