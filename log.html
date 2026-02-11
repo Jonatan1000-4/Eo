@@ -154,7 +154,7 @@
 
     function safeGoToApp(){
       // más robusto en WebView viejo
-      window.location.replace("app.html");
+      window.location.replace("appbox.html");
     }
     function safeStayHere(){}
 
@@ -267,20 +267,6 @@
     });
   </script>
 
-  <!--
-  ====== CÓMO MANEJAR “30 DÍAS” (RENOVACIÓN) ======
-  En Firestore:
-    allowlist/{uid}:
-      enabled: true
-      expiresAt: (Timestamp)  -> hoy + 30 días
-
-  Cuando renueves:
-    actualizás expiresAt a hoy+30 días.
-  Si expiresAt vence: la app bloquea y obliga renovar.
-
-  Nota:
-  - Esto requiere que vos cargues expiresAt en Firestore.
-  - Para automatizar cobros/renovación “real”, lo ideal es backend.
-  -->
+ 
 </body>
 </html>
