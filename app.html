@@ -15,8 +15,28 @@
   --accent:#b6db44;
   --radius:14px;
   --focus:#1a73e8;
+
+  --topbar:#f3f0e8;
+  --input-bg:#ffffff;
+  --shadow: 0 8px 18px rgba(0,0,0,.06);
 }
+
+body.dark{
+  --bg:#0f1218;
+  --card:#141a22;
+  --line:rgba(255,255,255,.12);
+  --text:#e9eefc;
+  --muted:rgba(233,238,252,.65);
+  --accent:#66d9ff;
+  --focus:#66d9ff;
+
+  --topbar: rgba(15,18,24,.92);
+  --input-bg: rgba(255,255,255,.06);
+  --shadow: 0 10px 24px rgba(0,0,0,.35);
+}
+
 *{box-sizing:border-box}
+html,body{height:100%}
 body{
   margin:0;
   font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
@@ -30,76 +50,133 @@ body{
   top:0;
   display:flex;
   align-items:center;
-  gap:12px;
+  gap:10px;
   padding:12px;
-  background:#f3f0e8;
+  background:var(--topbar);
   border-bottom:1px solid rgba(0,0,0,.05);
   z-index:20;
+  backdrop-filter: blur(10px);
 }
+body.dark .topbar{ border-bottom:1px solid rgba(255,255,255,.08); }
+
 .title{
-  font-weight:800;
+  font-weight:900;
   font-size:16px;
+  letter-spacing:.2px;
 }
-.selectCat,.search{
-  padding:6px 10px;
+
+.selectCat,.search,.iconBtn{
+  padding:8px 10px;
   border-radius:10px;
   border:1px solid rgba(0,0,0,.1);
-  background:#fff;
-  font-weight:600;
+  background:var(--input-bg);
+  font-weight:700;
   outline:none;
+  color:var(--text);
 }
+body.dark .selectCat,
+body.dark .search,
+body.dark .iconBtn{
+  border:1px solid rgba(255,255,255,.12);
+}
+
 .search{
   margin-left:auto;
-  width:220px;
+  width:min(320px, 45vw);
+}
+
+.iconBtn{
+  width:44px;
+  height:38px;
+  display:grid;
+  place-items:center;
+  cursor:pointer;
+  user-select:none;
 }
 
 /* GRID */
-.wrap{padding:14px;}
+.wrap{padding:14px 14px 24px;}
 .grid{
-  dis:grid;
-  grid-template-columns:repeat(auto-fill,minmax(150px,1fr));
+  display:grid; /* ✅ FIX: antes tenías dis:grid */
+  grid-template-columns:repeat(auto-fill, minmax(170px, 1fr));
   gap:12px;
+  align-items:stretch;
 }
+
+/* Cards compactas (logo + texto, no “lista gigante”) */
 .card{
-  background:#fff;
+  background:var(--card);
   border:1px solid var(--line);
   border-radius:var(--radius);
-  padding:10px;
+  padding:12px;
   cursor:pointer;
-  transition:.15s;
+  transition:transform .12s ease, border-color .12s ease, box-shadow .12s ease;
   outline:none;
+  user-select:none;
+  box-shadow:var(--shadow);
+
+  display:flex;
+  align-items:center;
+  gap:10px;
+  min-height:76px;
 }
 .card:focus{
-  border:2px solid var(--focus);
-  transform:scale(1.05);
+  border-color:var(--focus);
+  box-shadow: 0 0 0 2px rgba(26,115,232,.25), var(--shadow);
+  transform: translateY(-1px);
 }
+body.dark .card:focus{
+  box-shadow: 0 0 0 2px rgba(102,217,255,.28), var(--shadow);
+}
+
 .logo{
-  height:46px;
+  width:56px;
+  height:56px;
+  flex:0 0 56px;
   display:flex;
   align-items:center;
   justify-content:center;
-  margin-bottom:6px;
-  border-radius:10px;
+  border-radius:12px;
   border:1px solid rgba(0,0,0,.06);
-  background:#fff;
+  background:rgba(255,255,255,.7);
+  overflow:hidden;
+}
+body.dark .logo{
+  border:1px solid rgba(255,255,255,.10);
+  background:rgba(255,255,255,.05);
 }
 .logo img{
-  max-height:34px;     /* ✅ más compacto */
-  max-width:88%;
+  max-height:44px;
+  max-width:44px;
   object-fit:contain;
+  display:block;
+}
+
+.meta{
+  min-width:0;
+  flex:1;
 }
 .name{
-  font-weight:800;
+  font-weight:900;
   font-size:13px;
-  line-height:1.2;
+  line-height:1.15;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
 }
 .group{
   font-size:11px;
   color:var(--muted);
-  margin-top:2px;
+  margin-top:4px;
   white-space:nowrap;
   overflow:hidden;
   text-overflow:ellipsis;
+}
+
+/* TV / pantallas grandes */
+@media (min-width: 900px){
+  .grid{ grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); }
+  .card{ min-height:84px; }
 }
 
 /* Toast */
@@ -116,8 +193,13 @@ body{
   opacity:0;
   pointer-events:none;
   transition:.2s;
+  z-index:50;
 }
 .toast.show{opacity:1}
+
+@media (prefers-reduced-motion: reduce){
+  .card{transition:none}
+}
 </style>
 </head>
 
@@ -125,10 +207,14 @@ body{
 
 <header class="topbar">
   <div class="title">Canales</div>
-  <select id="categorySelect" class="selectCat">
+
+  <select id="categorySelect" class="selectCat" aria-label="Categoría">
     <option value="ALL">Todas</option>
   </select>
-  <input id="search" class="search" placeholder="Buscar"/>
+
+  <input id="search" class="search" placeholder="Buscar" autocomplete="off"/>
+
+  <button id="btnTheme" class="iconBtn" type="button" title="Modo oscuro">🌙</button>
 </header>
 
 <main class="wrap">
@@ -164,9 +250,9 @@ var ALL_CHANNELS = [];
 var CURRENT_CATEGORY = "ALL";
 
 // ✅ estado UI / navegación
-var CURRENT_LIST = [];          // lista que se está mostrando (ya filtrada)
-var ACTIVE_INDEX = 0;           // índice seleccionado/focus actual dentro de CURRENT_LIST
-var LAST_FOCUSED_ID = "";       // para restaurar foco luego de re-render
+var CURRENT_LIST = [];
+var ACTIVE_INDEX = 0;
+var LAST_FOCUSED_ID = "";
 
 /* ===== UTIL ===== */
 function $(id){ return document.getElementById(id); }
@@ -178,6 +264,30 @@ function toast(t){
   clearTimeout(window.__toastT);
   window.__toastT = setTimeout(function(){ el.classList.remove("show"); }, 1200);
 }
+
+/* ===== THEME (modo oscuro) ===== */
+function applyTheme(mode){
+  var dark = (mode === "dark");
+  document.body.classList.toggle("dark", dark);
+  try{ localStorage.setItem("theme", dark ? "dark" : "light"); }catch(e){}
+  var btn = $("btnTheme");
+  if(btn) btn.textContent = dark ? "☀️" : "🌙";
+}
+function initTheme(){
+  var saved = null;
+  try{ saved = localStorage.getItem("theme"); }catch(e){}
+  if(saved === "dark" || saved === "light"){
+    applyTheme(saved);
+  }else{
+    // default: claro
+    applyTheme("light");
+  }
+}
+$("btnTheme").addEventListener("click", function(){
+  var isDark = document.body.classList.contains("dark");
+  applyTheme(isDark ? "light" : "dark");
+});
+initTheme();
 
 /* ===== INIT FIREBASE ===== */
 firebase.initializeApp(firebaseConfig);
@@ -226,8 +336,6 @@ function parseM3U(text){
 
     if(line.indexOf("#EXTINF") === 0){
       name = line.split(",").slice(1).join(",").trim() || "Canal";
-
-      // attrs tvg-id/tvg-logo/group-title con regex más permisiva
       var re = /([\w-]+)\s*=\s*"([^"]*)"/g;
       var m;
       while((m = re.exec(line)) !== null){
@@ -284,7 +392,6 @@ function populateCategories(){
   }
 }
 
-/* ===== FILTRO (lista actual) ===== */
 function buildFilteredList(){
   var search = ($("search") && $("search").value ? $("search").value : "").toLowerCase();
 
@@ -294,21 +401,16 @@ function buildFilteredList(){
     return okCat && okSearch;
   });
 
-  // clamp index
   if(ACTIVE_INDEX >= CURRENT_LIST.length) ACTIVE_INDEX = Math.max(0, CURRENT_LIST.length - 1);
   if(ACTIVE_INDEX < 0) ACTIVE_INDEX = 0;
 }
 
-/* ===== NAVEGACIÓN FLUIDA (control remoto) =====
-   - Manejo global de teclas para mover foco sin depender de cada card (más estable en TV Box viejos)
-   - Mantiene ACTIVE_INDEX y hace focus/scroll al ítem
-*/
+/* ===== NAVEGACIÓN FLUIDA (control remoto) ===== */
 function enableGlobalRemoteNav(){
   if(window.__navEnabled) return;
   window.__navEnabled = true;
 
   document.addEventListener("keydown", function(e){
-    // Si el foco está en input o select, no interceptar (para escribir/buscar)
     var tag = (document.activeElement && document.activeElement.tagName) ? document.activeElement.tagName.toLowerCase() : "";
     if(tag === "input" || tag === "select" || tag === "textarea") return;
 
@@ -317,7 +419,6 @@ function enableGlobalRemoteNav(){
     var cols = getGridColsSafe();
     var key = e.key || "";
     var kc = e.keyCode || 0;
-
     var handled = false;
 
     function moveTo(newIndex){
@@ -334,19 +435,10 @@ function enableGlobalRemoteNav(){
       playChannel(CURRENT_LIST[ACTIVE_INDEX], CURRENT_LIST);
     }
 
-    // Flechas
     if(key === "ArrowRight" || kc === 39){ handled = true; moveTo(ACTIVE_INDEX + 1); }
     if(key === "ArrowLeft"  || kc === 37){ handled = true; moveTo(ACTIVE_INDEX - 1); }
     if(key === "ArrowDown"  || kc === 40){ handled = true; moveTo(ACTIVE_INDEX + cols); }
     if(key === "ArrowUp"    || kc === 38){ handled = true; moveTo(ACTIVE_INDEX - cols); }
-
-    // PageUp / PageDown (algunos controles lo mandan)
-    if(kc === 92){ handled = true; moveTo(ACTIVE_INDEX - cols * 3); } // KEYCODE_PAGE_UP (varía)
-    if(kc === 93){ handled = true; moveTo(ACTIVE_INDEX + cols * 3); } // KEYCODE_PAGE_DOWN (varía)
-
-    // Color keys opcional: verde para “búsqueda rápida” (si querés)
-    // KEYCODE_PROG_GREEN suele ser 184 en Android, pero depende del control.
-    // No hacemos nada acá para no romper.
 
     if(handled){
       e.preventDefault();
@@ -355,7 +447,6 @@ function enableGlobalRemoteNav(){
   }, true);
 }
 
-/* ===== Render ===== */
 function renderChannels(){
   buildFilteredList();
 
@@ -371,34 +462,33 @@ function renderChannels(){
   for(var i=0;i<CURRENT_LIST.length;i++){
     (function(index){
       var c = CURRENT_LIST[index];
-
       var card = document.createElement("div");
       card.className = "card";
       card.tabIndex = 0;
       card.setAttribute("data-idx", String(index));
       card.setAttribute("data-id", String(c.id || ""));
 
-      // ✅ logos más compactos (no rompo tu CSS, solo agrego attrs)
       card.innerHTML =
         '<div class="logo">' +
-          (c.logo ? '<img loading="lazy" decoding="async" referrerpolicy="no-referrer" src="'+escapeHtml(c.logo)+'" alt="">' : 'TV') +
+          (c.logo
+            ? '<img loading="lazy" decoding="async" referrerpolicy="no-referrer" src="'+escapeHtml(c.logo)+'" alt="">'
+            : '<span style="opacity:.6;font-weight:900">TV</span>') +
         '</div>' +
-        '<div class="name">'+escapeHtml(c.name)+'</div>' +
-        '<div class="group">'+escapeHtml(c.group || "Otros")+'</div>';
+        '<div class="meta">' +
+          '<div class="name">'+escapeHtml(c.name)+'</div>' +
+          '<div class="group">'+escapeHtml(c.group || "Otros")+'</div>' +
+        '</div>';
 
-      // click (móvil / mouse)
-      card.onclick = function(){ 
+      card.onclick = function(){
         ACTIVE_INDEX = index;
         playChannel(c, CURRENT_LIST);
       };
 
-      // focus tracking
       card.onfocus = function(){
         ACTIVE_INDEX = index;
         LAST_FOCUSED_ID = String(c.id || "");
       };
 
-      // fallback: enter en la card (si el TV box no deja pasar al handler global)
       card.onkeydown = function(e){
         if(e.key === "Enter" || e.keyCode === 13){
           e.preventDefault();
@@ -411,13 +501,10 @@ function renderChannels(){
     })(i);
   }
 
-  // Restaurar foco: por ID si existe, si no por ACTIVE_INDEX
   var idxToFocus = findIndexById(LAST_FOCUSED_ID);
   if(idxToFocus >= 0) ACTIVE_INDEX = idxToFocus;
 
   focusCardByIndex(ACTIVE_INDEX, false);
-
-  // activar navegación global una sola vez
   enableGlobalRemoteNav();
 }
 
@@ -437,22 +524,17 @@ function focusCardByIndex(index, smooth){
 
   try { el.focus(); } catch(e){}
 
-  // ✅ scroll suave hacia el ítem (sin romper TV box viejo)
   try{
     if(typeof el.scrollIntoView === "function"){
-      el.scrollIntoView({
-        block: "nearest",
-        inline: "nearest",
-        behavior: smooth ? "smooth" : "auto"
-      });
+      try{
+        el.scrollIntoView({ block:"nearest", inline:"nearest", behavior: smooth ? "smooth" : "auto" });
+      }catch(e2){
+        el.scrollIntoView();
+      }
     }
-  }catch(e){
-    // fallback (viejo): sin options
-    try{ el.scrollIntoView(); }catch(_e){}
-  }
+  }catch(e){}
 }
 
-/* Columnas reales (safe) */
 function getGridColsSafe(){
   try{
     var grid = $("grid");
@@ -474,11 +556,7 @@ function escapeHtml(s){
   });
 }
 
-/* ===== PLAY (ajuste premium: selectedIndex para el reproductor) =====
-   - Mantiene url+channels (compat)
-   - Agrega selectedIndex para que el Player marque el canal correcto
-   - Además envía selected/playlist como extra por si lo querés usar después
-*/
+/* ===== PLAY (premium: selectedIndex) ===== */
 function playChannel(selected, list){
   var selectedIndex = 0;
   for(var i=0;i<list.length;i++){
@@ -489,14 +567,12 @@ function playChannel(selected, list){
     url: selected.url,
     channels: list.map(function(c){ return { name: c.name, url: c.url }; }),
     selectedIndex: selectedIndex,
-
-    // extras (no rompen)
     selected: selected,
     playlist: list
   };
 
   if(window.AndroidBridge && typeof AndroidBridge.playChannel === "function"){
-    AndroidBridge.playChannel(JSON.stringify(payload));
+    window.AndroidBridge.playChannel(JSON.stringify(payload));
   }else{
     console.log(payload);
     toast("Play (modo prueba)");
@@ -520,7 +596,6 @@ function boot(){
     populateCategories();
     renderChannels();
 
-    // ✅ input events
     if($("search")){
       $("search").addEventListener("input", function(){
         ACTIVE_INDEX = 0;
@@ -545,7 +620,6 @@ function boot(){
   });
 }
 </script>
-
 
 </body>
 </html>
