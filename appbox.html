@@ -6,36 +6,47 @@
 <title>TV | Canales</title>
 
 <style>
+/* ===== PALETA estilo DIRECTV (imagen) ===== */
 :root{
-  --bg:#f3f0e8;
-  --top:#fab802;
-  --card:#ffffff;
-  --line:#e6dfcf;
-  --text:#1b1b1b;
-  --muted:#6b6b6b;
-  --accent:#b6db44;
-  --radius:14px;
-  --focus:#1a73e8;
-  --input:#ffffff;
-  --shadow: 0 10px 22px rgba(0,0,0,.10);
+  /* base */
+  --bg:#0b1b2d;            /* azul oscuro */
+  --top:#0a2036;           /* barra superior */
+  --panel:#0f2a44;         /* paneles */
+  --card:#0e253c;          /* tarjetas */
+  --line:rgba(255,255,255,.10);
+  --text:#eaf3ff;
+  --muted:rgba(234,243,255,.65);
 
+  /* acentos */
+  --accent:#18b6d6;        /* cian */
+  --focus:#22c7e6;         /* foco cian fuerte */
+  --input:#0b2238;
+
+  --shadow: 0 10px 24px rgba(0,0,0,.35);
+
+  /* layout */
   --gap:12px;      /* separación entre tarjetas */
   --cardW: 180px;  /* ancho tarjeta (cuadrada) */
   --pad: 10px;     /* padding interno */
   --logoBoxH: 62%; /* % de alto interno para logo */
+  --radius:14px;
 }
 
-body.dark{
-  --bg:#0f1218;
-  --top: rgba(15,18,24,.92);
-  --card:#151b24;
-  --line: rgba(255,255,255,.12);
-  --text:#e9eefc;
-  --muted: rgba(233,238,252,.68);
-  --accent:#66d9ff;
-  --focus:#66d9ff;
-  --input: rgba(255,255,255,.06);
-  --shadow: 0 14px 28px rgba(0,0,0,.35);
+/* modo claro (opcional) */
+body.light{
+  --bg:#f2f4f7;
+  --top:#0b1b2d;
+  --panel:#ffffff;
+  --card:#ffffff;
+  --line:rgba(0,0,0,.10);
+  --text:#0d1726;
+  --muted:rgba(13,23,38,.65);
+
+  --accent:#18b6d6;
+  --focus:#18b6d6;
+  --input:#ffffff;
+
+  --shadow: 0 10px 20px rgba(0,0,0,.10);
 }
 
 *{box-sizing:border-box}
@@ -43,7 +54,10 @@ html,body{height:100%}
 body{
   margin:0;
   font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
-  background:var(--bg);
+  background:
+    radial-gradient(900px 520px at 15% 15%, rgba(24,182,214,.14), transparent 55%),
+    radial-gradient(800px 480px at 85% 25%, rgba(24,182,214,.10), transparent 60%),
+    var(--bg);
   color:var(--text);
 }
 
@@ -54,43 +68,54 @@ body{
   display:flex;
   align-items:center;
   gap:10px;
-  padding:10px;
-  background:var(--top);
-  border-bottom:1px solid rgba(0,0,0,.05);
+  padding:12px 12px;
+  background: linear-gradient(180deg, rgba(10,32,54,.98), rgba(10,32,54,.92));
+  border-bottom:1px solid var(--line);
   z-index:20;
 }
-body.dark .topbar{ border-bottom:1px solid rgba(255,255,255,.10); }
 
 .title{
   font-weight:900;
   font-size:16px;
   letter-spacing:.2px;
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+.title::before{
+  content:"";
+  width:10px;
+  height:10px;
+  border-radius:999px;
+  background:var(--accent);
+  box-shadow:0 0 0 3px rgba(24,182,214,.18);
 }
 
+/* Inputs */
 .selectCat,.search,.btnTheme{
-  padding:8px 10px;
-  border-radius:10px;
-  border:1px solid rgba(0,0,0,.12);
+  padding:9px 10px;
+  border-radius:12px;
+  border:1px solid var(--line);
   background:var(--input);
   color:var(--text);
   font-weight:800;
   outline:none;
 }
-body.dark .selectCat,
-body.dark .search,
-body.dark .btnTheme{
-  border:1px solid rgba(255,255,255,.12);
+
+.selectCat:focus,.search:focus,.btnTheme:focus{
+  border-color: rgba(34,199,230,.75);
+  box-shadow: 0 0 0 2px rgba(34,199,230,.22);
 }
 
 .search{
   margin-left:auto;
-  width:min(260px, 34vw);
+  width:min(280px, 34vw);
   font-weight:700;
 }
 
 .btnTheme{
   width:44px;
-  height:38px;
+  height:40px;
   display:inline-block;
   text-align:center;
   cursor:pointer;
@@ -100,20 +125,19 @@ body.dark .btnTheme{
 /* CONTENEDOR */
 .wrap{ padding: 12px; }
 
-/* ✅ FLEX (más compatible). NO usamos gap porque en TV Box viejo falla.
-   usamos margin en cards + margin negativo en container. */
+/* FLEX (compat). No gap: usamos margin en cards */
 .grid{
   display:flex;
   flex-wrap:wrap;
   margin: calc(var(--gap) * -0.5);
 }
 
-/* ✅ CARD CUADRADA (sin aspect-ratio, compatible) */
+/* CARD CUADRADA */
 .card{
   width: var(--cardW);
   margin: calc(var(--gap) * 0.5);
 
-  background:var(--card);
+  background: linear-gradient(180deg, rgba(14,37,60,.98), rgba(12,32,52,.98));
   border:1px solid var(--line);
   border-radius:var(--radius);
   cursor:pointer;
@@ -121,23 +145,23 @@ body.dark .btnTheme{
   user-select:none;
   box-shadow:var(--shadow);
   position:relative;
-
-  /* Para que el foco se note bien */
   transform: translateZ(0);
 }
-.card:focus{
-  border-color:var(--focus);
-  box-shadow: 0 0 0 2px rgba(26,115,232,.25), var(--shadow);
+
+body.light .card{
+  background: var(--card);
 }
-body.dark .card:focus{
-  box-shadow: 0 0 0 2px rgba(102,217,255,.28), var(--shadow);
+
+.card:focus{
+  border-color: rgba(34,199,230,.85);
+  box-shadow: 0 0 0 2px rgba(34,199,230,.22), var(--shadow);
 }
 
 /* Truco cuadrado */
 .card::before{
   content:"";
   display:block;
-  padding-top:100%; /* altura = ancho */
+  padding-top:100%;
 }
 
 /* Contenido interno */
@@ -155,20 +179,22 @@ body.dark .card:focus{
 
 /* Logo arriba */
 .logo{
-  flex: 0 0 auto;
+  flex:0 0 auto;
   height: var(--logoBoxH);
-  border-radius:12px;
-  border:1px solid rgba(0,0,0,.06);
-  background:rgba(255,255,255,.70);
+  border-radius:14px;
+  border:1px solid rgba(255,255,255,.10);
+  background: rgba(255,255,255,.05);
   display:flex;
   align-items:center;
   justify-content:center;
   overflow:hidden;
 }
-body.dark .logo{
-  border:1px solid rgba(255,255,255,.10);
-  background:rgba(255,255,255,.05);
+
+body.light .logo{
+  border:1px solid rgba(0,0,0,.08);
+  background: rgba(0,0,0,.03);
 }
+
 .logo img{
   max-width:78%;
   max-height:78%;
@@ -207,10 +233,10 @@ body.dark .logo{
   left:50%;
   bottom:16px;
   transform:translateX(-50%);
-  background:rgba(0,0,0,.85);
+  background:rgba(0,0,0,.80);
   color:#fff;
-  padding:8px 12px;
-  border-radius:10px;
+  padding:9px 12px;
+  border-radius:12px;
   font-size:11px;
   opacity:0;
   pointer-events:none;
@@ -238,7 +264,8 @@ body.dark .logo{
 
   <input id="search" class="search" placeholder="Buscar" autocomplete="off" tabindex="0"/>
 
-  <button id="btnTheme" class="btnTheme" type="button" title="Tema" tabindex="0">🌙</button>
+  <!-- Por defecto: tema DIRECTV oscuro. Botón alterna a “claro”. -->
+  <button id="btnTheme" class="btnTheme" type="button" title="Tema" tabindex="0">☀️</button>
 </header>
 
 <main class="wrap">
@@ -277,7 +304,6 @@ var LAST_FOCUSED_ID = "";
 
 /* ===== UTIL ===== */
 function $(id){ return document.getElementById(id); }
-
 function toast(t){
   var el = $("toast");
   if(!el) return;
@@ -286,7 +312,6 @@ function toast(t){
   clearTimeout(window.__toastT);
   window.__toastT = setTimeout(function(){ el.classList.remove("show"); }, 1200);
 }
-
 function escapeHtml(s){
   s = String(s == null ? "" : s);
   return s.replace(/[&<>"']/g, function(c){
@@ -294,21 +319,21 @@ function escapeHtml(s){
   });
 }
 
-/* ===== THEME ===== */
+/* ===== THEME (por defecto oscuro DIRECTV) ===== */
 function applyTheme(mode){
-  var dark = (mode === "dark");
-  document.body.classList.toggle("dark", dark);
-  try{ localStorage.setItem("theme", dark ? "dark" : "light"); }catch(e){}
-  $("btnTheme").textContent = dark ? "☀️" : "🌙";
+  var light = (mode === "light");
+  document.body.classList.toggle("light", light);
+  try{ localStorage.setItem("theme", light ? "light" : "dark"); }catch(e){}
+  $("btnTheme").textContent = light ? "🌙" : "☀️";
 }
 function initTheme(){
   var saved = null;
   try{ saved = localStorage.getItem("theme"); }catch(e){}
-  if(saved === "dark" || saved === "light") applyTheme(saved);
-  else applyTheme("light");
+  if(saved === "light") applyTheme("light");
+  else applyTheme("dark");
 }
 $("btnTheme").onclick = function(){
-  applyTheme(document.body.classList.contains("dark") ? "light" : "dark");
+  applyTheme(document.body.classList.contains("light") ? "dark" : "light");
 };
 initTheme();
 
@@ -412,7 +437,6 @@ function populateCategories(){
 
 function buildFilteredList(){
   var search = ($("search").value || "").toLowerCase();
-
   CURRENT_LIST = ALL_CHANNELS.filter(function(c){
     var okCat = (CURRENT_CATEGORY === "ALL") || (c.group === CURRENT_CATEGORY);
     var okSearch = (!search) || (String(c.name||"").toLowerCase().indexOf(search) >= 0);
@@ -423,7 +447,7 @@ function buildFilteredList(){
   if(ACTIVE_INDEX < 0) ACTIVE_INDEX = 0;
 }
 
-/* ✅ columnas reales (flex) por ancho del contenedor / card */
+/* ✅ columnas reales (flex) */
 function getCols(){
   var grid = $("grid");
   if(!grid) return 1;
@@ -455,9 +479,7 @@ function focusByIndex(idx){
   var grid = $("grid");
   var el = grid ? grid.querySelector('.card[data-idx="'+idx+'"]') : null;
   if(!el) return;
-
   try{ el.focus(); }catch(e){}
-
   try{
     if(el.scrollIntoView){
       try{ el.scrollIntoView({block:"nearest", inline:"nearest"}); }
@@ -474,14 +496,12 @@ function enableRemoteNav(){
   document.addEventListener("keydown", function(e){
     var tag = (document.activeElement && document.activeElement.tagName) ? document.activeElement.tagName.toLowerCase() : "";
     if(tag === "input" || tag === "select" || tag === "textarea") return;
-
     if(!CURRENT_LIST.length) return;
 
     var cols = getCols();
     var kc = e.keyCode || 0;
     var key = e.key || "";
 
-    // Enter/OK
     if(key === "Enter" || kc === 13){
       e.preventDefault();
       playChannel(CURRENT_LIST[ACTIVE_INDEX], CURRENT_LIST);
@@ -512,12 +532,11 @@ function enableRemoteNav(){
 
 function renderChannels(){
   buildFilteredList();
-
   var grid = $("grid");
   grid.innerHTML = "";
 
   if(!CURRENT_LIST.length){
-    grid.innerHTML = '<div style="padding:10px;font-weight:900;opacity:.7">No hay canales</div>';
+    grid.innerHTML = '<div style="padding:10px;font-weight:900;opacity:.8">No hay canales</div>';
     return;
   }
 
@@ -535,7 +554,7 @@ function renderChannels(){
           '<div class="logo">' +
             (c.logo
               ? '<img loading="lazy" decoding="async" referrerpolicy="no-referrer" src="'+escapeHtml(c.logo)+'" alt="">'
-              : '<span style="opacity:.65;font-weight:900">TV</span>') +
+              : '<span style="opacity:.75;font-weight:900;color:var(--accent)">TV</span>') +
           '</div>' +
           '<div class="meta">' +
             '<div class="name">'+escapeHtml(c.name)+'</div>' +
@@ -569,7 +588,7 @@ function renderChannels(){
   enableRemoteNav();
 }
 
-/* ===== PLAY (url+channels + selectedIndex) ===== */
+/* ===== PLAY ===== */
 function playChannel(selected, list){
   var selectedIndex = 0;
   for(var i=0;i<list.length;i++){
