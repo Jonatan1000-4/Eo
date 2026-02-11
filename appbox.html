@@ -17,12 +17,12 @@
   --radius:14px;
   --focus:#1a73e8;
   --input:#ffffff;
-  --shadow: 0 8px 18px rgba(0, 0, 0, 0.6);
-  --gap:12px;
+  --shadow: 0 10px 22px rgba(0,0,0,.10);
 
-  --cardW: 210px;   /* ancho fijo para que el wrap sea estable */
-  --cardH: 84px;    /* alto fijo para que la navegación sea uniforme */
-  --logoS: 54px;
+  --gap:12px;      /* separación entre tarjetas */
+  --cardW: 180px;  /* ancho tarjeta (cuadrada) */
+  --pad: 10px;     /* padding interno */
+  --logoBoxH: 62%; /* % de alto interno para logo */
 }
 
 body.dark{
@@ -31,11 +31,11 @@ body.dark{
   --card:#151b24;
   --line: rgba(255,255,255,.12);
   --text:#e9eefc;
-  --muted: rgba(233,238,252,.65);
+  --muted: rgba(233,238,252,.68);
   --accent:#66d9ff;
   --focus:#66d9ff;
   --input: rgba(255,255,255,.06);
-  --shadow: 0 12px 24px rgba(0,0,0,.35);
+  --shadow: 0 14px 28px rgba(0,0,0,.35);
 }
 
 *{box-sizing:border-box}
@@ -47,7 +47,7 @@ body{
   color:var(--text);
 }
 
-/* TOP BAR (simple, compatible) */
+/* TOP BAR */
 .topbar{
   position:sticky;
   top:0;
@@ -84,7 +84,8 @@ body.dark .btnTheme{
 
 .search{
   margin-left:auto;
-  width:220px;
+  width:min(260px, 34vw);
+  font-weight:700;
 }
 
 .btnTheme{
@@ -99,30 +100,30 @@ body.dark .btnTheme{
 /* CONTENEDOR */
 .wrap{ padding: 12px; }
 
-/* ✅ FLEX GRID (más compatible que CSS Grid en TV Box viejos) */
+/* ✅ FLEX (más compatible). NO usamos gap porque en TV Box viejo falla.
+   usamos margin en cards + margin negativo en container. */
 .grid{
   display:flex;
   flex-wrap:wrap;
-  gap: var(--gap);
+  margin: calc(var(--gap) * -0.5);
 }
 
-/* CARD compacta (siempre igual) */
+/* ✅ CARD CUADRADA (sin aspect-ratio, compatible) */
 .card{
   width: var(--cardW);
-  height: var(--cardH);
+  margin: calc(var(--gap) * 0.5);
 
   background:var(--card);
   border:1px solid var(--line);
   border-radius:var(--radius);
-  padding:10px;
   cursor:pointer;
   outline:none;
   user-select:none;
   box-shadow:var(--shadow);
+  position:relative;
 
-  display:flex;
-  align-items:center;
-  gap:10px;
+  /* Para que el foco se note bien */
+  transform: translateZ(0);
 }
 .card:focus{
   border-color:var(--focus);
@@ -132,16 +133,36 @@ body.dark .card:focus{
   box-shadow: 0 0 0 2px rgba(102,217,255,.28), var(--shadow);
 }
 
+/* Truco cuadrado */
+.card::before{
+  content:"";
+  display:block;
+  padding-top:100%; /* altura = ancho */
+}
+
+/* Contenido interno */
+.cardInner{
+  position:absolute;
+  left: var(--pad);
+  right: var(--pad);
+  top: var(--pad);
+  bottom: var(--pad);
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  min-width:0;
+}
+
+/* Logo arriba */
 .logo{
-  width:var(--logoS);
-  height:var(--logoS);
-  flex:0 0 var(--logoS);
+  flex: 0 0 auto;
+  height: var(--logoBoxH);
+  border-radius:12px;
+  border:1px solid rgba(0,0,0,.06);
+  background:rgba(255,255,255,.70);
   display:flex;
   align-items:center;
   justify-content:center;
-  border-radius:12px;
-  border:1px solid rgba(0,0,0,.06);
-  background:rgba(255,255,255,.7);
   overflow:hidden;
 }
 body.dark .logo{
@@ -149,13 +170,20 @@ body.dark .logo{
   background:rgba(255,255,255,.05);
 }
 .logo img{
-  max-width:44px;
-  max-height:44px;
+  max-width:78%;
+  max-height:78%;
   object-fit:contain;
   display:block;
 }
 
-.meta{ flex:1; min-width:0; }
+/* Texto abajo */
+.meta{
+  flex:1;
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  justify-content:flex-end;
+}
 .name{
   font-weight:900;
   font-size:13px;
@@ -191,9 +219,9 @@ body.dark .logo{
 }
 .toast.show{opacity:1}
 
-/* Para pantallas chicas, que no se “rompa” */
+/* Responsive */
 @media (max-width: 520px){
-  :root{ --cardW: 100%; }
+  :root{ --cardW: 46vw; }
   .search{ width: 45vw; }
 }
 </style>
@@ -236,7 +264,6 @@ var firebaseConfig = {
 };
 
 var ALLOWLIST_COLLECTION = "allowlist";
-
 var M3U_URL = "https://jonatan1000-4.github.io/mi_app_rv22/canales.m3u";
 var M3U_TEXT = "";
 var JSON_FALLBACK = "";
@@ -403,17 +430,18 @@ function getCols(){
 
   var gap = 12;
   try{
-    var cs = window.getComputedStyle(grid);
-    var g = cs.gap || cs.gridGap || "";
-    var n = parseInt(g, 10);
-    if(!isNaN(n)) gap = n;
+    var r = document.documentElement;
+    var cssGap = (getComputedStyle(r).getPropertyValue("--gap") || "").trim();
+    var g = parseInt(cssGap, 10);
+    if(!isNaN(g)) gap = g;
   }catch(e){}
 
   var gridW = grid.clientWidth || (window.innerWidth || 1024);
-  var cardW = 210;
+
+  var cardW = 180;
   try{
-    var r = document.documentElement;
-    var cssW = (getComputedStyle(r).getPropertyValue("--cardW") || "").trim();
+    var r2 = document.documentElement;
+    var cssW = (getComputedStyle(r2).getPropertyValue("--cardW") || "").trim();
     var p = parseInt(cssW, 10);
     if(!isNaN(p)) cardW = p;
   }catch(e){}
@@ -438,10 +466,7 @@ function focusByIndex(idx){
   }catch(e){}
 }
 
-/* ✅ navegación GLOBAL estable:
-   - Si hay 1 columna (lista), ↑/↓ van de a 1 (consecutivo)
-   - Si hay varias columnas, ↑/↓ usa cols real medido
-*/
+/* ✅ navegación GLOBAL estable */
 function enableRemoteNav(){
   if(window.__remoteNav) return;
   window.__remoteNav = true;
@@ -506,14 +531,16 @@ function renderChannels(){
       card.setAttribute("data-id", String(c.id || ""));
 
       card.innerHTML =
-        '<div class="logo">' +
-          (c.logo
-            ? '<img loading="lazy" decoding="async" referrerpolicy="no-referrer" src="'+escapeHtml(c.logo)+'" alt="">'
-            : '<span style="opacity:.65;font-weight:900">TV</span>') +
-        '</div>' +
-        '<div class="meta">' +
-          '<div class="name">'+escapeHtml(c.name)+'</div>' +
-          '<div class="group">'+escapeHtml(c.group || "Otros")+'</div>' +
+        '<div class="cardInner">' +
+          '<div class="logo">' +
+            (c.logo
+              ? '<img loading="lazy" decoding="async" referrerpolicy="no-referrer" src="'+escapeHtml(c.logo)+'" alt="">'
+              : '<span style="opacity:.65;font-weight:900">TV</span>') +
+          '</div>' +
+          '<div class="meta">' +
+            '<div class="name">'+escapeHtml(c.name)+'</div>' +
+            '<div class="group">'+escapeHtml(c.group || "Otros")+'</div>' +
+          '</div>' +
         '</div>';
 
       card.onclick = function(){
