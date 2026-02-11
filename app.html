@@ -13,7 +13,7 @@
   --text:#1b1b1b;
   --muted:#6b6b6b;
   --accent:#b6db44;
-  --radius:18px;
+  --radius:14px;
   --focus:#1a73e8;
 }
 *{box-sizing:border-box}
@@ -31,105 +31,91 @@ body{
   display:flex;
   align-items:center;
   gap:12px;
-  padding:14px;
-  background:rgba(243,240,232,.95);
+  padding:12px;
+  background:#f3f0e8;
   border-bottom:1px solid rgba(0,0,0,.05);
   z-index:20;
 }
 .title{
   font-weight:800;
-  font-size:18px;
+  font-size:16px;
 }
-.selectCat{
-  padding:8px 12px;
-  border-radius:12px;
+.selectCat,.search{
+  padding:6px 10px;
+  border-radius:10px;
   border:1px solid rgba(0,0,0,.1);
   background:#fff;
-  font-weight:700;
+  font-weight:600;
   outline:none;
 }
 .search{
   margin-left:auto;
-  padding:8px 12px;
-  border-radius:12px;
-  border:1px solid rgba(0,0,0,.1);
-  outline:none;
-  width:min(320px, 45vw);
+  width:220px;
 }
 
 /* GRID */
-.wrap{padding:20px 18px 90px;}
+.wrap{padding:14px;}
 .grid{
   display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(180px,1fr));
-  gap:16px;
+  grid-template-columns:repeat(auto-fill,minmax(150px,1fr));
+  gap:12px;
 }
 .card{
   background:#fff;
   border:1px solid var(--line);
   border-radius:var(--radius);
-  padding:14px;
+  padding:10px;
   cursor:pointer;
   transition:.15s;
   outline:none;
-  user-select:none;
 }
 .card:focus{
   border:2px solid var(--focus);
-  transform:scale(1.04);
+  transform:scale(1.05);
 }
 .logo{
-  height:60px;
+  height:46px;
   display:flex;
   align-items:center;
   justify-content:center;
-  margin-bottom:10px;
-  border-radius:14px;
-  border:1px solid rgba(0,0,0,.08);
+  margin-bottom:6px;
+  border-radius:10px;
+  border:1px solid rgba(0,0,0,.06);
   background:#fff;
 }
 .logo img{
-  max-height:48px;
-  max-width:100%;
+  max-height:36px;
+  max-width:90%;
   object-fit:contain;
 }
 .name{
   font-weight:800;
-  font-size:14px;
+  font-size:13px;
   line-height:1.2;
 }
 .group{
-  font-size:12px;
+  font-size:11px;
   color:var(--muted);
-  margin-top:4px;
+  margin-top:2px;
   white-space:nowrap;
   overflow:hidden;
   text-overflow:ellipsis;
 }
 
-/* Responsive TV */
-@media (min-width:1000px){
-  .grid{
-    grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
-  }
-  .card{padding:18px;}
-}
-
-/* Small toast */
+/* Toast */
 .toast{
   position:fixed;
   left:50%;
-  bottom:22px;
+  bottom:18px;
   transform:translateX(-50%);
   background:rgba(0,0,0,.85);
   color:#fff;
-  padding:10px 12px;
-  border-radius:12px;
-  font-size:12px;
+  padding:8px 12px;
+  border-radius:10px;
+  font-size:11px;
   opacity:0;
   pointer-events:none;
-  transition:opacity .18s ease;
-  z-index:50;
+  transition:.2s;
 }
 .toast.show{opacity:1}
 </style>
@@ -139,23 +125,19 @@ body{
 
 <header class="topbar">
   <div class="title">Canales</div>
-
-  <!-- ✅ Por defecto muestra TODOS -->
-  <select id="categorySelect" class="selectCat" aria-label="Categoría">
-    <option value="ALL">Todas las categorías</option>
+  <select id="categorySelect" class="selectCat">
+    <option value="ALL">Todas</option>
   </select>
-
-  <input type="text" id="search" class="search" placeholder="Buscar..." autocomplete="off" />
+  <input id="search" class="search" placeholder="Buscar"/>
 </header>
 
 <main class="wrap">
   <div class="grid" id="grid"></div>
 </main>
 
-<div class="toast" id="toast"></div>
+<div id="toast" class="toast"></div>
 
 <script type="module">
-/* ===== FIREBASE ===== */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
 import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
@@ -169,221 +151,168 @@ const firebaseConfig = {
   appId: "1:762479825387:web:8ffb3a629c0eb9f52fc9ae"
 };
 
-const ALLOWLIST_COLLECTION = "allowlist";
-
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
+const ALLOWLIST_COLLECTION = "allowlist";
 
-/* ===== M3U ===== */
 const M3U_URL = "https://jonatan1000-4.github.io/mi_app_rv22/canales.m3u";
-const M3U_TEXT = ""; // si no está vacío, se usa este y NO se fetchea URL
+const M3U_TEXT = "";
+const JSON_FALLBACK = ""; // opcional: podés poner JSON aquí si querés
 
 let ALL_CHANNELS = [];
 let CURRENT_CATEGORY = "ALL";
 
-/* ===== UTIL ===== */
-const $ = (id) => document.getElementById(id);
-const toast = (t) => {
-  const el = $("toast");
-  el.textContent = t;
+const $ = id=>document.getElementById(id);
+const toast = t=>{
+  const el=$("toast");
+  el.textContent=t;
   el.classList.add("show");
-  clearTimeout(window.__toastT);
-  window.__toastT = setTimeout(() => el.classList.remove("show"), 1200);
+  setTimeout(()=>el.classList.remove("show"),1200);
 };
 
 async function isAllowlisted(uid){
-  const ref = doc(db, ALLOWLIST_COLLECTION, uid);
-  const snap = await getDoc(ref);
-  return snap.exists() && snap.data()?.enabled === true;
+  const snap = await getDoc(doc(db,ALLOWLIST_COLLECTION,uid));
+  return snap.exists() && snap.data()?.enabled===true;
 }
 
-/* ===== AUTH GATE ===== */
-onAuthStateChanged(auth, async (user)=>{
-  if(!user){
-    location.href = "login.html";
+onAuthStateChanged(auth, async user=>{
+  if(!user){ location.href="login.html"; return;}
+  if(!(await isAllowlisted(user.uid))){
+    await signOut(auth);
+    location.href="login.html";
     return;
   }
-  try{
-    const ok = await isAllowlisted(user.uid);
-    if(!ok){
-      await signOut(auth);
-      location.href = "login.html";
-      return;
-    }
-    boot();
-  }catch(e){
-    console.error(e);
-    toast("Error de acceso");
-    await signOut(auth);
-    location.href = "login.html";
-  }
+  boot();
 });
 
-/* ===== PARSER M3U ===== */
+/* PARSER TOLERANTE */
 function parseM3U(text){
-  const lines = text.split(/\r?\n/).map(l => l.trim());
-  let current = null;
-  const out = [];
-
-  for(const line of lines){
-    if(!line) continue;
-
+  const lines=text.split(/\r?\n/);
+  const out=[];
+  let name="",logo="",group="",id="";
+  for(let i=0;i<lines.length;i++){
+    const line=lines[i].trim();
     if(line.startsWith("#EXTINF")){
-      const name = line.split(",").slice(1).join(",").trim() || "Canal";
-      const attrs = {};
-      const re = /(\w+(?:-\w+)*)="([^"]*)"/g;
-      let m;
-      while((m = re.exec(line)) !== null){
-        attrs[m[1]] = m[2];
-      }
-      current = {
-        id: attrs["tvg-id"] || name,
-        epgId: attrs["tvg-id"] || "",
-        name,
-        logo: attrs["tvg-logo"] || "",
-        group: attrs["group-title"] || "Otros",
-        url: ""
-      };
-    } else if(!line.startsWith("#") && current){
-      current.url = line;
-      out.push(current);
-      current = null;
+      name=line.split(",").slice(1).join(",").trim();
+      const attrs=line.match(/(\w+(?:-\w+)*)="([^"]*)"/g)||[];
+      attrs.forEach(a=>{
+        const parts=a.split("=");
+        const key=parts[0];
+        const val=parts[1].replace(/"/g,"");
+        if(key==="tvg-logo") logo=val;
+        if(key==="group-title") group=val;
+        if(key==="tvg-id") id=val;
+      });
+    } else if(line && !line.startsWith("#")){
+      out.push({
+        id:id||name,
+        name:name||"Canal",
+        logo:logo||"",
+        group:group||"Otros",
+        url:line
+      });
+      name="";logo="";group="";id="";
     }
   }
   return out;
 }
 
 async function loadChannels(){
-  let text = M3U_TEXT;
-  if(!text){
-    const res = await fetch(M3U_URL, { cache: "no-store" });
-    if(!res.ok) throw new Error("No se pudo cargar M3U");
-    text = await res.text();
+  try{
+    if(JSON_FALLBACK){
+      return JSON.parse(JSON_FALLBACK);
+    }
+    let text=M3U_TEXT;
+    if(!text){
+      const res=await fetch(M3U_URL,{cache:"no-store"});
+      text=await res.text();
+    }
+    return parseM3U(text);
+  }catch(e){
+    console.error(e);
+    return [];
   }
-  return parseM3U(text);
 }
 
-/* ===== CATEGORÍAS ===== */
 function populateCategories(){
-  const select = $("categorySelect");
-  // reset (mantener primera opción ALL)
-  select.innerHTML = `<option value="ALL">Todas las categorías</option>`;
-
-  const groups = [...new Set(ALL_CHANNELS.map(c => c.group || "Otros"))].sort((a,b)=>a.localeCompare(b));
-  groups.forEach(g=>{
-    const opt = document.createElement("option");
-    opt.value = g;
-    opt.textContent = g;
+  const select=$("categorySelect");
+  select.innerHTML=`<option value="ALL">Todas</option>`;
+  const groups=[...new Set(ALL_CHANNELS.map(c=>c.group))];
+  groups.sort().forEach(g=>{
+    const opt=document.createElement("option");
+    opt.value=g;
+    opt.textContent=g;
     select.appendChild(opt);
   });
 }
 
-/* ===== RENDER ===== */
 function renderChannels(){
-  const grid = $("grid");
-  grid.innerHTML = "";
-
-  const searchTerm = $("search").value.trim().toLowerCase();
-
-  // ✅ IMPORTANTE: por defecto muestra TODOS, solo filtra si elegís una categoría
-  const list = ALL_CHANNELS.filter(c=>{
-    const matchCat = (CURRENT_CATEGORY === "ALL") || (c.group === CURRENT_CATEGORY);
-    const matchSearch = !searchTerm || (c.name || "").toLowerCase().includes(searchTerm);
-    return matchCat && matchSearch;
+  const grid=$("grid");
+  grid.innerHTML="";
+  const search=$("search").value.toLowerCase();
+  const list=ALL_CHANNELS.filter(c=>{
+    const okCat=CURRENT_CATEGORY==="ALL"||c.group===CURRENT_CATEGORY;
+    const okSearch=!search||c.name.toLowerCase().includes(search);
+    return okCat&&okSearch;
   });
 
-  if(!list.length){
-    grid.innerHTML = `<div style="grid-column:1/-1; padding:12px; color:rgba(0,0,0,.55); font-weight:700;">
-      No hay resultados.
-    </div>`;
-    return;
-  }
-
-  list.forEach((c, index)=>{
-    const card = document.createElement("div");
-    card.className = "card";
-    card.tabIndex = 0; // ✅ control remoto
-
-    card.innerHTML = `
+  list.forEach((c,index)=>{
+    const card=document.createElement("div");
+    card.className="card";
+    card.tabIndex=0;
+    card.innerHTML=`
       <div class="logo">
-        ${c.logo ? `<img src="${escapeHtml(c.logo)}" alt="">` : `<span style="opacity:.55;font-weight:900;">TV</span>`}
+        ${c.logo?`<img src="${c.logo}">`:"TV"}
       </div>
-      <div class="name">${escapeHtml(c.name)}</div>
-      <div class="group">${escapeHtml(c.group || "Otros")}</div>
+      <div class="name">${c.name}</div>
+      <div class="group">${c.group}</div>
     `;
 
-    // click (móvil)
-    card.addEventListener("click", ()=> playChannel(c, list));
+    card.onclick=()=>playChannel(c,list);
 
-    // enter/ok (TV)
-    card.addEventListener("keydown", (e)=>{
-      if(e.key === "Enter" || e.key === "OK" || e.keyCode === 13){
-        e.preventDefault();
-        playChannel(c, list);
-      }
-    });
+    card.onkeydown=(e)=>{
+      const cards=[...document.querySelectorAll(".card")];
+      const i=cards.indexOf(card);
+      if(e.key==="Enter") playChannel(c,list);
+      if(e.key==="ArrowRight" && cards[i+1]) cards[i+1].focus();
+      if(e.key==="ArrowLeft" && cards[i-1]) cards[i-1].focus();
+      if(e.key==="ArrowDown" && cards[i+4]) cards[i+4].focus();
+      if(e.key==="ArrowUp" && cards[i-4]) cards[i-4].focus();
+    };
 
     grid.appendChild(card);
-
-    // autofocus primera card
-    if(index === 0) setTimeout(()=>card.focus(), 150);
+    if(index===0) setTimeout(()=>card.focus(),150);
   });
 }
 
-function escapeHtml(s){
-  return String(s ?? "").replace(/[&<>"']/g, (c) => ({
-    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
-  }[c]));
+function playChannel(selected,list){
+  const payload={
+    url:selected.url,
+    channels:list.map(c=>({name:c.name,url:c.url}))
+  };
+  if(window.AndroidBridge && AndroidBridge.playChannel){
+    AndroidBridge.playChannel(JSON.stringify(payload));
+  }else{
+    console.log(payload);
+  }
 }
 
-/* ===== PLAY (COMPATIBLE CON ANDROID “url + channels”) ===== */
-function playChannel(selected, list){
-  // ✅ Formato que tu Player Android dijo que espera:
-  // { url: "...", channels: [ { name, url }, ... ] }
-  const payload = {
-    url: selected?.url || "",
-    channels: (list || []).map(ch => ({ name: ch.name, url: ch.url })),
-
-    // (opcional) dejamos el extra por si luego lo usás en Android
-    selected,
-    playlist: list
-  };
-
-  if(window.AndroidBridge && typeof AndroidBridge.playChannel === "function"){
-    AndroidBridge.playChannel(JSON.stringify(payload));
+async function boot(){
+  toast("Cargando...");
+  ALL_CHANNELS=await loadChannels();
+  if(!ALL_CHANNELS.length){
+    toast("No hay canales");
     return;
   }
-
-  console.log("AndroidBridge no disponible. Payload:", payload);
-  toast("Play (modo prueba)");
-}
-
-/* ===== BOOT ===== */
-async function boot(){
-  try{
-    toast("Cargando...");
-    ALL_CHANNELS = await loadChannels();
-    if(!ALL_CHANNELS.length){
-      toast("M3U vacía");
-      return;
-    }
-
-    CURRENT_CATEGORY = "ALL"; // ✅ siempre iniciar mostrando todo
-    populateCategories();
+  populateCategories();
+  renderChannels();
+  $("search").addEventListener("input",renderChannels);
+  $("categorySelect").addEventListener("change",e=>{
+    CURRENT_CATEGORY=e.target.value;
     renderChannels();
-
-    $("search").addEventListener("input", renderChannels);
-    $("categorySelect").addEventListener("change", (e)=>{
-      CURRENT_CATEGORY = e.target.value;
-      renderChannels();
-    });
-
-    toast("Listo");
-  }catch(e){
-    console.error(e);
-    toast("Error cargando canales");
-  }
+  });
+  toast("Listo");
 }
 </script>
 
