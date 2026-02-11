@@ -84,8 +84,8 @@ body{
   background:#fff;
 }
 .logo img{
-  max-height:36px;
-  max-width:90%;
+  max-height:34px;     /* ✅ más compacto */
+  max-width:88%;
   object-fit:contain;
 }
 .name{
@@ -137,12 +137,14 @@ body{
 
 <div id="toast" class="toast"></div>
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
-import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
-import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+<!-- ✅ FIREBASE COMPAT (funciona en WebView viejo) -->
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
-const firebaseConfig = {
+<script>
+/* ===== CONFIG ===== */
+var firebaseConfig = {
   apiKey: "AIzaSyBKSdaRAQTN-Gen0k4WerLu1GvBLKzjZlQ",
   authDomain: "aweme-46b1e.firebaseapp.com",
   projectId: "aweme-46b1e",
@@ -151,168 +153,256 @@ const firebaseConfig = {
   appId: "1:762479825387:web:8ffb3a629c0eb9f52fc9ae"
 };
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-const ALLOWLIST_COLLECTION = "allowlist";
+var ALLOWLIST_COLLECTION = "allowlist";
 
-const M3U_URL = "https://jonatan1000-4.github.io/mi_app_rv22/canales.m3u";
-const M3U_TEXT = "";
-const JSON_FALLBACK = ""; // opcional: podés poner JSON aquí si querés
+/* ===== M3U ===== */
+var M3U_URL = "https://jonatan1000-4.github.io/mi_app_rv22/canales.m3u";
+var M3U_TEXT = "";
+var JSON_FALLBACK = ""; // opcional: pegá JSON acá si querés
 
-let ALL_CHANNELS = [];
-let CURRENT_CATEGORY = "ALL";
+var ALL_CHANNELS = [];
+var CURRENT_CATEGORY = "ALL";
 
-const $ = id=>document.getElementById(id);
-const toast = t=>{
-  const el=$("toast");
-  el.textContent=t;
+/* ===== UTIL ===== */
+function $(id){ return document.getElementById(id); }
+function toast(t){
+  var el = $("toast");
+  el.textContent = t;
   el.classList.add("show");
-  setTimeout(()=>el.classList.remove("show"),1200);
-};
-
-async function isAllowlisted(uid){
-  const snap = await getDoc(doc(db,ALLOWLIST_COLLECTION,uid));
-  return snap.exists() && snap.data()?.enabled===true;
+  clearTimeout(window.__toastT);
+  window.__toastT = setTimeout(function(){ el.classList.remove("show"); }, 1200);
 }
 
-onAuthStateChanged(auth, async user=>{
-  if(!user){ location.href="login.html"; return;}
-  if(!(await isAllowlisted(user.uid))){
-    await signOut(auth);
-    location.href="login.html";
+/* ===== INIT FIREBASE ===== */
+firebase.initializeApp(firebaseConfig);
+var auth = firebase.auth();
+var db = firebase.firestore();
+
+function safeGoToLogin(){
+  // ✅ más compatible que location.href a veces en WebView viejo
+  window.location.replace("login.html");
+}
+
+function safeStayHere(){
+  // nada
+}
+
+/* ===== ALLOWLIST ===== */
+function isAllowlisted(uid){
+  return db.collection(ALLOWLIST_COLLECTION).doc(uid).get().then(function(snap){
+    return snap.exists && snap.data() && snap.data().enabled === true;
+  });
+}
+
+/* ===== AUTH GATE ===== */
+auth.onAuthStateChanged(function(user){
+  if(!user){
+    safeGoToLogin();
     return;
   }
-  boot();
+  isAllowlisted(user.uid).then(function(ok){
+    if(!ok){
+      return auth.signOut().then(safeGoToLogin);
+    }
+    boot();
+  }).catch(function(e){
+    console.log(e);
+    toast("Error de acceso");
+    auth.signOut().then(safeGoToLogin);
+  });
 });
 
-/* PARSER TOLERANTE */
+/* ===== PARSER M3U (más tolerante) ===== */
 function parseM3U(text){
-  const lines=text.split(/\r?\n/);
-  const out=[];
-  let name="",logo="",group="",id="";
-  for(let i=0;i<lines.length;i++){
-    const line=lines[i].trim();
-    if(line.startsWith("#EXTINF")){
-      name=line.split(",").slice(1).join(",").trim();
-      const attrs=line.match(/(\w+(?:-\w+)*)="([^"]*)"/g)||[];
-      attrs.forEach(a=>{
-        const parts=a.split("=");
-        const key=parts[0];
-        const val=parts[1].replace(/"/g,"");
-        if(key==="tvg-logo") logo=val;
-        if(key==="group-title") group=val;
-        if(key==="tvg-id") id=val;
-      });
-    } else if(line && !line.startsWith("#")){
+  // ✅ tolerante: soporta espacios raros y líneas con BOM
+  text = (text || "").replace(/^\uFEFF/, "");
+  var lines = text.split(/\r?\n/);
+  var out = [];
+  var name="", logo="", group="", id="";
+
+  for(var i=0;i<lines.length;i++){
+    var line = (lines[i] || "").trim();
+    if(!line) continue;
+
+    if(line.indexOf("#EXTINF") === 0){
+      name = line.split(",").slice(1).join(",").trim() || "Canal";
+
+      // attrs tvg-id/tvg-logo/group-title con regex más permisiva
+      var re = /([\w-]+)\s*=\s*"([^"]*)"/g;
+      var m;
+      while((m = re.exec(line)) !== null){
+        var key = m[1];
+        var val = m[2];
+        if(key === "tvg-logo") logo = val;
+        if(key === "group-title") group = val;
+        if(key === "tvg-id") id = val;
+      }
+    } else if(line.charAt(0) !== "#"){
       out.push({
-        id:id||name,
-        name:name||"Canal",
-        logo:logo||"",
-        group:group||"Otros",
-        url:line
+        id: id || name,
+        name: name || "Canal",
+        logo: logo || "",
+        group: group || "Otros",
+        url: line
       });
-      name="";logo="";group="";id="";
+      name=""; logo=""; group=""; id="";
     }
   }
   return out;
 }
 
-async function loadChannels(){
-  try{
-    if(JSON_FALLBACK){
-      return JSON.parse(JSON_FALLBACK);
-    }
-    let text=M3U_TEXT;
-    if(!text){
-      const res=await fetch(M3U_URL,{cache:"no-store"});
-      text=await res.text();
-    }
-    return parseM3U(text);
-  }catch(e){
-    console.error(e);
-    return [];
+function loadChannels(){
+  if(JSON_FALLBACK){
+    try { return Promise.resolve(JSON.parse(JSON_FALLBACK)); }
+    catch(e){ console.log(e); }
   }
+  if(M3U_TEXT){
+    return Promise.resolve(parseM3U(M3U_TEXT));
+  }
+  return fetch(M3U_URL, { cache: "no-store" })
+    .then(function(res){ return res.text(); })
+    .then(function(text){ return parseM3U(text); })
+    .catch(function(e){ console.log(e); return []; });
 }
 
+/* ===== UI ===== */
 function populateCategories(){
-  const select=$("categorySelect");
-  select.innerHTML=`<option value="ALL">Todas</option>`;
-  const groups=[...new Set(ALL_CHANNELS.map(c=>c.group))];
-  groups.sort().forEach(g=>{
-    const opt=document.createElement("option");
-    opt.value=g;
-    opt.textContent=g;
+  var select = $("categorySelect");
+  select.innerHTML = '<option value="ALL">Todas</option>';
+  var map = {};
+  for(var i=0;i<ALL_CHANNELS.length;i++){
+    map[ALL_CHANNELS[i].group || "Otros"] = true;
+  }
+  var groups = Object.keys(map).sort();
+  for(var j=0;j<groups.length;j++){
+    var opt = document.createElement("option");
+    opt.value = groups[j];
+    opt.textContent = groups[j];
     select.appendChild(opt);
-  });
+  }
 }
 
 function renderChannels(){
-  const grid=$("grid");
-  grid.innerHTML="";
-  const search=$("search").value.toLowerCase();
-  const list=ALL_CHANNELS.filter(c=>{
-    const okCat=CURRENT_CATEGORY==="ALL"||c.group===CURRENT_CATEGORY;
-    const okSearch=!search||c.name.toLowerCase().includes(search);
-    return okCat&&okSearch;
+  var grid = $("grid");
+  grid.innerHTML = "";
+
+  var search = ($("search").value || "").toLowerCase();
+
+  var list = ALL_CHANNELS.filter(function(c){
+    var okCat = (CURRENT_CATEGORY === "ALL") || (c.group === CURRENT_CATEGORY);
+    var okSearch = (!search) || (String(c.name||"").toLowerCase().indexOf(search) >= 0);
+    return okCat && okSearch;
   });
 
-  list.forEach((c,index)=>{
-    const card=document.createElement("div");
-    card.className="card";
-    card.tabIndex=0;
-    card.innerHTML=`
-      <div class="logo">
-        ${c.logo?`<img src="${c.logo}">`:"TV"}
-      </div>
-      <div class="name">${c.name}</div>
-      <div class="group">${c.group}</div>
-    `;
+  if(!list.length){
+    grid.innerHTML = '<div style="padding:10px;color:rgba(0,0,0,.55);font-weight:800;">No hay canales</div>';
+    return;
+  }
 
-    card.onclick=()=>playChannel(c,list);
+  // calcular columnas reales para navegación por flechas
+  var cols = getGridCols();
 
-    card.onkeydown=(e)=>{
-      const cards=[...document.querySelectorAll(".card")];
-      const i=cards.indexOf(card);
-      if(e.key==="Enter") playChannel(c,list);
-      if(e.key==="ArrowRight" && cards[i+1]) cards[i+1].focus();
-      if(e.key==="ArrowLeft" && cards[i-1]) cards[i-1].focus();
-      if(e.key==="ArrowDown" && cards[i+4]) cards[i+4].focus();
-      if(e.key==="ArrowUp" && cards[i-4]) cards[i-4].focus();
-    };
+  for(var i=0;i<list.length;i++){
+    (function(index){
+      var c = list[index];
 
-    grid.appendChild(card);
-    if(index===0) setTimeout(()=>card.focus(),150);
+      var card = document.createElement("div");
+      card.className = "card";
+      card.tabIndex = 0;
+
+      card.innerHTML =
+        '<div class="logo">' +
+          (c.logo ? '<img loading="lazy" src="'+escapeHtml(c.logo)+'" alt="">' : 'TV') +
+        '</div>' +
+        '<div class="name">'+escapeHtml(c.name)+'</div>' +
+        '<div class="group">'+escapeHtml(c.group || "Otros")+'</div>';
+
+      card.onclick = function(){ playChannel(c, list); };
+
+      card.onkeydown = function(e){
+        var cards = Array.prototype.slice.call(document.querySelectorAll(".card"));
+        var idx = cards.indexOf(card);
+
+        // Enter / OK
+        if(e.key === "Enter" || e.keyCode === 13){
+          e.preventDefault();
+          playChannel(c, list);
+          return;
+        }
+
+        // Flechas (navegación real)
+        if((e.key === "ArrowRight" || e.keyCode === 39) && cards[idx+1]) cards[idx+1].focus();
+        if((e.key === "ArrowLeft"  || e.keyCode === 37) && cards[idx-1]) cards[idx-1].focus();
+        if((e.key === "ArrowDown"  || e.keyCode === 40) && cards[idx+cols]) cards[idx+cols].focus();
+        if((e.key === "ArrowUp"    || e.keyCode === 38) && cards[idx-cols]) cards[idx-cols].focus();
+      };
+
+      grid.appendChild(card);
+
+      if(index === 0) setTimeout(function(){ card.focus(); }, 200);
+    })(i);
+  }
+}
+
+function getGridCols(){
+  // intenta calcular columnas por ancho real
+  try{
+    var grid = $("grid");
+    var style = window.getComputedStyle(grid);
+    var template = style.gridTemplateColumns;
+    if(template && template !== "none"){
+      return template.split(" ").length || 4;
+    }
+  }catch(e){}
+  return 4; // fallback
+}
+
+function escapeHtml(s){
+  s = String(s == null ? "" : s);
+  return s.replace(/[&<>"']/g, function(c){
+    return ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;" })[c];
   });
 }
 
-function playChannel(selected,list){
-  const payload={
-    url:selected.url,
-    channels:list.map(c=>({name:c.name,url:c.url}))
+/* ===== PLAY (mantiene formato Android url+channels) ===== */
+function playChannel(selected, list){
+  var payload = {
+    url: selected.url,
+    channels: list.map(function(c){ return { name: c.name, url: c.url }; })
   };
-  if(window.AndroidBridge && AndroidBridge.playChannel){
+
+  if(window.AndroidBridge && typeof AndroidBridge.playChannel === "function"){
     AndroidBridge.playChannel(JSON.stringify(payload));
   }else{
     console.log(payload);
+    toast("Play (modo prueba)");
   }
 }
 
-async function boot(){
+/* ===== BOOT ===== */
+function boot(){
   toast("Cargando...");
-  ALL_CHANNELS=await loadChannels();
-  if(!ALL_CHANNELS.length){
-    toast("No hay canales");
-    return;
-  }
-  populateCategories();
-  renderChannels();
-  $("search").addEventListener("input",renderChannels);
-  $("categorySelect").addEventListener("change",e=>{
-    CURRENT_CATEGORY=e.target.value;
+  loadChannels().then(function(chs){
+    ALL_CHANNELS = chs || [];
+    if(!ALL_CHANNELS.length){
+      toast("No hay canales");
+      return;
+    }
+    CURRENT_CATEGORY = "ALL";
+    populateCategories();
     renderChannels();
+
+    $("search").addEventListener("input", renderChannels);
+    $("categorySelect").addEventListener("change", function(e){
+      CURRENT_CATEGORY = e.target.value;
+      renderChannels();
+    });
+
+    toast("Listo");
+  }).catch(function(e){
+    console.log(e);
+    toast("Error cargando");
   });
-  toast("Listo");
 }
 </script>
 
