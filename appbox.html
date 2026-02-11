@@ -2,13 +2,13 @@
 <html lang="es">
 <head>
 <meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
 <title>TV | Canales</title>
 
 <style>
 :root{
   --bg:#f3f0e8;
-  --top:#f3f0e8;
+  --top:#fab802;
   --card:#ffffff;
   --line:#e6dfcf;
   --text:#1b1b1b;
@@ -17,7 +17,12 @@
   --radius:14px;
   --focus:#1a73e8;
   --input:#ffffff;
-  --shadow: 0 8px 18px rgba(0,0,0,.06);
+  --shadow: 0 8px 18px rgba(0, 0, 0, 0.6);
+  --gap:12px;
+
+  --cardW: 210px;   /* ancho fijo para que el wrap sea estable */
+  --cardH: 84px;    /* alto fijo para que la navegación sea uniforme */
+  --logoS: 54px;
 }
 
 body.dark{
@@ -42,20 +47,19 @@ body{
   color:var(--text);
 }
 
-/* TOP BAR */
+/* TOP BAR (simple, compatible) */
 .topbar{
   position:sticky;
   top:0;
   display:flex;
   align-items:center;
   gap:10px;
-  padding:12px;
+  padding:10px;
   background:var(--top);
   border-bottom:1px solid rgba(0,0,0,.05);
   z-index:20;
-  backdrop-filter: blur(10px);
 }
-body.dark .topbar{ border-bottom:1px solid rgba(255,255,255,.08); }
+body.dark .topbar{ border-bottom:1px solid rgba(255,255,255,.10); }
 
 .title{
   font-weight:900;
@@ -80,39 +84,37 @@ body.dark .btnTheme{
 
 .search{
   margin-left:auto;
-  width:min(300px, 45vw);
+  width:220px;
 }
 
 .btnTheme{
   width:44px;
   height:38px;
-  display:grid;
-  place-items:center;
+  display:inline-block;
+  text-align:center;
   cursor:pointer;
   user-select:none;
 }
 
-/* WRAP */
-.wrap{padding:14px 14px 24px}
+/* CONTENEDOR */
+.wrap{ padding: 12px; }
 
-/* ✅ GRID estable para TV Box viejos (sin auto-fill/minmax) */
+/* ✅ FLEX GRID (más compatible que CSS Grid en TV Box viejos) */
 .grid{
-  display:grid;
-  gap:12px;
-  grid-template-columns: repeat(2, 1fr);
+  display:flex;
+  flex-wrap:wrap;
+  gap: var(--gap);
 }
 
-@media (min-width: 700px){ .grid{ grid-template-columns: repeat(3, 1fr); } }
-@media (min-width: 980px){ .grid{ grid-template-columns: repeat(4, 1fr); } }
-@media (min-width: 1250px){ .grid{ grid-template-columns: repeat(5, 1fr); } }
-@media (min-width: 1550px){ .grid{ grid-template-columns: repeat(6, 1fr); } }
-
-/* CARD (compacta, prolija) */
+/* CARD compacta (siempre igual) */
 .card{
+  width: var(--cardW);
+  height: var(--cardH);
+
   background:var(--card);
   border:1px solid var(--line);
   border-radius:var(--radius);
-  padding:12px;
+  padding:10px;
   cursor:pointer;
   outline:none;
   user-select:none;
@@ -121,22 +123,19 @@ body.dark .btnTheme{
   display:flex;
   align-items:center;
   gap:10px;
-  min-height:78px;
 }
-
 .card:focus{
   border-color:var(--focus);
   box-shadow: 0 0 0 2px rgba(26,115,232,.25), var(--shadow);
-  transform: translateY(-1px);
 }
 body.dark .card:focus{
   box-shadow: 0 0 0 2px rgba(102,217,255,.28), var(--shadow);
 }
 
 .logo{
-  width:56px;
-  height:56px;
-  flex:0 0 56px;
+  width:var(--logoS);
+  height:var(--logoS);
+  flex:0 0 var(--logoS);
   display:flex;
   align-items:center;
   justify-content:center;
@@ -149,15 +148,14 @@ body.dark .logo{
   border:1px solid rgba(255,255,255,.10);
   background:rgba(255,255,255,.05);
 }
-
 .logo img{
-  max-height:44px;
   max-width:44px;
+  max-height:44px;
   object-fit:contain;
   display:block;
 }
 
-.meta{min-width:0; flex:1}
+.meta{ flex:1; min-width:0; }
 .name{
   font-weight:900;
   font-size:13px;
@@ -179,7 +177,7 @@ body.dark .logo{
 .toast{
   position:fixed;
   left:50%;
-  bottom:18px;
+  bottom:16px;
   transform:translateX(-50%);
   background:rgba(0,0,0,.85);
   color:#fff;
@@ -192,6 +190,12 @@ body.dark .logo{
   z-index:50;
 }
 .toast.show{opacity:1}
+
+/* Para pantallas chicas, que no se “rompa” */
+@media (max-width: 520px){
+  :root{ --cardW: 100%; }
+  .search{ width: 45vw; }
+}
 </style>
 </head>
 
@@ -215,7 +219,7 @@ body.dark .logo{
 
 <div id="toast" class="toast"></div>
 
-<!-- ✅ Firebase COMPAT para WebView viejo -->
+<!-- ✅ Firebase v8 (compat WebView viejo) -->
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
@@ -225,14 +229,14 @@ body.dark .logo{
 var firebaseConfig = {
   apiKey: "AIzaSyBKSdaRAQTN-Gen0k4WerLu1GvBLKzjZlQ",
   authDomain: "aweme-46b1e.firebaseapp.com",
-  projectId: "aweme-46b1e.firebaseapp.com".split(".")[0], // no afecta, solo evita linter viejo
+  projectId: "aweme-46b1e",
   storageBucket: "aweme-46b1e.firebasestorage.app",
   messagingSenderId: "762479825387",
   appId: "1:762479825387:web:8ffb3a629c0eb9f52fc9ae"
 };
-firebaseConfig.projectId = "aweme-46b1e"; // ✅ el real
 
 var ALLOWLIST_COLLECTION = "allowlist";
+
 var M3U_URL = "https://jonatan1000-4.github.io/mi_app_rv22/canales.m3u";
 var M3U_TEXT = "";
 var JSON_FALLBACK = "";
@@ -287,7 +291,6 @@ var auth = firebase.auth();
 var db = firebase.firestore();
 
 function safeGoToLogin(){
-  // ✅ más compatible que location.href en algunos WebView viejos
   window.location.replace("login.html");
 }
 
@@ -312,7 +315,7 @@ auth.onAuthStateChanged(function(user){
   });
 });
 
-/* ===== PARSER M3U TOLERANTE ===== */
+/* ===== PARSER M3U (tolerante) ===== */
 function parseM3U(text){
   text = (text || "").replace(/^\uFEFF/, "");
   var lines = text.split(/\r?\n/);
@@ -326,7 +329,6 @@ function parseM3U(text){
     if(line.indexOf("#EXTINF") === 0){
       name = line.split(",").slice(1).join(",").trim() || "Canal";
       logo=""; group=""; id="";
-
       var re = /([\w-]+)\s*=\s*"([^"]*)"/g;
       var m;
       while((m = re.exec(line)) !== null){
@@ -394,23 +396,40 @@ function buildFilteredList(){
   if(ACTIVE_INDEX < 0) ACTIVE_INDEX = 0;
 }
 
+/* ✅ columnas reales (flex) por ancho del contenedor / card */
 function getCols(){
-  // 🔥 columnas según ancho real (coincide con los breakpoints CSS)
-  var w = window.innerWidth || 1024;
-  if(w >= 1550) return 6;
-  if(w >= 1250) return 5;
-  if(w >= 980) return 4;
-  if(w >= 700) return 3;
-  return 2;
+  var grid = $("grid");
+  if(!grid) return 1;
+
+  var gap = 12;
+  try{
+    var cs = window.getComputedStyle(grid);
+    var g = cs.gap || cs.gridGap || "";
+    var n = parseInt(g, 10);
+    if(!isNaN(n)) gap = n;
+  }catch(e){}
+
+  var gridW = grid.clientWidth || (window.innerWidth || 1024);
+  var cardW = 210;
+  try{
+    var r = document.documentElement;
+    var cssW = (getComputedStyle(r).getPropertyValue("--cardW") || "").trim();
+    var p = parseInt(cssW, 10);
+    if(!isNaN(p)) cardW = p;
+  }catch(e){}
+
+  var cols = Math.floor((gridW + gap) / (cardW + gap));
+  if(!cols || cols < 1) cols = 1;
+  return cols;
 }
 
 function focusByIndex(idx){
   var grid = $("grid");
-  var el = grid.querySelector('.card[data-idx="'+idx+'"]');
+  var el = grid ? grid.querySelector('.card[data-idx="'+idx+'"]') : null;
   if(!el) return;
+
   try{ el.focus(); }catch(e){}
 
-  // scroll compat viejo
   try{
     if(el.scrollIntoView){
       try{ el.scrollIntoView({block:"nearest", inline:"nearest"}); }
@@ -419,6 +438,10 @@ function focusByIndex(idx){
   }catch(e){}
 }
 
+/* ✅ navegación GLOBAL estable:
+   - Si hay 1 columna (lista), ↑/↓ van de a 1 (consecutivo)
+   - Si hay varias columnas, ↑/↓ usa cols real medido
+*/
 function enableRemoteNav(){
   if(window.__remoteNav) return;
   window.__remoteNav = true;
@@ -441,13 +464,15 @@ function enableRemoteNav(){
     }
 
     var next = ACTIVE_INDEX;
+    var handled = true;
 
-    // flechas (compat)
     if(key === "ArrowRight" || kc === 39) next = ACTIVE_INDEX + 1;
     else if(key === "ArrowLeft" || kc === 37) next = ACTIVE_INDEX - 1;
-    else if(key === "ArrowDown" || kc === 40) next = ACTIVE_INDEX + cols;
-    else if(key === "ArrowUp" || kc === 38) next = ACTIVE_INDEX - cols;
-    else return;
+    else if(key === "ArrowDown" || kc === 40) next = ACTIVE_INDEX + (cols > 1 ? cols : 1);
+    else if(key === "ArrowUp" || kc === 38) next = ACTIVE_INDEX - (cols > 1 ? cols : 1);
+    else handled = false;
+
+    if(!handled) return;
 
     if(next < 0) next = 0;
     if(next > CURRENT_LIST.length - 1) next = CURRENT_LIST.length - 1;
@@ -467,7 +492,7 @@ function renderChannels(){
   grid.innerHTML = "";
 
   if(!CURRENT_LIST.length){
-    grid.innerHTML = '<div style="padding:10px;color:rgba(0,0,0,.55);font-weight:900;">No hay canales</div>';
+    grid.innerHTML = '<div style="padding:10px;font-weight:900;opacity:.7">No hay canales</div>';
     return;
   }
 
@@ -505,7 +530,7 @@ function renderChannels(){
     })(i);
   }
 
-  // restaurar foco
+  // restaurar foco por ID
   var idx = -1;
   for(var j=0;j<CURRENT_LIST.length;j++){
     if(String(CURRENT_LIST[j].id || "") === LAST_FOCUSED_ID){ idx = j; break; }
@@ -517,7 +542,7 @@ function renderChannels(){
   enableRemoteNav();
 }
 
-/* ===== PLAY (formato Android url+channels + selectedIndex) ===== */
+/* ===== PLAY (url+channels + selectedIndex) ===== */
 function playChannel(selected, list){
   var selectedIndex = 0;
   for(var i=0;i<list.length;i++){
@@ -568,10 +593,8 @@ function boot(){
       renderChannels();
     });
 
-    // re-calc cols al rotar / cambiar tamaño
     window.addEventListener("resize", function(){
-      // no re-render pesado, solo asegura foco correcto
-      setTimeout(function(){ focusByIndex(ACTIVE_INDEX); }, 60);
+      setTimeout(function(){ focusByIndex(ACTIVE_INDEX); }, 80);
     });
 
     toast("Listo");
