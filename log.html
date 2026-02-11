@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Acceso | TV</title>
+
+  <style>
+    :root{
+      --bg:#0b1020;
+      --card:rgba(255,255,255,.06);
+      --line:rgba(255,255,255,.12);
+      --text:#eaf0ff;
+      --muted:#a9b4d6;
+      --accent:#5bd6ff;
+      --danger:#ff5b7a;
+      --ok:#7CFF8C;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; min-height:100vh;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
+      background: radial-gradient(1200px 600px at 20% 20%, rgba(91,214,255,.22), transparent 60%),
+                  radial-gradient(900px 500px at 80% 30%, rgba(255,91,122,.18), transparent 55%),
+                  var(--bg);
+      color:var(--text);
+      display:flex; align-items:center; justify-content:center;
+      padding:20px;
+    }
+    .wrap{width:min(440px, 100%);}
+    .card{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:18px 16px;
+      box-shadow: 0 14px 40px rgba(0,0,0,.35);
+    }
+    h1{font-size:20px; margin:0 0 6px}
+    p{margin:0 0 14px; color:var(--muted); font-size:13px; line-height:1.35}
+    label{display:block; font-size:12px; color:var(--muted); margin:10px 0 6px}
+    input{
+      width:100%;
+      padding:12px 12px;
+      border-radius:12px;
+      border:1px solid var(--line);
+      background:rgba(0,0,0,.18);
+      color:var(--text);
+      outline:none;
+    }
+    .row{display:flex; gap:10px; margin-top:14px}
+    button{
+      width:100%;
+      padding:12px 14px;
+      border-radius:12px;
+      border:1px solid transparent;
+      background: linear-gradient(180deg, rgba(91,214,255,.95), rgba(91,214,255,.75));
+      color:#06101c;
+      font-weight:800;
+      cursor:pointer;
+    }
+    button.secondary{
+      background:transparent;
+      color:var(--text);
+      border-color:var(--line);
+    }
+    .msg{
+      margin-top:12px;
+      font-size:12px;
+      color:var(--muted);
+      min-height:18px;
+    }
+    .msg.err{color:var(--danger)}
+    .msg.ok{color:var(--ok)}
+    .pill{
+      margin-top:10px;
+      display:inline-block;
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid var(--line);
+      background:rgba(0,0,0,.18);
+      font-size:11px;
+      color:rgba(255,255,255,.8);
+    }
+    .hint{margin-top:10px; font-size:11px; color:rgba(255,255,255,.55)}
+    code{background:rgba(0,0,0,.25); padding:2px 6px; border-radius:8px; border:1px solid var(--line)}
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>Acceso privado</h1>
+      <p>Ingresá con tu cuenta. Si venció el acceso, tendrás que renovar.</p>
+
+      <label>Email</label>
+      <input id="email" type="email" autocomplete="username" placeholder="tuemail@correo.com" />
+
+      <label>Contraseña</label>
+      <input id="pass" type="password" autocomplete="current-password" placeholder="••••••••" />
+
+      <div class="row">
+        <button id="btnLogin">Entrar</button>
+        <button id="btnCreate" class="secondary">Crear</button>
+      </div>
+
+      <div id="msg" class="msg"></div>
+      <div id="subInfo" class="pill" style="display:none"></div>
+
+      <div class="hint">
+        Luego del acceso correcto redirige a <code>app.html</code>.
+      </div>
+    </div>
+  </div>
+
+  <!-- ✅ Firebase compat (para TV Box viejo) -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+  <script>
+    /* ===== CONFIG ===== */
+    var firebaseConfig = {
+      apiKey: "AIzaSyBKSdaRAQTN-Gen0k4WerLu1GvBLKzjZlQ",
+      authDomain: "aweme-46b1e.firebaseapp.com",
+      projectId: "aweme-46b1e",
+      appId: "1:762479825387:web:8ffb3a629c0eb9f52fc9ae"
+    };
+
+    var ALLOWLIST_COLLECTION = "allowlist";
+    // Si no existe expiresAt, por defecto se considera NO habilitado (más seguro)
+    // Si querés que solo dependa de enabled, cambia CHECK_EXPIRATION=false
+    var CHECK_EXPIRATION = true;
+
+    firebase.initializeApp(firebaseConfig);
+    var auth = firebase.auth();
+    var db = firebase.firestore();
+
+    function $(id){ return document.getElementById(id); }
+    function setMsg(t, type){
+      var el = $("msg");
+      el.textContent = t || "";
+      el.className = "msg" + (type ? " " + type : "");
+    }
+    function setSubInfo(t){
+      var el = $("subInfo");
+      if(!t){
+        el.style.display="none";
+        el.textContent="";
+        return;
+      }
+      el.style.display="inline-block";
+      el.textContent=t;
+    }
+
+    function safeGoToApp(){
+      // más robusto en WebView viejo
+      window.location.replace("app.html");
+    }
+    function safeStayHere(){}
+
+    // ✅ Intento de tiempo “más confiable” (server timestamp aproximado):
+    // Usamos una lectura de Firestore que trae metadatos; si falla, cae al reloj local.
+    function nowMs(){
+      return Date.now();
+    }
+
+    function readAllowDoc(uid){
+      return db.collection(ALLOWLIST_COLLECTION).doc(uid).get();
+    }
+
+    function msToDays(ms){
+      return Math.max(0, Math.ceil(ms / 86400000));
+    }
+
+    function validateSubscription(data){
+      // data: {enabled:boolean, expiresAt: Timestamp}
+      if(!data || data.enabled !== true){
+        return { ok:false, reason:"UID no habilitado" };
+      }
+      if(!CHECK_EXPIRATION){
+        return { ok:true, daysLeft:null };
+      }
+      if(!data.expiresAt){
+        return { ok:false, reason:"Sin vencimiento configurado" };
+      }
+      var expMs = data.expiresAt.toMillis ? data.expiresAt.toMillis() : Number(data.expiresAt);
+      var left = expMs - nowMs();
+      if(left <= 0){
+        return { ok:false, reason:"Acceso vencido" };
+      }
+      return { ok:true, daysLeft: msToDays(left) };
+    }
+
+    // ===== AUTO-REDIRECT SI YA ESTÁ LOGUEADO =====
+    auth.onAuthStateChanged(function(user){
+      if(!user) return;
+
+      setMsg("Verificando acceso...", "");
+      readAllowDoc(user.uid).then(function(snap){
+        var data = snap.exists ? snap.data() : null;
+        var v = validateSubscription(data);
+
+        if(!v.ok){
+          setMsg("Acceso no autorizado: " + v.reason, "err");
+          setSubInfo("");
+          return auth.signOut();
+        }
+
+        if(v.daysLeft != null){
+          setMsg("Acceso OK", "ok");
+          setSubInfo("Suscripción: " + v.daysLeft + " día(s) restante(s)");
+        } else {
+          setMsg("Acceso OK", "ok");
+          setSubInfo("");
+        }
+
+        // ✅ entrar
+        safeGoToApp();
+      }).catch(function(e){
+        console.log(e);
+        setMsg("Error verificando acceso", "err");
+        auth.signOut();
+      });
+    });
+
+    // ===== LOGIN =====
+    $("btnLogin").addEventListener("click", function(){
+      setMsg("", "");
+      setSubInfo("");
+
+      var email = ($("email").value || "").trim();
+      var pass  = ($("pass").value || "");
+      if(!email || !pass){
+        setMsg("Completa email y contraseña.", "err");
+        return;
+      }
+
+      auth.signInWithEmailAndPassword(email, pass)
+        .then(function(){ /* redirect lo hace onAuthStateChanged */ })
+        .catch(function(e){
+          setMsg("Login falló: " + (e && e.message ? e.message : e), "err");
+        });
+    });
+
+    // ===== CREAR CUENTA (OPCIONAL) =====
+    $("btnCreate").addEventListener("click", function(){
+      setMsg("", "");
+      setSubInfo("");
+
+      var email = ($("email").value || "").trim();
+      var pass  = ($("pass").value || "");
+      if(!email || !pass){
+        setMsg("Completa email y contraseña.", "err");
+        return;
+      }
+
+      auth.createUserWithEmailAndPassword(email, pass)
+        .then(function(cred){
+          // ⚠️ La cuenta se crea, pero si no está en allowlist no entra.
+          // Si querés que automáticamente se cree allowlist con 30 días,
+          // eso debe hacerse desde un backend/Cloud Function (más seguro).
+          setMsg("Cuenta creada. Falta habilitar tu UID en allowlist.", "");
+        })
+        .catch(function(e){
+          setMsg("Crear cuenta falló: " + (e && e.message ? e.message : e), "err");
+        });
+    });
+  </script>
+
+  <!--
+  ====== CÓMO MANEJAR “30 DÍAS” (RENOVACIÓN) ======
+  En Firestore:
+    allowlist/{uid}:
+      enabled: true
+      expiresAt: (Timestamp)  -> hoy + 30 días
+
+  Cuando renueves:
+    actualizás expiresAt a hoy+30 días.
+  Si expiresAt vence: la app bloquea y obliga renovar.
+
+  Nota:
+  - Esto requiere que vos cargues expiresAt en Firestore.
+  - Para automatizar cobros/renovación “real”, lo ideal es backend.
+  -->
+</body>
+</html>
