@@ -1,692 +1,438 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <title>TV con EPG ajustado y progreso</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>TV | Canales</title>
+
+  <meta http-equiv="Content-Security-Policy"
+        content="
+          default-src 'self';
+          img-src 'self' data: https:;
+          style-src 'self' 'unsafe-inline';
+          script-src 'self' https://www.gstatic.com https://www.googleapis.com 'unsafe-inline';
+          connect-src https: http: https://www.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firestore.googleapis.com;
+        ">
+
   <style>
-    html, body {
-      margin:0; padding:0;
-      background:#000;
-      overflow:hidden;
-      height:100%;
-      font-family:sans-serif;
+    :root{
+      --bg:#f3f0e8;
+      --card:#ffffff;
+      --line:#e6dfcf;
+      --text:#1b1b1b;
+      --muted:#6b6b6b;
+      --accent:#b6db44;
+      --shadow: 0 10px 22px rgba(0,0,0,.08);
+      --radius: 18px;
     }
-    video {
-      position:fixed;
-      top:0; left:0;
-      width:100%; height:100%;
-      object-fit:cover;
-      z-index:0;
-      background:#000;
-    }
-    .capa-negra {
-      position:fixed;
-      top:0; left:0;
-      width:100%; height:100%;
-      background: linear-gradient(0deg, #0b1c2e, #0e243b);
-      z-index:5;
-      display:block;
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
+      background:var(--bg);
+      color:var(--text);
     }
 
-    /* === Columna lateral === */
-    .canal-overlay {
-      position: fixed;
-      top: 0px;
-      left: 0;
-      width: 300px;
-      bottom: 0;
-      box-shadow: 0 1px 10px rgba(255, 255, 255, 0.159);
-      background: linear-gradient(0deg, #0b1c2e, #0e243b);
-      padding: 155px 1rem 1rem; /* deja espacio para logo sistema */
-      box-sizing: border-box;
-      border-radius: 5px;
-      border: 1px solid #00aaff79;
-      
-      z-index: 10;
-      overflow-y: auto;
-      transition: transform .3s ease;
+    /* Top bar */
+    .topbar{
+      position:sticky; top:0; z-index:20;
+      display:flex; align-items:center; gap:12px;
+      padding:14px 14px;
+      background:rgba(243,240,232,.9);
+      backdrop-filter: blur(10px);
+      border-bottom:1px solid rgba(0,0,0,.05);
     }
-    .canal-overlay.oculto { transform:translateX(-100%); }
-
-.logo-sistema1{
-  position: absolute;
-  top: 0; left: 0;
-  width: 280px;
-  height: 157px;
-  font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
-  background: linear-gradient(0deg, #0b1c2e, #0e243b); /* fondo oscuro parecido */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
-  font-size: 4rem;
-  border-radius: 0;
-
-  /* === Texto con gradiente azul tipo DIRECTV === */
-  background-clip: text;
-  -webkit-background-clip: text;
-  color: transparent;
-  background-image: linear-gradient(10deg, #000000, #5ec1ff, #01487a);
-  text-shadow: 0 1PX 40px rgba(54, 181, 245, 0.804);
-}
-
-    .logo-sistema {
-  position: absolute;
-  top: 0; left: 0;
-  width: 300px;
-  height: 147px;
-  font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
-  background: linear-gradient(0deg, #0b1c2e, #0e243b); /* fondo oscuro parecido */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
-  font-size: 2.5rem;
-  border-radius: 0;
-
-  /* === Texto con gradiente azul tipo DIRECTV === */
-  background-clip: text;
-  -webkit-background-clip: text;
-  color: transparent;
-  background-image: linear-gradient(90deg, #000000, #5ec1ff, #01487a);
-  text-shadow: 0 1PX 40px rgba(54, 181, 245, 0.804);
-}
-
-    .canal-overlay h2 {
-      color:#ffffff;
-      font-size:1.5rem;
-      margin-bottom:1rem;
+    .iconBtn{
+      width:42px; height:42px;
+      border-radius:14px;
+      border:1px solid rgba(0,0,0,.08);
+      background:#fff;
+      box-shadow: 0 6px 14px rgba(0,0,0,.06);
+      cursor:pointer;
+      display:grid; place-items:center;
+      font-size:18px;
+    }
+    .title{
+      flex:1;
       text-align:center;
-      
+      font-weight:700;
+      letter-spacing:.2px;
+    }
+    .drop{
+      border:1px solid rgba(0,0,0,.10);
+      background:#fff;
+      padding:10px 12px;
+      border-radius:14px;
+      box-shadow: 0 6px 14px rgba(0,0,0,.06);
+      font-weight:600;
+      cursor:pointer;
+    }
+    .search{
+      width:min(320px, 45vw);
+      padding:10px 12px;
+      border-radius:14px;
+      border:1px solid rgba(0,0,0,.10);
+      background:#fff;
+      outline:none;
     }
 
-    .canal-overlay button {
-  display: block;
-  width: 100%;
-  padding: 1rem;
-  margin: 0.4rem 0;
-  background: #1c222b; /* fondo oscuro */
-  border: 1px solid #2a3a4d; /* borde gris azulado */
-  color: #a0b3c6; /* texto apagado */
-  text-align: left;
-  font-size: 1.1rem;
-  text-transform: uppercase;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-    .canal-overlay button:hover {
-  background: #111820; /* más oscuro al pasar */
-  border-color: #00aaff; /* resalta borde azul */
-  color: #ffffff; /* texto se ilumina */
-}
-
-.canal-overlay button.active {
-  background: #0d1117; /* más oscuro */
-  border: 2px solid #00aaff; /* azul eléctrico */
-  color: #ffffff; /* texto blanco brillante */
-  font-weight: bold;
-  box-shadow: 0 0 18px rgba(0, 170, 255, 0.781); /* efecto glow */
-}
-
-    /* === Barra superior === */
-    .barra-info {
-      position: fixed;
-      top: 0;
-      left: 00px;   /* arranca después de la mini guía */
-      right: 0;
-      height: 150px;
-      background: linear-gradient(0deg, #0b1c2e, #0e243b);
-      color: #fff;
-      display: none;
-      align-items: center;
-      gap: 20px;
-      box-shadow: 0 1PX 45PX rgba(255, 255, 255, 0.368);
-      padding: 0 20px;
-      box-sizing: border-box;
-      z-index: 920;
+    /* Grid */
+    .wrap{padding:10px 12px 90px;}
+    .grid{
+      display:grid;
+      grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+      gap:14px;
+      align-items:stretch;
+    }
+    .card{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      box-shadow: var(--shadow);
+      padding:14px;
+      cursor:pointer;
+      position:relative;
+      transition: transform .12s ease, box-shadow .12s ease;
+      min-height:126px;
+      display:flex;
+      flex-direction:column;
+      justify-content:space-between;
+    }
+    .card:hover{transform: translateY(-2px)}
+    .logoBox{
+      height:64px;
+      border-radius:14px;
+      border:2px solid #eae3d3;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      overflow:hidden;
+      background:#fff;
+    }
+    .logoBox img{max-height:48px; max-width:90%; object-fit:contain}
+    .name{
+      margin-top:10px;
+      font-weight:700;
+      font-size:14px;
+      line-height:1.2;
+    }
+    .sub{
+      margin-top:4px;
+      color:var(--muted);
+      font-size:12px;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .dots{
+      position:absolute;
+      top:10px; right:10px;
+      width:28px; height:28px;
+      border-radius:10px;
+      border:1px solid rgba(0,0,0,.08);
+      background:#fff;
+      display:grid; place-items:center;
+      font-weight:900;
+      opacity:.85;
     }
 
-.barra-info.visible{
-  display: flex;
-}
-
-    .logo-canal {
-      width: 80px;
-      height: 80px;
-      background: #feffff;
-      margin: 0 10px 0 300px;
-      border-radius: 6px;
-      display: flex;
-      box-shadow: 0 1px 25px black;
-      align-items: center;
-      justify-content: center;
+    /* Bottom tabs */
+    .tabs{
+      position:fixed; left:0; right:0; bottom:0;
+      display:flex; justify-content:space-around; gap:10px;
+      padding:10px 12px;
+      background:rgba(243,240,232,.92);
+      backdrop-filter: blur(10px);
+      border-top:1px solid rgba(0,0,0,.06);
     }
-    .logo-canal img {
-      max-width: 90%;
-      max-height: 90%;
-      object-fit: contain;
+    .tab{
+      flex:1;
+      padding:12px 10px;
+      border-radius:16px;
+      border:1px solid rgba(0,0,0,.10);
+      background:#fff;
+      text-align:center;
+      font-weight:800;
+      letter-spacing:.2px;
+      cursor:pointer;
+      position:relative;
     }
-
-    .info-canal {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-    }
-    .canal-nombre {
-      font-size: 1.6rem;
-      font-family: Verdana, Geneva, Tahoma, sans-serif;
-      text-transform: uppercase;
-      font-weight: bold;
-      margin-bottom: 4px;
-    }
-    .programa-actual {
-      font-size: 1.2rem;
-      margin-bottom: 4px;
-    }
-    .horarios {
-      font-size: 0.9rem;
-      display: flex;
-      justify-content: space-between;
-      color: #ccc;
-    }
-    .progreso {
-      width: 100%;
-      height: 8px;
-      background: rgba(255,255,255,0.2);
-      border-radius: 4px;
-      overflow: hidden;
-      margin: 4px 0;
-    }
-    .progreso-inner {
-      height: 100%;
-      width: 0%;
-      background: #29f637;
-      transition: width 0.5s linear;
-    }
-    .siguiente-programa {
-      font-size: 0.9rem;
-      color: #aaa;
-      margin-top: 4px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+    .tab.active::after{
+      content:"";
+      position:absolute;
+      left:14px; right:14px; bottom:-7px;
+      height:6px;
+      border-radius:999px;
+      background:var(--accent);
+      box-shadow: 0 8px 18px rgba(182,219,68,.35);
     }
 
-    .hora-fecha {
-      text-align: right;
-      margin: 0 30px;
-      font-size: 1rem;
-      min-width: 120px;
+    /* Small helpers */
+    .toast{
+      position:fixed; left:50%; bottom:80px; transform:translateX(-50%);
+      background:rgba(0,0,0,.82);
+      color:#fff;
+      padding:10px 12px;
+      border-radius:12px;
+      font-size:12px;
+      opacity:0; pointer-events:none;
+      transition: opacity .18s ease;
     }
-    #hora-actual {
-      font-size: 1.4rem;
-      font-weight: bold;
-    }
-    
-    .overlay-central {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background: linear-gradient(0deg, #0b1c2e, #0e243b);
-  color: #fff;
-  padding: 20px 40px;
-  border-radius: 12px;
-  text-align: center;
-  z-index: 30;
-  display: none;
-  animation: fadein 0.3s ease;
-}
-.logo-canal-grande {
-  width: 120px;
-  height: 100px;
-  margin: 0 auto 10px;
-  background: #ffffff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 8px;
-}
-.logo-canal-grande img {
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: contain;
-}
-.nombre-central {
-  font-size: 1.6rem;
-  font-weight: bold;
-  color: #ffffff;
-  text-transform: uppercase;
-}
-
-.overlay-numeros {
-  position: fixed;
-  top: 40%;
-  left: 50%;
-  transform: translate(-50%, -50%);
- background: linear-gradient(0deg, #0b1c2e, #0e243b);
-  color: #ffffff;
-  font-size: 3rem;
-  font-weight: bold;
-  padding: 20px 40px;
-  border-radius: 12px;
-  z-index: 35;
-  display: none;
-}
-
+    .toast.show{opacity:1}
   </style>
 </head>
+
 <body>
+  <header class="topbar">
+    <button class="iconBtn" id="btnMenu" title="Menú">☰</button>
 
-<video id="tv" autoplay controls></video>
-<div class="capa-negra" id="capaNegra"></div>
-
-<div id="canal-overlay" class="canal-overlay">
-
-  <div class="logo-sistema1" >EMTV</div>
-  <h2>Canales</h2>
-  <div id="canales"></div>
-</div>
-
-
-
-<div id="barra-info" class="barra-info">
-  <div class="logo-sistema">EMTV</div>
-  <div class="logo-canal"><img id="logo-actual" src="" alt=""></div>
-  <div class="info-canal">
-    <div id="nombre-actual" class="canal-nombre">Cargando...</div>
-    <div id="programa-actual" class="programa-actual">Programacion no disponible</div>
-    <div class="horarios">
-      <span id="hora-inicio">--:--</span>
-      <span id="hora-fin">--:--</span>
+    <div class="title">
+      <span id="catTitle">Nacionales</span>
+      <button class="drop" id="btnCat">▼</button>
     </div>
-    <div class="progreso"><div id="progreso-inner" class="progreso-inner"></div></div>
-    <div id="siguiente-programa" class="siguiente-programa">Próximo: --</div>
-  </div>
-  <div class="hora-fecha">
-    <div id="hora-actual">--:--</div>
-    <div id="fecha-actual">--/--/----</div>
-  </div>
-</div>
 
-<div id="overlay-numeros" class="overlay-numeros">0</div>
+    <input class="search" id="q" placeholder="Buscar canal..." />
+    <button class="iconBtn" id="btnLogout" title="Salir">⎋</button>
+  </header>
 
-<div id="overlay-central" class="overlay-central">
-  <div class="logo-canal-grande"><img id="logo-central" src="" alt=""></div>
-  <div id="nombre-central" class="nombre-central">Canal...</div>
-</div>
+  <main class="wrap">
+    <div class="grid" id="grid"></div>
+  </main>
 
-<script>
-  var m3uUrl = "https://jonatan1000-4.github.io/mi_app_rv22/canales.m3u";
-  var epgUrl = "https://jonatan1000-4.github.io/mi_app_rv22/xmltv.xml";
+  <nav class="tabs">
+    <button class="tab active" id="tabTV">TV</button>
+    <button class="tab" id="tabMovies">MOVIES</button>
+    <button class="tab" id="tabSeries">SERIES</button>
+  </nav>
 
+  <div class="toast" id="toast"></div>
 
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
-  var canalesDiv = document.getElementById("canales");
-  var video = document.getElementById("tv");
-  var capaNegra = document.getElementById("capaNegra");
-  var overlay = document.getElementById("canal-overlay");
-  var nombreActualEl = document.getElementById("nombre-actual");
-  var logoActualEl = document.getElementById("logo-actual");
-  var programaActualEl = document.getElementById("programa-actual");
-  var horaInicioEl = document.getElementById("hora-inicio");
-  var horaFinEl = document.getElementById("hora-fin");
-  var progresoInner = document.getElementById("progreso-inner");
+    // ====== 1) PEGÁ TU CONFIG ======
+    const firebaseConfig = {
+    apiKey: "AIzaSyBKSdaRAQTN-Gen0k4WerLu1GvBLKzjZlQ",
+  authDomain: "aweme-46b1e.firebaseapp.com",
+  projectId: "aweme-46b1e",
+  storageBucket: "aweme-46b1e.firebasestorage.app",
+  messagingSenderId: "762479825387",
+  appId: "1:762479825387:web:8ffb3a629c0eb9f52fc9ae"
 
-  var inputBuffer = "";
-  var inputTimer = null;
-
-  var listaCanales = [];
-  var canalActivoIndex = 0;
-  var overlayVisible = true; // true = guía abierta
-  var barraTimeout;
-  var epgDoc = null;
-
-  /* === Cargar M3U === */
-  function cargarLista(callback) {
-    var xhr = new XMLHttpRequest();
-    xhr.open("GET", m3uUrl, true);
-    xhr.onreadystatechange = function() {
-      if (xhr.readyState === 4 && xhr.status === 200) callback(null, xhr.responseText);
     };
-    xhr.send();
-  }
 
-  function parsearM3U(texto) {
-    var lineas = texto.split(/\r?\n/);
-    var lista = [];
-    for (var i = 0; i < lineas.length; i++) {
-      var linea = lineas[i].trim();
-      if (linea.indexOf("#EXTINF") === 0) {
-        var nombre = linea.split(",").pop().trim();
-        var logo = ""; var id = "";
-        var matchLogo = /tvg-logo="([^"]*)"/i.exec(linea); if (matchLogo) logo = matchLogo[1];
-        var matchId   = /tvg-id="([^"]*)"/i.exec(linea);   if (matchId)   id   = matchId[1];
-        var url = (i + 1 < lineas.length) ? lineas[i + 1].trim() : "";
-        if (url && url.indexOf("http") === 0) lista.push({ nombre:nombre, url:url, logo:logo, id:id });
-      }
-    }
-    return lista;
-  }
+    const ALLOWLIST_COLLECTION = "allowlist";
 
-  /* === Cargar EPG === */
-  function cargarEPG(callback) {
-    var xhr = new XMLHttpRequest();
-    xhr.open("GET", epgUrl, true);
-    xhr.onreadystatechange = function() {
-      if (xhr.readyState === 4 && xhr.status === 200) {
-        var parser = new DOMParser();
-        epgDoc = parser.parseFromString(xhr.responseText, "application/xml");
-        callback();
-      }
+    // ====== 2) TU M3U (podés usar URL o pegar texto) ======
+    // Opción A: URL a tu M3U privado
+    const M3U_URL = "https://jonatan1000-4.github.io/mi_app_rv22/canales.m3u";
+    // Opción B: si querés pegar el texto directamente:
+    const M3U_TEXT = ""; // si no está vacío, se usa este y NO se fetchea URL
+
+    // ====== Estado ======
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    const $ = (id) => document.getElementById(id);
+    const toast = (t) => {
+      const el = $("toast");
+      el.textContent = t;
+      el.classList.add("show");
+      clearTimeout(window.__t);
+      window.__t = setTimeout(() => el.classList.remove("show"), 1400);
     };
-    xhr.send();
-  }
 
-  /* === Parseo fechas XMLTV === */
-  function getZoneMinutesFromString(z) {
-    if (!z || z.length < 5) return 0;
-    var sign = (z.charAt(0) === "-") ? -1 : 1;
-    var h = parseInt(z.substr(1,2),10) || 0;
-    var m = parseInt(z.substr(3,2),10) || 0;
-    return sign * (h*60 + m);
-  }
+    let ALL_CHANNELS = [];
+    let FILTERED = [];
+    let CURRENT_GROUP = "Nacionales";
 
-  function parseFechaEPG(str) {
-    var partes = str.split(" ");
-    var fecha = partes[0];
-    var zonaStr = (partes.length > 1) ? partes[1] : "+0000";
-
-    var y  = parseInt(fecha.substr(0,4),10);
-    var mo = parseInt(fecha.substr(4,2),10) - 1;
-    var d  = parseInt(fecha.substr(6,2),10);
-    var h  = parseInt(fecha.substr(8,2),10);
-    var mi = parseInt(fecha.substr(10,2),10);
-    var s  = parseInt(fecha.substr(12,2),10);
-
-    var fechaUTC = Date.UTC(y, mo, d, h, mi, s);
-    if (zonaStr && zonaStr !== "+0000") {
-      var zoneMin = getZoneMinutesFromString(zonaStr);
-      fechaUTC -= zoneMin * 60000;
-    } else {
-      var localOffsetMin = new Date().getTimezoneOffset();
-      fechaUTC += localOffsetMin * 60000;
+    async function isAllowlisted(uid){
+      const ref = doc(db, ALLOWLIST_COLLECTION, uid);
+      const snap = await getDoc(ref);
+      return snap.exists() && snap.data()?.enabled === true;
     }
-    return fechaUTC;
-  }
 
-  function formatHora(ts) {
-    var d = new Date(ts);
-    var h = d.getHours(); if (h<10) h="0"+h;
-    var m = d.getMinutes(); if (m<10) m="0"+m;
-    return h+":"+m;
-  }
+    // ====== Auth Gate (si no, vuelve a login) ======
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        location.href = "login.html";
+        return;
+      }
+      try{
+        const ok = await isAllowlisted(user.uid);
+        if (!ok){
+          await signOut(auth);
+          location.href = "login.html";
+          return;
+        }
+        await boot();
+      }catch(e){
+        console.error(e);
+        toast("Error de acceso");
+        await signOut(auth);
+        location.href = "login.html";
+      }
+    });
 
-  function getProgramaActual(channelId) {
-    if (!epgDoc) return null;
-    var programas = epgDoc.getElementsByTagName("programme");
-    var ahora = new Date().getTime();
-    var actual = null, siguiente = null;
+    $("btnLogout").addEventListener("click", async () => {
+      await signOut(auth);
+      location.href = "login.html";
+    });
 
-    for (var i=0; i<programas.length; i++) {
-      var prog = programas[i];
-      if (prog.getAttribute("channel") === channelId) {
-        var start = prog.getAttribute("start");
-        var stop  = prog.getAttribute("stop");
-        if (!start || !stop) continue;
+    // ====== M3U parser ======
+    function parseM3U(m3uText){
+      const lines = m3uText.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+      const out = [];
+      let current = null;
 
-        var inicio = parseFechaEPG(start);
-        var fin    = parseFechaEPG(stop);
+      for (const line of lines){
+        if (line.startsWith("#EXTINF")){
+          // Ejemplo:
+          // #EXTINF:-1 tvg-id="Telefe" tvg-logo="https://..." group-title="Nacionales",Telefe | Argentina
+          const name = line.split(",").slice(1).join(",").trim() || "Canal";
+          const attrs = {};
+          const attrPart = line.split(",")[0];
 
-        if (ahora >= inicio && ahora <= fin) {
-          var tit = prog.getElementsByTagName("title");
-          actual = {
-            titulo: (tit && tit.length>0) ? tit[0].textContent : "Sin título",
-            inicio: inicio, fin: fin
-          };
-          if (i+1 < programas.length && programas[i+1].getAttribute("channel") === channelId) {
-            var prog2 = programas[i+1];
-            var tit2 = prog2.getElementsByTagName("title");
-            siguiente = {
-              titulo: (tit2 && tit2.length>0) ? tit2[0].textContent : "Sin título",
-              inicio: parseFechaEPG(prog2.getAttribute("start")),
-              fin: parseFechaEPG(prog2.getAttribute("stop"))
-            };
+          const re = /(\w+(?:-\w+)*)="([^"]*)"/g;
+          let m;
+          while ((m = re.exec(attrPart)) !== null){
+            attrs[m[1]] = m[2];
           }
-          break;
+          current = {
+            id: attrs["tvg-id"] || name,
+            epgId: attrs["tvg-id"] || "",
+            logo: attrs["tvg-logo"] || "",
+            group: attrs["group-title"] || "Otros",
+            name
+          };
+        } else if (!line.startsWith("#") && current){
+          current.url = line;
+          out.push(current);
+          current = null;
         }
       }
+      return out;
     }
-    return { actual: actual, siguiente: siguiente };
-  }
 
-  /* === UI === */
-  function mostrarCanales(lista) {
-    canalesDiv.innerHTML = "";
-    for (var idx=0; idx<lista.length; idx++) (function(idx){
-      var canal = lista[idx];
-      var btn = document.createElement("button");
-      btn.textContent = canal.nombre;
-      btn.dataset.index = idx;
-      btn.onclick = function() { activarCanal(idx); };
-      canalesDiv.appendChild(btn);
-    })(idx);
-    if (lista.length > 0) { activarCanal(0); }
-  }
-
- // solo marca el foco en lista
-function setActivo(idx) {
-  canalActivoIndex = idx;
-  var botones = canalesDiv.getElementsByTagName("button");
-  for (var i = 0; i < botones.length; i++) {
-    botones[i].classList.toggle("active", i === idx);
-  }
-  // scroll lista
-  var activo = botones[idx];
-  if (activo) {
-    var pos = activo.offsetTop - overlay.clientHeight/2;
-    if (pos < 0) pos = 0;
-    overlay.scrollTop = pos;
-  }
-}
-
-// activa canal + actualiza barra + reproduce
-function activarCanal(idx) {
-  setActivo(idx);
-  var canal = listaCanales[idx];
-  nombreActualEl.textContent = canal.nombre;
-  logoActualEl.src = canal.logo || "";
-
-  // EPG
-  var progInfo = canal.id ? getProgramaActual(canal.id) : null;
-  if (progInfo && progInfo.actual) {
-    var prog = progInfo.actual;
-    programaActualEl.textContent = prog.titulo;
-    horaInicioEl.textContent = formatHora(prog.inicio);
-    horaFinEl.textContent = formatHora(prog.fin);
-    actualizarProgreso(prog);
-
-    if (progInfo.siguiente) {
-      var sig = progInfo.siguiente;
-      document.getElementById("siguiente-programa").textContent =
-        "Próximo: " + formatHora(sig.inicio) + " - " + sig.titulo;
-    } else {
-      document.getElementById("siguiente-programa").textContent = "Próximo: --";
-    }
-  } else {
-    programaActualEl.textContent = "Programacion no disponible";
-    horaInicioEl.textContent = "00:00";
-    horaFinEl.textContent = "00:00";
-    progresoInner.style.width = "100%";
-    document.getElementById("siguiente-programa").textContent = "Próximo: No disponible ahora.";
-  }
-
-  // barra info 15s
-  var barra = document.getElementById("barra-info");
-  barra.classList.add("visible");
-  clearTimeout(barraTimeout);
-  barraTimeout = setTimeout(function(){
-    barra.classList.remove("visible");
-  }, 15000);
-
-  reproducir(canal.url);
-}
-
-function actualizarProgreso(prog) {
-  var ahora = new Date().getTime();
-  var duracion = prog.fin - prog.inicio;
-  var transcurrido = ahora - prog.inicio;
-  var porcentaje = Math.max(0, Math.min(100, (transcurrido/duracion)*100));
-  progresoInner.style.width = porcentaje+"%";
-  setTimeout(function(){ actualizarProgreso(prog); }, 60000);
-}
-
-function reproducir(url) {
-  capaNegra.style.display = "block";
-  video.src = url;
-  video.play();
-}
-
-/* === Navegación === */
-function handleKey(e) {
-  var keyCode = e.keyCode || e.which;   // 🔹 clave para TV Box viejos
-  var key = e.key;
-
-  if (key === "ArrowUp" || keyCode === 38) {
-    e.preventDefault();
-    if (overlayVisible) moverFocoLista(-1);
-    else moverFoco(-1);
-
-  } else if (key === "ArrowDown" || keyCode === 40) {
-    e.preventDefault();
-    if (overlayVisible) moverFocoLista(1);
-    else moverFoco(1);
-
-  } else if (key === "ArrowLeft" || keyCode === 37) {
-    e.preventDefault();
-    toggleOverlay(false);
-
-  } else if (key === "ArrowRight" || keyCode === 39) {
-    e.preventDefault();
-    toggleOverlay(true);
-
-  } else if (
-    key === "Enter" || key === "OK" || key === "Select" ||
-    keyCode === 13 || keyCode === 66 || keyCode === 65376
-  ) {
-    e.preventDefault();
-    activarCanal(canalActivoIndex);   // 🔹 fuerza la reproducción
-    if (overlayVisible) toggleOverlay(false);
-
-  } else if ((/^[0-9]$/.test(key)) || (keyCode >= 48 && keyCode <= 57)) {
-    var digit = (typeof key === "string" && /^[0-9]$/.test(key))
-      ? key
-      : String.fromCharCode(keyCode);
-    inputBuffer += digit;
-
-    var overlayNum = document.getElementById("overlay-numeros");
-    overlayNum.textContent = inputBuffer;
-    overlayNum.style.display = "block";
-
-    clearTimeout(inputTimer);
-    inputTimer = setTimeout(function () {
-      seleccionarPorNumero(inputBuffer);
-      inputBuffer = "";
-      overlayNum.style.display = "none";
-    }, 1500);
-  }
-}
-
-function moverFoco(dir) {
-  var nuevo = canalActivoIndex + dir;
-  if (nuevo < 0) nuevo = listaCanales.length - 1;
-  if (nuevo >= listaCanales.length) nuevo = 0;
-  activarCanal(nuevo);
-}
-
-function moverFocoLista(dir) {
-  var nuevo = canalActivoIndex + dir;
-  if (nuevo < 0) nuevo = listaCanales.length - 1;
-  if (nuevo >= listaCanales.length) nuevo = 0;
-  setActivo(nuevo); // solo foco, sin reproducir
-}
-
-function toggleOverlay(show) {
-  overlayVisible = show;
-  overlay.classList.toggle("oculto", !show);
-}
-
-function seleccionarPorNumero(buffer) {
-  var numero = parseInt(buffer, 10) - 1;
-  if (numero >= 0 && numero < listaCanales.length) {
-    activarCanal(numero);
-    mostrarOverlayTemporal(numero);
-    toggleOverlay(false); // zapping numérico siempre oculta guía
-  }
-}
-
-
-  function mostrarOverlayTemporal(idx) {
-    var canal = listaCanales[idx];
-    nombreActualEl.textContent = canal.nombre;
-    logoActualEl.src = canal.logo || "";
-
-    var barra = document.getElementById("barra-info");
-    barra.classList.add("visible");
-    clearTimeout(barraTimeout);
-    barraTimeout = setTimeout(function(){
-      barra.classList.remove("visible");
-    }, 15000);
-
-    var overlayCentral = document.getElementById("overlay-central");
-    document.getElementById("nombre-central").textContent = canal.nombre;
-    if (canal.logo) {
-      document.getElementById("logo-central").src = canal.logo;
-      document.getElementById("logo-central").style.display = "block";
-    } else {
-      document.getElementById("logo-central").style.display = "none";
-    }
-    overlayCentral.style.display = "block";
-    setTimeout(function(){ overlayCentral.style.display = "none"; }, 3000);
-  }
-
-  /* === Eventos video === */
-  video.addEventListener("canplay", function() {
-    var checkStart = setInterval(function() {
-      if (video.duration > 0) {
-        clearInterval(checkStart);
-        setTimeout(function(){ capaNegra.style.display = "none"; }, 5000);
+    async function loadChannels(){
+      let text = M3U_TEXT;
+      if (!text){
+        if (!M3U_URL || M3U_URL.startsWith("PONER_")){
+          throw new Error("Falta configurar M3U_URL o M3U_TEXT");
+        }
+        const res = await fetch(M3U_URL, { cache: "no-store" });
+        if (!res.ok) throw new Error("No se pudo cargar M3U");
+        text = await res.text();
       }
-    }, 300);
-  });
-  video.addEventListener("pause",   function(){ capaNegra.style.display = "block"; });
-  video.addEventListener("stalled", function(){ capaNegra.style.display = "block"; });
+      return parseM3U(text);
+    }
 
-  /* === Inicialización === */
-  cargarLista(function(err, texto){
-    if (!err) { listaCanales = parsearM3U(texto); mostrarCanales(listaCanales); }
-  });
-  cargarEPG(function(){});
-  document.addEventListener("keydown", handleKey);
+    // ====== UI Render ======
+    function uniqueGroups(chs){
+      const set = new Set(chs.map(c => c.group || "Otros"));
+      return Array.from(set).sort((a,b)=>a.localeCompare(b));
+    }
 
-  function updateReloj() {
-    var now = new Date();
-    var h = now.getHours(); if (h<10) h="0"+h;
-    var m = now.getMinutes(); if (m<10) m="0"+m;
-    document.getElementById("hora-actual").textContent = h+":"+m;
+    function applyFilter(){
+      const q = $("q").value.trim().toLowerCase();
+      FILTERED = ALL_CHANNELS
+        .filter(c => (c.group || "Otros") === CURRENT_GROUP)
+        .filter(c => !q || (c.name || "").toLowerCase().includes(q));
 
-    var dias = ["Dom","Lun","Mar","Mié","Jue","Vie","Sáb"];
-    var meses = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
-    document.getElementById("fecha-actual").textContent =
-      dias[now.getDay()] + " " + now.getDate() + " " + meses[now.getMonth()];
-  }
-  setInterval(updateReloj, 60000);
-  updateReloj();
-</script>
+      renderGrid(FILTERED);
+      $("catTitle").textContent = CURRENT_GROUP;
+    }
 
+    function renderGrid(chs){
+      const grid = $("grid");
+      grid.innerHTML = "";
 
+      for (const c of chs){
+        const el = document.createElement("div");
+        el.className = "card";
+        el.innerHTML = `
+          <div class="dots">⋮</div>
+          <div class="logoBox">
+            ${c.logo ? `<img src="${escapeHtml(c.logo)}" alt="">` : `<span style="opacity:.5;font-weight:800">TV</span>`}
+          </div>
+          <div>
+            <div class="name">${escapeHtml(c.name || "Canal")}</div>
+            <div class="sub">${escapeHtml(c.group || "Otros")}</div>
+          </div>
+        `;
+        el.addEventListener("click", () => onPlay(c));
+        grid.appendChild(el);
+      }
+    }
 
+    function escapeHtml(s){
+      return String(s || "").replace(/[&<>"']/g, (c) => ({
+        "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+      }[c]));
+    }
+
+    // ====== Play (manda a Android) ======
+    function onPlay(selected){
+      // Payload: selected + playlist (del grupo actual) para lista lateral en ExoPlayer
+      const payload = {
+        selected,
+        playlist: FILTERED.length ? FILTERED : ALL_CHANNELS.filter(c => (c.group||"Otros") === CURRENT_GROUP),
+        epg: null // si querés, más adelante le agregás acá tu EPG ya procesado
+      };
+
+      // Si estás en WebView Android con JSInterface:
+      if (window.AndroidBridge && typeof window.AndroidBridge.playChannel === "function"){
+        window.AndroidBridge.playChannel(JSON.stringify(payload));
+        return;
+      }
+
+      // Si lo abrís en navegador común (testing):
+      console.log("AndroidBridge no disponible. Payload:", payload);
+      toast("Play (modo prueba)");
+    }
+
+    // ====== Category dropdown simple ======
+    function openCategoryPicker(groups){
+      const pick = prompt("Elegí categoría:\n\n" + groups.join("\n"), CURRENT_GROUP);
+      if (!pick) return;
+      const normalized = groups.find(g => g.toLowerCase() === pick.toLowerCase());
+      if (normalized){
+        CURRENT_GROUP = normalized;
+        applyFilter();
+      } else {
+        toast("Categoría no encontrada");
+      }
+    }
+
+    // ====== Tabs (placeholder) ======
+    function setTab(activeId){
+      ["tabTV","tabMovies","tabSeries"].forEach(id => $(id).classList.toggle("active", id===activeId));
+      if (activeId !== "tabTV") toast("Solo TV por ahora");
+    }
+
+    async function boot(){
+      toast("Cargando...");
+      ALL_CHANNELS = await loadChannels();
+      if (!ALL_CHANNELS.length) {
+        toast("M3U vacía");
+        return;
+      }
+      const groups = uniqueGroups(ALL_CHANNELS);
+      CURRENT_GROUP = groups.includes("Nacionales") ? "Nacionales" : (groups[0] || "Otros");
+
+      $("q").addEventListener("input", applyFilter);
+      $("btnCat").addEventListener("click", () => openCategoryPicker(groups));
+      $("btnMenu").addEventListener("click", () => openCategoryPicker(groups)); // simple
+      $("tabTV").addEventListener("click", () => setTab("tabTV"));
+      $("tabMovies").addEventListener("click", () => setTab("tabMovies"));
+      $("tabSeries").addEventListener("click", () => setTab("tabSeries"));
+
+      applyFilter();
+      toast("Listo");
+    }
+  </script>
 </body>
 </html>
