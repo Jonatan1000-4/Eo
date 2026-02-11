@@ -56,7 +56,7 @@ body{
 /* GRID */
 .wrap{padding:14px;}
 .grid{
-  display:grid;
+  dis:grid;
   grid-template-columns:repeat(auto-fill,minmax(150px,1fr));
   gap:12px;
 }
@@ -163,10 +163,16 @@ var JSON_FALLBACK = ""; // opcional: pegá JSON acá si querés
 var ALL_CHANNELS = [];
 var CURRENT_CATEGORY = "ALL";
 
+// ✅ estado UI / navegación
+var CURRENT_LIST = [];          // lista que se está mostrando (ya filtrada)
+var ACTIVE_INDEX = 0;           // índice seleccionado/focus actual dentro de CURRENT_LIST
+var LAST_FOCUSED_ID = "";       // para restaurar foco luego de re-render
+
 /* ===== UTIL ===== */
 function $(id){ return document.getElementById(id); }
 function toast(t){
   var el = $("toast");
+  if(!el) return;
   el.textContent = t;
   el.classList.add("show");
   clearTimeout(window.__toastT);
@@ -179,12 +185,7 @@ var auth = firebase.auth();
 var db = firebase.firestore();
 
 function safeGoToLogin(){
-  // ✅ más compatible que location.href a veces en WebView viejo
   window.location.replace("login.html");
-}
-
-function safeStayHere(){
-  // nada
 }
 
 /* ===== ALLOWLIST ===== */
@@ -214,7 +215,6 @@ auth.onAuthStateChanged(function(user){
 
 /* ===== PARSER M3U (más tolerante) ===== */
 function parseM3U(text){
-  // ✅ tolerante: soporta espacios raros y líneas con BOM
   text = (text || "").replace(/^\uFEFF/, "");
   var lines = text.split(/\r?\n/);
   var out = [];
@@ -239,10 +239,10 @@ function parseM3U(text){
       }
     } else if(line.charAt(0) !== "#"){
       out.push({
-        id: id || name,
-        name: name || "Canal",
-        logo: logo || "",
-        group: group || "Otros",
+        id: (id || name || ("ch_"+i)),
+        name: (name || "Canal"),
+        logo: (logo || ""),
+        group: (group || "Otros"),
         url: line
       });
       name=""; logo=""; group=""; id="";
@@ -268,7 +268,9 @@ function loadChannels(){
 /* ===== UI ===== */
 function populateCategories(){
   var select = $("categorySelect");
+  if(!select) return;
   select.innerHTML = '<option value="ALL">Todas</option>';
+
   var map = {};
   for(var i=0;i<ALL_CHANNELS.length;i++){
     map[ALL_CHANNELS[i].group || "Otros"] = true;
@@ -282,79 +284,187 @@ function populateCategories(){
   }
 }
 
-function renderChannels(){
-  var grid = $("grid");
-  grid.innerHTML = "";
+/* ===== FILTRO (lista actual) ===== */
+function buildFilteredList(){
+  var search = ($("search") && $("search").value ? $("search").value : "").toLowerCase();
 
-  var search = ($("search").value || "").toLowerCase();
-
-  var list = ALL_CHANNELS.filter(function(c){
+  CURRENT_LIST = ALL_CHANNELS.filter(function(c){
     var okCat = (CURRENT_CATEGORY === "ALL") || (c.group === CURRENT_CATEGORY);
     var okSearch = (!search) || (String(c.name||"").toLowerCase().indexOf(search) >= 0);
     return okCat && okSearch;
   });
 
-  if(!list.length){
+  // clamp index
+  if(ACTIVE_INDEX >= CURRENT_LIST.length) ACTIVE_INDEX = Math.max(0, CURRENT_LIST.length - 1);
+  if(ACTIVE_INDEX < 0) ACTIVE_INDEX = 0;
+}
+
+/* ===== NAVEGACIÓN FLUIDA (control remoto) =====
+   - Manejo global de teclas para mover foco sin depender de cada card (más estable en TV Box viejos)
+   - Mantiene ACTIVE_INDEX y hace focus/scroll al ítem
+*/
+function enableGlobalRemoteNav(){
+  if(window.__navEnabled) return;
+  window.__navEnabled = true;
+
+  document.addEventListener("keydown", function(e){
+    // Si el foco está en input o select, no interceptar (para escribir/buscar)
+    var tag = (document.activeElement && document.activeElement.tagName) ? document.activeElement.tagName.toLowerCase() : "";
+    if(tag === "input" || tag === "select" || tag === "textarea") return;
+
+    if(!CURRENT_LIST || !CURRENT_LIST.length) return;
+
+    var cols = getGridColsSafe();
+    var key = e.key || "";
+    var kc = e.keyCode || 0;
+
+    var handled = false;
+
+    function moveTo(newIndex){
+      if(newIndex < 0) newIndex = 0;
+      if(newIndex > CURRENT_LIST.length - 1) newIndex = CURRENT_LIST.length - 1;
+      if(newIndex === ACTIVE_INDEX) return;
+      ACTIVE_INDEX = newIndex;
+      focusCardByIndex(ACTIVE_INDEX, true);
+    }
+
+    // ENTER / OK
+    if(key === "Enter" || kc === 13){
+      handled = true;
+      playChannel(CURRENT_LIST[ACTIVE_INDEX], CURRENT_LIST);
+    }
+
+    // Flechas
+    if(key === "ArrowRight" || kc === 39){ handled = true; moveTo(ACTIVE_INDEX + 1); }
+    if(key === "ArrowLeft"  || kc === 37){ handled = true; moveTo(ACTIVE_INDEX - 1); }
+    if(key === "ArrowDown"  || kc === 40){ handled = true; moveTo(ACTIVE_INDEX + cols); }
+    if(key === "ArrowUp"    || kc === 38){ handled = true; moveTo(ACTIVE_INDEX - cols); }
+
+    // PageUp / PageDown (algunos controles lo mandan)
+    if(kc === 92){ handled = true; moveTo(ACTIVE_INDEX - cols * 3); } // KEYCODE_PAGE_UP (varía)
+    if(kc === 93){ handled = true; moveTo(ACTIVE_INDEX + cols * 3); } // KEYCODE_PAGE_DOWN (varía)
+
+    // Color keys opcional: verde para “búsqueda rápida” (si querés)
+    // KEYCODE_PROG_GREEN suele ser 184 en Android, pero depende del control.
+    // No hacemos nada acá para no romper.
+
+    if(handled){
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  }, true);
+}
+
+/* ===== Render ===== */
+function renderChannels(){
+  buildFilteredList();
+
+  var grid = $("grid");
+  if(!grid) return;
+  grid.innerHTML = "";
+
+  if(!CURRENT_LIST.length){
     grid.innerHTML = '<div style="padding:10px;color:rgba(0,0,0,.55);font-weight:800;">No hay canales</div>';
     return;
   }
 
-  // calcular columnas reales para navegación por flechas
-  var cols = getGridCols();
-
-  for(var i=0;i<list.length;i++){
+  for(var i=0;i<CURRENT_LIST.length;i++){
     (function(index){
-      var c = list[index];
+      var c = CURRENT_LIST[index];
 
       var card = document.createElement("div");
       card.className = "card";
       card.tabIndex = 0;
+      card.setAttribute("data-idx", String(index));
+      card.setAttribute("data-id", String(c.id || ""));
 
+      // ✅ logos más compactos (no rompo tu CSS, solo agrego attrs)
       card.innerHTML =
         '<div class="logo">' +
-          (c.logo ? '<img loading="lazy" src="'+escapeHtml(c.logo)+'" alt="">' : 'TV') +
+          (c.logo ? '<img loading="lazy" decoding="async" referrerpolicy="no-referrer" src="'+escapeHtml(c.logo)+'" alt="">' : 'TV') +
         '</div>' +
         '<div class="name">'+escapeHtml(c.name)+'</div>' +
         '<div class="group">'+escapeHtml(c.group || "Otros")+'</div>';
 
-      card.onclick = function(){ playChannel(c, list); };
+      // click (móvil / mouse)
+      card.onclick = function(){ 
+        ACTIVE_INDEX = index;
+        playChannel(c, CURRENT_LIST);
+      };
 
+      // focus tracking
+      card.onfocus = function(){
+        ACTIVE_INDEX = index;
+        LAST_FOCUSED_ID = String(c.id || "");
+      };
+
+      // fallback: enter en la card (si el TV box no deja pasar al handler global)
       card.onkeydown = function(e){
-        var cards = Array.prototype.slice.call(document.querySelectorAll(".card"));
-        var idx = cards.indexOf(card);
-
-        // Enter / OK
         if(e.key === "Enter" || e.keyCode === 13){
           e.preventDefault();
-          playChannel(c, list);
-          return;
+          ACTIVE_INDEX = index;
+          playChannel(c, CURRENT_LIST);
         }
-
-        // Flechas (navegación real)
-        if((e.key === "ArrowRight" || e.keyCode === 39) && cards[idx+1]) cards[idx+1].focus();
-        if((e.key === "ArrowLeft"  || e.keyCode === 37) && cards[idx-1]) cards[idx-1].focus();
-        if((e.key === "ArrowDown"  || e.keyCode === 40) && cards[idx+cols]) cards[idx+cols].focus();
-        if((e.key === "ArrowUp"    || e.keyCode === 38) && cards[idx-cols]) cards[idx-cols].focus();
       };
 
       grid.appendChild(card);
-
-      if(index === 0) setTimeout(function(){ card.focus(); }, 200);
     })(i);
+  }
+
+  // Restaurar foco: por ID si existe, si no por ACTIVE_INDEX
+  var idxToFocus = findIndexById(LAST_FOCUSED_ID);
+  if(idxToFocus >= 0) ACTIVE_INDEX = idxToFocus;
+
+  focusCardByIndex(ACTIVE_INDEX, false);
+
+  // activar navegación global una sola vez
+  enableGlobalRemoteNav();
+}
+
+function findIndexById(id){
+  if(!id) return -1;
+  for(var i=0;i<CURRENT_LIST.length;i++){
+    if(String(CURRENT_LIST[i].id || "") === id) return i;
+  }
+  return -1;
+}
+
+function focusCardByIndex(index, smooth){
+  var grid = $("grid");
+  if(!grid) return;
+  var el = grid.querySelector('.card[data-idx="'+index+'"]');
+  if(!el) return;
+
+  try { el.focus(); } catch(e){}
+
+  // ✅ scroll suave hacia el ítem (sin romper TV box viejo)
+  try{
+    if(typeof el.scrollIntoView === "function"){
+      el.scrollIntoView({
+        block: "nearest",
+        inline: "nearest",
+        behavior: smooth ? "smooth" : "auto"
+      });
+    }
+  }catch(e){
+    // fallback (viejo): sin options
+    try{ el.scrollIntoView(); }catch(_e){}
   }
 }
 
-function getGridCols(){
-  // intenta calcular columnas por ancho real
+/* Columnas reales (safe) */
+function getGridColsSafe(){
   try{
     var grid = $("grid");
+    if(!grid) return 4;
     var style = window.getComputedStyle(grid);
     var template = style.gridTemplateColumns;
     if(template && template !== "none"){
-      return template.split(" ").length || 4;
+      var n = template.split(" ").length;
+      return n || 4;
     }
   }catch(e){}
-  return 4; // fallback
+  return 4;
 }
 
 function escapeHtml(s){
@@ -364,11 +474,25 @@ function escapeHtml(s){
   });
 }
 
-/* ===== PLAY (mantiene formato Android url+channels) ===== */
+/* ===== PLAY (ajuste premium: selectedIndex para el reproductor) =====
+   - Mantiene url+channels (compat)
+   - Agrega selectedIndex para que el Player marque el canal correcto
+   - Además envía selected/playlist como extra por si lo querés usar después
+*/
 function playChannel(selected, list){
+  var selectedIndex = 0;
+  for(var i=0;i<list.length;i++){
+    if(list[i].url === selected.url){ selectedIndex = i; break; }
+  }
+
   var payload = {
     url: selected.url,
-    channels: list.map(function(c){ return { name: c.name, url: c.url }; })
+    channels: list.map(function(c){ return { name: c.name, url: c.url }; }),
+    selectedIndex: selectedIndex,
+
+    // extras (no rompen)
+    selected: selected,
+    playlist: list
   };
 
   if(window.AndroidBridge && typeof AndroidBridge.playChannel === "function"){
@@ -388,15 +512,31 @@ function boot(){
       toast("No hay canales");
       return;
     }
+
     CURRENT_CATEGORY = "ALL";
+    ACTIVE_INDEX = 0;
+    LAST_FOCUSED_ID = "";
+
     populateCategories();
     renderChannels();
 
-    $("search").addEventListener("input", renderChannels);
-    $("categorySelect").addEventListener("change", function(e){
-      CURRENT_CATEGORY = e.target.value;
-      renderChannels();
-    });
+    // ✅ input events
+    if($("search")){
+      $("search").addEventListener("input", function(){
+        ACTIVE_INDEX = 0;
+        LAST_FOCUSED_ID = "";
+        renderChannels();
+      });
+    }
+
+    if($("categorySelect")){
+      $("categorySelect").addEventListener("change", function(e){
+        CURRENT_CATEGORY = e.target.value;
+        ACTIVE_INDEX = 0;
+        LAST_FOCUSED_ID = "";
+        renderChannels();
+      });
+    }
 
     toast("Listo");
   }).catch(function(e){
@@ -405,6 +545,7 @@ function boot(){
   });
 }
 </script>
+
 
 </body>
 </html>
