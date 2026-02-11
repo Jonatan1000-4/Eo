@@ -1,365 +1,196 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <title>EMTV - Portal Multimedia TV</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
-    <!-- Eliminada la carga de Tailwind CSS y la fuente Inter para máxima velocidad. -->
-    
-    <style>
-        /* --- ESTILOS OPTIMIZADOS PARA TV BOX VIEJO --- */
-        * { 
-            margin: 0; 
-            padding: 0; 
-            box-sizing: border-box; 
-        }
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Acceso | TV</title>
 
-        :root {
-            /* Colores simples */
-            --color-bg-dark: #070a16;
-            --color-card-bg: #1a223a;
-            --color-header-bg: #1a223a;
-            --color-primary: #0ea5e9;
-            --color-text-light: #e2e8f0;
-            --color-text-mute: #94a3b8;
-            --color-danger: #ff5555;
-        }
+  <!-- Recomendado: CSP (ajustá si usás otros CDNs/dominos) -->
+  <meta http-equiv="Content-Security-Policy"
+        content="
+          default-src 'self';
+          img-src 'self' data: https:;
+          style-src 'self' 'unsafe-inline';
+          script-src 'self' https://www.gstatic.com https://www.googleapis.com 'unsafe-inline';
+          connect-src https://www.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firestore.googleapis.com;
+        ">
 
-        body {
-            /* Usar fuente de sistema (sans-serif) es lo más rápido */
-            font-family: sans-serif; 
-            background-color: var(--color-bg-dark);
-            color: var(--color-text-light);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden; 
-        }
-
-        /* BARRA DE ESTADO (HEADER) */
-        .status-header {
-            width: 100%;
-            height: 64px;
-            background-color: var(--color-header-bg);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0 48px;
-            border-bottom: 2px solid rgba(14, 165, 233, 0.2);
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4); 
-            z-index: 50;
-        }
-
-        .portal-title {
-            font-size: 1.875rem; 
-            font-weight: 800;
-            color: var(--color-primary);
-            text-shadow: 0 0 3px rgba(14, 165, 233, 0.5); 
-        }
-
-        .info-group {
-            display: flex;
-            align-items: center;
-            gap: 2rem;
-            font-size: 0.875rem;
-            color: var(--color-text-mute);
-        }
-        
-        .info-group span {
-            display: flex;
-            align-items: center;
-            gap: 0.25rem;
-        }
-
-        /* Botón de Cierre de Sesión */
-        #logoutBtn {
-            border: 2px solid transparent; /* Para evitar CLS al enfocar */
-            background: none;
-            color: var(--color-text-mute);
-            padding: 0.5rem 0.75rem;
-            border-radius: 0.5rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            text-decoration: none;
-            cursor: pointer;
-            /* Transiciones mínimas o nulas */
-            transition: color 0.1s, background-color 0.1s; 
-        }
-        
-        #logoutBtn:focus {
-            outline: none;
-            color: var(--color-danger);
-            background-color: rgba(255, 85, 85, 0.15);
-            border-color: var(--color-danger);
-            /* REEMPLAZO DE ESCALADO: solo cambio de color */
-        }
-
-        #logoutBtn:focus svg {
-             color: var(--color-danger);
-        }
-
-        /* CONTENIDO PRINCIPAL */
-        .main-container {
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            padding: 5rem 2.5rem;
-        }
-
-        .section-title {
-            font-size: 3.75rem;
-            font-weight: 200;
-            color: var(--color-text-light);
-            margin-bottom: 5rem;
-            text-align: center;
-        }
-
-        /* Grid de Contenido */
-        .content-grid {
-            width: 100%;
-            max-width: 1280px;
-            display: grid;
-            grid-template-columns: repeat(4, minmax(0, 1fr));
-            gap: 2.5rem;
-        }
-
-        /* Card de Contenido */
-        .content-card {
-            background-color: var(--color-card-bg);
-            border-radius: 0.75rem;
-            color: var(--color-text-light);
-            text-decoration: none;
-            padding: 1.5rem;
-            display: flex;
-            flex-direction: column;
-            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.6); /* Sombra más sutil */
-            border: 4px solid transparent; 
-            /* REMOVIDO: transform y transiciones costosas */
-            transition: border-color 0.1s; 
-        }
-
-        .content-card:focus {
-            outline: none;
-            /* Foco de alto contraste y bajo costo de renderizado */
-            border-color: var(--color-primary); 
-            box-shadow: 0 0 15px 5px rgba(14, 165, 233, 0.7); 
-        }
-
-        .card-icon {
-            font-size: 3.5rem;
-            margin-bottom: 1rem;
-            color: var(--color-primary);
-        }
-
-        .card-title {
-            font-size: 1.5rem;
-            font-weight: 700;
-            margin-bottom: 0.25rem;
-        }
-
-        .card-description {
-            font-size: 0.875rem;
-            color: var(--color-text-mute);
-        }
-    </style>
+  <style>
+    :root{
+      --bg:#0b1020;
+      --card:rgba(255,255,255,.06);
+      --line:rgba(255,255,255,.12);
+      --text:#eaf0ff;
+      --muted:#a9b4d6;
+      --accent:#5bd6ff;
+      --danger:#ff5b7a;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; min-height:100vh;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
+      background: radial-gradient(1200px 600px at 20% 20%, rgba(91,214,255,.22), transparent 60%),
+                  radial-gradient(900px 500px at 80% 30%, rgba(255,91,122,.18), transparent 55%),
+                  var(--bg);
+      color:var(--text);
+      display:flex; align-items:center; justify-content:center;
+      padding:20px;
+    }
+    .wrap{width:min(440px, 100%);}
+    .card{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:18px 16px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 14px 40px rgba(0,0,0,.35);
+    }
+    h1{font-size:20px; margin:0 0 6px}
+    p{margin:0 0 14px; color:var(--muted); font-size:13px; line-height:1.35}
+    label{display:block; font-size:12px; color:var(--muted); margin:10px 0 6px}
+    input{
+      width:100%;
+      padding:12px 12px;
+      border-radius:12px;
+      border:1px solid var(--line);
+      background:rgba(0,0,0,.18);
+      color:var(--text);
+      outline:none;
+    }
+    input:focus{border-color:rgba(91,214,255,.55)}
+    .row{display:flex; gap:10px; margin-top:14px}
+    button{
+      width:100%;
+      padding:12px 14px;
+      border-radius:12px;
+      border:1px solid transparent;
+      background: linear-gradient(180deg, rgba(91,214,255,.95), rgba(91,214,255,.75));
+      color:#06101c;
+      font-weight:700;
+      cursor:pointer;
+    }
+    button.secondary{
+      background:transparent;
+      color:var(--text);
+      border-color:var(--line);
+    }
+    .msg{
+      margin-top:12px;
+      font-size:12px;
+      color:var(--muted);
+      min-height:18px;
+    }
+    .msg.err{color:var(--danger)}
+    .foot{margin-top:10px; font-size:11px; color:rgba(255,255,255,.55)}
+    .hint{margin-top:10px; font-size:11px; color:rgba(255,255,255,.55)}
+    code{background:rgba(0,0,0,.25); padding:2px 6px; border-radius:8px; border:1px solid var(--line)}
+  </style>
 </head>
-<body class="flex flex-col">
 
-    <!-- BARRA DE ESTADO (HEADER) -->
-    <header class="status-header">
-        
-        <div class="portal-title">
-            EMTV
-        </div>
-        
-        <div class="info-group">
-            <span class="info-item">
-                <span class="text-xl">📅</span>
-                <span id="currentDate"></span>
-            </span>
-            <span class="info-item">
-                <span class="text-xl">⏰</span>
-                <span id="currentTime"></span>
-            </span>
-            <span class="info-item">
-                Sesión: <strong id="sessionStatus" style="color: var(--color-text-light);">Activa (Usuario 123)</strong>
-            </span>
-            
-            <!-- Botón de Cierre de Sesión (Index 4 en la navegación JS) -->
-            <a href="logout.html" id="logoutBtn" tabindex="5">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 icon-lock" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="height: 1.25rem; width: 1.25rem;">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                </svg>
-                <span>Cerrar Sesión</span>
-            </a>
-        </div>
-    </header>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>Acceso privado</h1>
+      <p>Ingresá con tu cuenta autorizada. Si no estás habilitado, la app no te deja entrar.</p>
 
-    <!-- CONTENIDO PRINCIPAL -->
-    <div class="main-container">
-        <div class="max-width-wrapper">
+      <label>Email</label>
+      <input id="email" type="email" autocomplete="username" placeholder="tuemail@correo.com" />
 
-            <h1 class="section-title">
-                ¿Qué quieres ver hoy?
-            </h1>
+      <label>Contraseña</label>
+      <input id="pass" type="password" autocomplete="current-password" placeholder="••••••••" />
 
-            <!-- Grid de Contenido (4 Columnas) -->
-            <div class="content-grid">
-                
-                <!-- Card 1 (Index 0) -->
-                <a href="ad.html" id="card-0" class="content-card" tabindex="1">
-                    <span class="card-icon">📺</span>
-                    <h2 class="card-title">TV en Vivo</h2>
-                    <p class="card-description">Acceso directo a todos los canales disponibles (M3U).</p>
-                </a>
-                
-                <!-- Card 2 (Index 1) -->
-                <a href="ac.html" id="card-1" class="content-card" tabindex="2">
-                    <span class="card-icon">🎞️</span>
-                    <h2 class="card-title">Películas & Cine</h2>
-                    <p class="card-description">Explora nuestra colección completa de largometrajes.</p>
-                </a>
-                
-                <!-- Card 3 (Index 2) -->
-                <a href="af.html" id="card-2" class="content-card" tabindex="3">
-                    <span class="card-icon">📂</span>
-                    <h2 class="card-title">Series</h2>
-                    <p class="card-description">Lista de reproducción de tus series favoritas (M3U).</p>
-                </a>
+      <div class="row">
+        <button id="btnLogin">Entrar</button>
+        <button id="btnCreate" class="secondary">Crear</button>
+      </div>
 
-                <!-- Card 4 (Index 3) -->
-                <a href="info.html" id="card-3" class="content-card" tabindex="4">
-                    <span class="card-icon">⚙️</span>
-                    <h2 class="card-title">Soporte & Info</h2>
-                    <p class="card-description">Configuración de cuenta, guías y asistencia técnica.</p>
-                </a>
-                
-            </div>
-        </div>
+      <div id="msg" class="msg"></div>
+
+      <div class="hint">
+        Luego del login redirige a <code>app.html</code>.
+      </div>
+      <div class="foot">Tip: en Android WebView evitá abrir links externos si querés máxima privacidad.</div>
     </div>
+  </div>
 
-<script>
-    // --- LÓGICA DE NAVEGACIÓN POR CONTROL REMOTO (FOCUS MANAGEMENT) ---
-    // Esta lógica es eficiente y se mantiene sin cambios.
-    
-    // Obtener todos los elementos enfocables en el orden deseado (Cards 0-3, Header Btn 4)
-    const focusableElements = [
-        document.getElementById('card-0'),
-        document.getElementById('card-1'),
-        document.getElementById('card-2'),
-        document.getElementById('card-3'),
-        document.getElementById('logoutBtn')
-    ].filter(el => el != null);
+  <script type="module">
+    // ✅ Firebase v9+ (modular)
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
-    let currentFocusIndex = 0;
-    const TOTAL_ELEMENTS = focusableElements.length;
-    const GRID_SIZE = 4; // Número de elementos en la fila principal de la cuadrícula
+    // 1) PEGÁ ACÁ TU CONFIG (Firebase Console -> Project settings)
+    const firebaseConfig = {
+  apiKey: "AIzaSyBKSdaRAQTN-Gen0k4WerLu1GvBLKzjZlQ",
+  authDomain: "aweme-46b1e.firebaseapp.com",
+  projectId: "aweme-46b1e",
+  appId: "1:762479825387:web:8ffb3a629c0eb9f52fc9ae",
+    };
 
-    // Enfocar el primer elemento al cargar
-    if (focusableElements.length > 0) {
-        focusableElements[0].focus();
+    // 2) RUTAS / COLECCIONES
+    const ALLOWLIST_COLLECTION = "allowlist"; // allowlist/{uid} { enabled:true }
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    const $ = (id) => document.getElementById(id);
+    const msg = (t, isErr=false) => {
+      const el = $("msg");
+      el.textContent = t || "";
+      el.className = "msg" + (isErr ? " err" : "");
+    };
+
+    async function isAllowlisted(uid){
+      const ref = doc(db, ALLOWLIST_COLLECTION, uid);
+      const snap = await getDoc(ref);
+      return snap.exists() && snap.data()?.enabled === true;
     }
 
-    document.addEventListener('keydown', (e) => {
-        let nextIndex = currentFocusIndex;
-        let preventDefault = true;
-
-        switch (e.key) {
-            case 'ArrowRight':
-            case 'Right':
-                // Mover a la derecha, envuelve al botón de Logout si está en la última card
-                if (currentFocusIndex === GRID_SIZE - 1) {
-                    nextIndex = TOTAL_ELEMENTS - 1; // Salta de Card 3 a Logout
-                } else if (currentFocusIndex === TOTAL_ELEMENTS - 1) {
-                    nextIndex = 0; // Salta de Logout a Card 0 (wraps around the whole screen)
-                } else {
-                    nextIndex = (currentFocusIndex + 1);
-                }
-                break;
-
-            case 'ArrowLeft':
-            case 'Left':
-                // Mover a la izquierda, envuelve de Logout a la última card
-                if (currentFocusIndex === 0) {
-                    nextIndex = TOTAL_ELEMENTS - 1; // Salta de Card 0 a Logout (wraps around)
-                } else if (currentFocusIndex === TOTAL_ELEMENTS - 1) {
-                    nextIndex = GRID_SIZE - 1; // Salta de Logout a Card 3
-                } else {
-                    nextIndex = (currentFocusIndex - 1);
-                }
-                break;
-
-            case 'ArrowDown':
-            case 'Down':
-                // Si está en la grid principal (0-3), va a Logout (4)
-                if (currentFocusIndex >= 0 && currentFocusIndex <= GRID_SIZE - 1) {
-                    nextIndex = TOTAL_ELEMENTS - 1; 
-                } else {
-                    // Si está en Logout (4), regresa a Card 0
-                    nextIndex = 0;
-                }
-                break;
-
-            case 'ArrowUp':
-            case 'Up':
-                // Si está en Logout (4), regresa a Card 0
-                if (currentFocusIndex === TOTAL_ELEMENTS - 1) {
-                    nextIndex = 0;
-                } else {
-                    // Si está en la grid principal (0-3), va a Logout (4)
-                    nextIndex = TOTAL_ELEMENTS - 1; 
-                }
-                break;
-
-            case 'Enter':
-            case 'NumpadEnter':
-            case 'OK':
-                if (focusableElements[currentFocusIndex]) {
-                    focusableElements[currentFocusIndex].click();
-                }
-                return;
-            
-            default:
-                preventDefault = false;
-                break;
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) return;
+      msg("Verificando acceso...");
+      try{
+        const ok = await isAllowlisted(user.uid);
+        if (!ok) {
+          msg("Acceso no autorizado (UID no habilitado).", true);
+          await auth.signOut();
+          return;
         }
-
-        // Aplicar el nuevo foco si es válido
-        if (nextIndex >= 0 && nextIndex < TOTAL_ELEMENTS) {
-            currentFocusIndex = nextIndex;
-            focusableElements[currentFocusIndex].focus();
-            
-            // Forzar scroll 
-            focusableElements[currentFocusIndex].scrollIntoView({ behavior: 'smooth', block: 'center' });
-
-            if (preventDefault) {
-                e.preventDefault(); 
-            }
-        }
+        // ✅ OK: entrar al menú
+        location.href = "app.html";
+      }catch(e){
+        msg("Error verificando acceso: " + (e?.message || e), true);
+      }
     });
 
-    // --- LÓGICA DE FECHA Y HORA ACTUALES ---
-    function updateDateTime() {
-        const now = new Date();
-        // Usar opciones simples
-        const dateOptions = { day: 'numeric', month: 'short', year: 'numeric' }; 
-        const timeOptions = { hour: '2-digit', minute: '2-digit' };
+    $("btnLogin").addEventListener("click", async () => {
+      msg("");
+      const email = $("email").value.trim();
+      const pass = $("pass").value;
+      if (!email || !pass) return msg("Completa email y contraseña.", true);
 
-        const dateEl = document.getElementById('currentDate');
-        const timeEl = document.getElementById('currentTime');
+      try{
+        await signInWithEmailAndPassword(auth, email, pass);
+        // redirect se hace en onAuthStateChanged
+      }catch(e){
+        msg("Login falló: " + (e?.message || e), true);
+      }
+    });
 
-        if (dateEl) dateEl.textContent = now.toLocaleDateString('es-ES', dateOptions);
-        if (timeEl) timeEl.textContent = now.toLocaleTimeString('es-ES', timeOptions);
-    }
+    $("btnCreate").addEventListener("click", async () => {
+      msg("");
+      const email = $("email").value.trim();
+      const pass = $("pass").value;
+      if (!email || !pass) return msg("Completa email y contraseña.", true);
 
-    updateDateTime();
-    setInterval(updateDateTime, 1000); 
-
-</script>
-
+      try{
+        await createUserWithEmailAndPassword(auth, email, pass);
+        msg("Cuenta creada. Si no estás en allowlist, no podrás entrar.", false);
+      }catch(e){
+        msg("Crear cuenta falló: " + (e?.message || e), true);
+      }
+    });
+  </script>
 </body>
 </html>
