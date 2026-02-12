@@ -274,7 +274,6 @@ body.light .logo{
 
 <div id="toast" class="toast"></div>
 
-<!-- ✅ Firebase v8 (compat WebView viejo) -->
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
@@ -321,10 +320,7 @@ function escapeHtml(s){
   });
 }
 
-/* ===== THEME (por defecto oscuro DIRECTV) =====
-   Requiere que tu CSS tenga body.light y/o body.dark.
-   En tu CSS actual usás body.dark, así que acá controlamos dark/light
-*/
+
 function applyTheme(mode){
   var dark = (mode === "dark");
   document.body.classList.toggle("dark", dark);
@@ -345,7 +341,7 @@ if($("btnTheme")){
 }
 initTheme();
 
-/* ===== FIREBASE INIT ===== */
+
 firebase.initializeApp(firebaseConfig);
 var auth = firebase.auth();
 var db = firebase.firestore();
@@ -425,7 +421,7 @@ function loadChannels(){
     .catch(function(e){ console.log(e); return []; });
 }
 
-/* ===== UI ===== */
+
 function populateCategories(){
   var select = $("categorySelect");
   if(!select) return;
@@ -494,7 +490,7 @@ function focusByIndex(idx){
 
   try{ el.focus(); }catch(e){}
 
-  // scroll suave si se puede (fallback si no)
+  
   try{
     if(el.scrollIntoView){
       try{ el.scrollIntoView({block:"nearest", inline:"nearest"}); }
@@ -503,7 +499,7 @@ function focusByIndex(idx){
   }catch(e){}
 }
 
-/* ✅ navegación GLOBAL estable */
+
 function enableRemoteNav(){
   if(window.__remoteNav) return;
   window.__remoteNav = true;
@@ -517,7 +513,7 @@ function enableRemoteNav(){
     var kc = e.keyCode || 0;
     var key = e.key || "";
 
-    // Enter/OK
+  
     if(key === "Enter" || kc === 13){
       e.preventDefault();
       playChannel(CURRENT_LIST[ACTIVE_INDEX], CURRENT_LIST);
@@ -594,7 +590,7 @@ function renderChannels(){
     })(i);
   }
 
-  // restaurar foco por ID
+
   var idx = -1;
   for(var j=0;j<CURRENT_LIST.length;j++){
     if(String(CURRENT_LIST[j].id || "") === LAST_FOCUSED_ID){ idx = j; break; }
@@ -606,10 +602,8 @@ function renderChannels(){
   enableRemoteNav();
 }
 
-/* ===== PLAY =====
-   IMPORTANTE: Para que Android pueda mostrar logo/nombre/fecha-hora
-   hay que enviar también "selectedName" y "selectedLogo"
-*/
+
+
 function playChannel(selected, list){
   var selectedIndex = 0;
   for(var i=0;i<list.length;i++){
@@ -622,12 +616,12 @@ function playChannel(selected, list){
       return {
         name: c.name,
         url: c.url,
-        logo: c.logo || ""   // ✅ para overlay y lista en Android
+        logo: c.logo || ""   
       };
     }),
     selectedIndex: selectedIndex,
 
-    // ✅ extras directos (por si tu Android los usa)
+   
     selectedName: selected.name || "",
     selectedLogo: selected.logo || "",
     selectedGroup: selected.group || ""
@@ -641,7 +635,7 @@ function playChannel(selected, list){
   }
 }
 
-/* ===== BOOT ===== */
+
 function boot(){
   toast("Cargando...");
   loadChannels().then(function(chs){
