@@ -26,9 +26,9 @@
 
   /* layout */
   --gap:12px;      /* separación entre tarjetas */
-  --cardW: 180px;  /* ancho tarjeta (cuadrada) */
+  --cardW: 200px;  /* ancho tarjeta (cuadrada) */
   --pad: 10px;     /* padding interno */
-  --logoBoxH: 62%; /* % de alto interno para logo */
+  --logoBoxH: 72%; /* % de alto interno para logo */
   --radius:14px;
 }
 
@@ -196,8 +196,8 @@ body.light .logo{
 }
 
 .logo img{
-  max-width:78%;
-  max-height:78%;
+  max-width:98%;
+  max-height:98%;
   object-fit:contain;
   display:block;
 }
@@ -304,6 +304,7 @@ var LAST_FOCUSED_ID = "";
 
 /* ===== UTIL ===== */
 function $(id){ return document.getElementById(id); }
+
 function toast(t){
   var el = $("toast");
   if(!el) return;
@@ -312,6 +313,7 @@ function toast(t){
   clearTimeout(window.__toastT);
   window.__toastT = setTimeout(function(){ el.classList.remove("show"); }, 1200);
 }
+
 function escapeHtml(s){
   s = String(s == null ? "" : s);
   return s.replace(/[&<>"']/g, function(c){
@@ -319,22 +321,28 @@ function escapeHtml(s){
   });
 }
 
-/* ===== THEME (por defecto oscuro DIRECTV) ===== */
+/* ===== THEME (por defecto oscuro DIRECTV) =====
+   Requiere que tu CSS tenga body.light y/o body.dark.
+   En tu CSS actual usás body.dark, así que acá controlamos dark/light
+*/
 function applyTheme(mode){
-  var light = (mode === "light");
-  document.body.classList.toggle("light", light);
-  try{ localStorage.setItem("theme", light ? "light" : "dark"); }catch(e){}
-  $("btnTheme").textContent = light ? "🌙" : "☀️";
+  var dark = (mode === "dark");
+  document.body.classList.toggle("dark", dark);
+  try{ localStorage.setItem("theme", dark ? "dark" : "light"); }catch(e){}
+  var b = $("btnTheme");
+  if(b) b.textContent = dark ? "☀️" : "🌙";
 }
 function initTheme(){
   var saved = null;
   try{ saved = localStorage.getItem("theme"); }catch(e){}
-  if(saved === "light") applyTheme("light");
-  else applyTheme("dark");
+  if(saved === "dark" || saved === "light") applyTheme(saved);
+  else applyTheme("dark"); // ✅ default DIRECTV dark
 }
-$("btnTheme").onclick = function(){
-  applyTheme(document.body.classList.contains("light") ? "dark" : "light");
-};
+if($("btnTheme")){
+  $("btnTheme").onclick = function(){
+    applyTheme(document.body.classList.contains("dark") ? "light" : "dark");
+  };
+}
 initTheme();
 
 /* ===== FIREBASE INIT ===== */
@@ -420,6 +428,8 @@ function loadChannels(){
 /* ===== UI ===== */
 function populateCategories(){
   var select = $("categorySelect");
+  if(!select) return;
+
   select.innerHTML = '<option value="ALL">Todas</option>';
 
   var map = {};
@@ -436,7 +446,9 @@ function populateCategories(){
 }
 
 function buildFilteredList(){
-  var search = ($("search").value || "").toLowerCase();
+  var searchEl = $("search");
+  var search = (searchEl && searchEl.value ? searchEl.value : "").toLowerCase();
+
   CURRENT_LIST = ALL_CHANNELS.filter(function(c){
     var okCat = (CURRENT_CATEGORY === "ALL") || (c.group === CURRENT_CATEGORY);
     var okSearch = (!search) || (String(c.name||"").toLowerCase().indexOf(search) >= 0);
@@ -479,7 +491,10 @@ function focusByIndex(idx){
   var grid = $("grid");
   var el = grid ? grid.querySelector('.card[data-idx="'+idx+'"]') : null;
   if(!el) return;
+
   try{ el.focus(); }catch(e){}
+
+  // scroll suave si se puede (fallback si no)
   try{
     if(el.scrollIntoView){
       try{ el.scrollIntoView({block:"nearest", inline:"nearest"}); }
@@ -502,6 +517,7 @@ function enableRemoteNav(){
     var kc = e.keyCode || 0;
     var key = e.key || "";
 
+    // Enter/OK
     if(key === "Enter" || kc === 13){
       e.preventDefault();
       playChannel(CURRENT_LIST[ACTIVE_INDEX], CURRENT_LIST);
@@ -533,6 +549,7 @@ function enableRemoteNav(){
 function renderChannels(){
   buildFilteredList();
   var grid = $("grid");
+  if(!grid) return;
   grid.innerHTML = "";
 
   if(!CURRENT_LIST.length){
@@ -543,6 +560,7 @@ function renderChannels(){
   for(var i=0;i<CURRENT_LIST.length;i++){
     (function(index){
       var c = CURRENT_LIST[index];
+
       var card = document.createElement("div");
       card.className = "card";
       card.tabIndex = 0;
@@ -588,7 +606,10 @@ function renderChannels(){
   enableRemoteNav();
 }
 
-/* ===== PLAY ===== */
+/* ===== PLAY =====
+   IMPORTANTE: Para que Android pueda mostrar logo/nombre/fecha-hora
+   hay que enviar también "selectedName" y "selectedLogo"
+*/
 function playChannel(selected, list){
   var selectedIndex = 0;
   for(var i=0;i<list.length;i++){
@@ -597,8 +618,19 @@ function playChannel(selected, list){
 
   var payload = {
     url: selected.url,
-    channels: list.map(function(c){ return { name: c.name, url: c.url }; }),
-    selectedIndex: selectedIndex
+    channels: list.map(function(c){
+      return {
+        name: c.name,
+        url: c.url,
+        logo: c.logo || ""   // ✅ para overlay y lista en Android
+      };
+    }),
+    selectedIndex: selectedIndex,
+
+    // ✅ extras directos (por si tu Android los usa)
+    selectedName: selected.name || "",
+    selectedLogo: selected.logo || "",
+    selectedGroup: selected.group || ""
   };
 
   if(window.AndroidBridge && typeof window.AndroidBridge.playChannel === "function"){
@@ -626,18 +658,24 @@ function boot(){
     populateCategories();
     renderChannels();
 
-    $("search").addEventListener("input", function(){
-      ACTIVE_INDEX = 0;
-      LAST_FOCUSED_ID = "";
-      renderChannels();
-    });
+    var s = $("search");
+    if(s){
+      s.addEventListener("input", function(){
+        ACTIVE_INDEX = 0;
+        LAST_FOCUSED_ID = "";
+        renderChannels();
+      });
+    }
 
-    $("categorySelect").addEventListener("change", function(e){
-      CURRENT_CATEGORY = e.target.value;
-      ACTIVE_INDEX = 0;
-      LAST_FOCUSED_ID = "";
-      renderChannels();
-    });
+    var c = $("categorySelect");
+    if(c){
+      c.addEventListener("change", function(e){
+        CURRENT_CATEGORY = e.target.value;
+        ACTIVE_INDEX = 0;
+        LAST_FOCUSED_ID = "";
+        renderChannels();
+      });
+    }
 
     window.addEventListener("resize", function(){
       setTimeout(function(){ focusByIndex(ACTIVE_INDEX); }, 80);
@@ -650,6 +688,7 @@ function boot(){
   });
 }
 </script>
+
 
 </body>
 </html>
