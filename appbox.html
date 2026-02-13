@@ -8,28 +8,29 @@
 <style>
 /* ===== PALETA estilo DIRECTV (imagen) ===== */
 :root{
-  /* base */
-  --bg:#0b1b2d;            /* azul oscuro */
-  --top:#0a2036;           /* barra superior */
-  --panel:#0f2a44;         /* paneles */
-  --card:#0e253c;          /* tarjetas */
+  --bg:#0b1b2d;
+  --top:#0a2036;
+  --panel:#0f2a44;
+  --card:#0e253c;
   --line:rgba(255,255,255,.10);
   --text:#eaf3ff;
   --muted:rgba(234,243,255,.65);
 
-  /* acentos */
-  --accent:#18b6d6;        /* cian */
-  --focus:#22c7e6;         /* foco cian fuerte */
+  --accent:#18b6d6;
+  --focus:#22c7e6;
   --input:#0b2238;
 
   --shadow: 0 10px 24px rgba(0,0,0,.35);
 
-  /* layout */
-  --gap:12px;      /* separación entre tarjetas */
-  --cardW: 200px;  /* ancho tarjeta (cuadrada) */
-  --pad: 10px;     /* padding interno */
-  --logoBoxH: 72%; /* % de alto interno para logo */
+  --gap:12px;
+  --cardW: 200px;   /* grid: ancho tarjeta */
+  --pad: 10px;
+  --logoBoxH: 72%;
   --radius:14px;
+
+  /* lista */
+  --listH: 74px;    /* alto item lista */
+  --listLogo: 48px; /* tamaño logo en lista */
 }
 
 /* modo claro (opcional) */
@@ -91,8 +92,7 @@ body{
   box-shadow:0 0 0 3px rgba(24,182,214,.18);
 }
 
-/* Inputs */
-.selectCat,.search,.btnTheme{
+.search,.btnTheme,.btnView{
   padding:9px 10px;
   border-radius:12px;
   border:1px solid var(--line);
@@ -101,23 +101,19 @@ body{
   font-weight:800;
   outline:none;
 }
-
-.selectCat:focus,.search:focus,.btnTheme:focus{
+.search:focus,.btnTheme:focus,.btnView:focus{
   border-color: rgba(34,199,230,.75);
   box-shadow: 0 0 0 2px rgba(34,199,230,.22);
 }
 
 .search{
   margin-left:auto;
-  width:min(280px, 34vw);
+  width:min(300px, 40vw);
   font-weight:700;
 }
 
-.btnTheme{
-  width:44px;
+.btnTheme,.btnView{
   height:40px;
-  display:inline-block;
-  text-align:center;
   cursor:pointer;
   user-select:none;
 }
@@ -125,14 +121,14 @@ body{
 /* CONTENEDOR */
 .wrap{ padding: 12px; }
 
-/* FLEX (compat). No gap: usamos margin en cards */
+/* FLEX GRID (compat). No gap: usamos margin en cards */
 .grid{
   display:flex;
   flex-wrap:wrap;
   margin: calc(var(--gap) * -0.5);
 }
 
-/* CARD CUADRADA */
+/* ===== GRID CARD CUADRADA ===== */
 .card{
   width: var(--cardW);
   margin: calc(var(--gap) * 0.5);
@@ -147,10 +143,7 @@ body{
   position:relative;
   transform: translateZ(0);
 }
-
-body.light .card{
-  background: var(--card);
-}
+body.light .card{ background: var(--card); }
 
 .card:focus{
   border-color: rgba(34,199,230,.85);
@@ -189,12 +182,10 @@ body.light .card{
   justify-content:center;
   overflow:hidden;
 }
-
 body.light .logo{
   border:1px solid rgba(0,0,0,.08);
   background: rgba(0,0,0,.03);
 }
-
 .logo img{
   max-width:98%;
   max-height:98%;
@@ -227,6 +218,44 @@ body.light .logo{
   text-overflow:ellipsis;
 }
 
+/* ===== MODO LISTA ===== */
+body.view-list .grid{
+  margin: 0;              /* en lista no hace falta negativo */
+  display:block;          /* mejor para tv box viejo */
+}
+
+body.view-list .card{
+  width: 100%;
+  height: var(--listH);
+  margin: 0 0 10px 0;
+  border-radius: 14px;
+}
+
+body.view-list .card::before{ display:none; }
+
+body.view-list .cardInner{
+  position:static;
+  height:100%;
+  padding: 10px 12px;
+  flex-direction:row;
+  align-items:center;
+  gap:12px;
+}
+
+body.view-list .logo{
+  height: var(--listLogo);
+  width: var(--listLogo);
+  flex: 0 0 var(--listLogo);
+  border-radius: 12px;
+}
+
+body.view-list .meta{
+  justify-content:center;
+}
+
+body.view-list .name{ font-size:15px; }
+body.view-list .group{ margin-top:2px; }
+
 /* Toast */
 .toast{
   position:fixed;
@@ -258,13 +287,10 @@ body.light .logo{
 <header class="topbar">
   <div class="title">Canales</div>
 
-  <select id="categorySelect" class="selectCat" aria-label="Categoría" tabindex="0">
-    <option value="ALL">Todas</option>
-  </select>
-
   <input id="search" class="search" placeholder="Buscar" autocomplete="off" tabindex="0"/>
 
-  <!-- Por defecto: tema DIRECTV oscuro. Botón alterna a “claro”. -->
+  <button id="btnView" class="btnView" type="button" title="Vista" tabindex="0">LISTA</button>
+
   <button id="btnTheme" class="btnTheme" type="button" title="Tema" tabindex="0">☀️</button>
 </header>
 
@@ -277,7 +303,6 @@ body.light .logo{
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-
 
 <script>
 /* ===== CONFIG ===== */
@@ -297,7 +322,6 @@ var JSON_FALLBACK = "";
 
 /* ===== STATE ===== */
 var ALL_CHANNELS = [];
-var CURRENT_CATEGORY = "ALL";
 var CURRENT_LIST = [];
 var ACTIVE_INDEX = 0;
 var LAST_FOCUSED_ID = "";
@@ -321,10 +345,11 @@ function escapeHtml(s){
   });
 }
 
-/* ===== THEME (por defecto oscuro DIRECTV) ===== */
+/* ===== THEME (default DIRECTV dark) ===== */
 function applyTheme(mode){
   var dark = (mode === "dark");
   document.body.classList.toggle("dark", dark);
+  document.body.classList.toggle("light", !dark);
   try{ localStorage.setItem("theme", dark ? "dark" : "light"); }catch(e){}
   var b = $("btnTheme");
   if(b) b.textContent = dark ? "☀️" : "🌙";
@@ -333,7 +358,7 @@ function initTheme(){
   var saved = null;
   try{ saved = localStorage.getItem("theme"); }catch(e){}
   if(saved === "dark" || saved === "light") applyTheme(saved);
-  else applyTheme("dark"); // ✅ default DIRECTV dark
+  else applyTheme("dark");
 }
 if($("btnTheme")){
   $("btnTheme").onclick = function(){
@@ -341,6 +366,29 @@ if($("btnTheme")){
   };
 }
 initTheme();
+
+/* ===== VIEW MODE (GRID/LIST) ===== */
+function applyView(mode){
+  var list = (mode === "list");
+  document.body.classList.toggle("view-list", list);
+  try{ localStorage.setItem("view", list ? "list" : "grid"); }catch(e){}
+  var b = $("btnView");
+  if(b) b.textContent = list ? "GRID" : "LISTA";
+  // al cambiar vista, recalculamos foco
+  setTimeout(function(){ focusByIndex(ACTIVE_INDEX); }, 80);
+}
+function initView(){
+  var saved = null;
+  try{ saved = localStorage.getItem("view"); }catch(e){}
+  if(saved === "list" || saved === "grid") applyView(saved);
+  else applyView("grid");
+}
+if($("btnView")){
+  $("btnView").onclick = function(){
+    applyView(document.body.classList.contains("view-list") ? "grid" : "list");
+  };
+}
+initView();
 
 /* ===== FIREBASE INIT ===== */
 firebase.initializeApp(firebaseConfig);
@@ -373,7 +421,7 @@ auth.onAuthStateChanged(function(user){
 });
 
 /* ===== PARSER M3U (tolerante) =====
-   ✅ AGREGADO: lee tvg-chno="N" para selección por números en Android
+   lee tvg-chno="N" para selección por números en Android
 */
 function parseM3U(text){
   text = (text || "").replace(/^\uFEFF/, "");
@@ -389,7 +437,6 @@ function parseM3U(text){
       name = line.split(",").slice(1).join(",").trim() || "Canal";
       logo=""; group=""; id=""; chno="";
 
-      // attrs con regex permisiva (mantengo tu lógica)
       var re = /([\w-]+)\s*=\s*"([^"]*)"/g;
       var m;
       while((m = re.exec(line)) !== null){
@@ -397,7 +444,7 @@ function parseM3U(text){
         if(key === "tvg-logo") logo = val;
         if(key === "group-title") group = val;
         if(key === "tvg-id") id = val;
-        if(key === "tvg-chno") chno = val;            // ✅ nuevo
+        if(key === "tvg-chno") chno = val;
       }
     } else if(line.charAt(0) !== "#"){
       out.push({
@@ -405,7 +452,7 @@ function parseM3U(text){
         name: (name || "Canal"),
         logo: (logo || ""),
         group: (group || "Otros"),
-        number: (chno || ""),                          // ✅ nuevo
+        number: (chno || ""),
         url: line
       });
       name=""; logo=""; group=""; id=""; chno="";
@@ -429,41 +476,24 @@ function loadChannels(){
 }
 
 /* ===== UI ===== */
-function populateCategories(){
-  var select = $("categorySelect");
-  if(!select) return;
-
-  select.innerHTML = '<option value="ALL">Todas</option>';
-
-  var map = {};
-  for(var i=0;i<ALL_CHANNELS.length;i++){
-    map[ALL_CHANNELS[i].group || "Otros"] = true;
-  }
-  var groups = Object.keys(map).sort();
-  for(var j=0;j<groups.length;j++){
-    var opt = document.createElement("option");
-    opt.value = groups[j];
-    opt.textContent = groups[j];
-    select.appendChild(opt);
-  }
-}
-
 function buildFilteredList(){
   var searchEl = $("search");
   var search = (searchEl && searchEl.value ? searchEl.value : "").toLowerCase();
 
+  // ✅ SIN CATEGORÍAS: siempre ALL
   CURRENT_LIST = ALL_CHANNELS.filter(function(c){
-    var okCat = (CURRENT_CATEGORY === "ALL") || (c.group === CURRENT_CATEGORY);
     var okSearch = (!search) || (String(c.name||"").toLowerCase().indexOf(search) >= 0);
-    return okCat && okSearch;
+    return okSearch;
   });
 
   if(ACTIVE_INDEX >= CURRENT_LIST.length) ACTIVE_INDEX = Math.max(0, CURRENT_LIST.length - 1);
   if(ACTIVE_INDEX < 0) ACTIVE_INDEX = 0;
 }
 
-/* ✅ columnas reales (flex) */
+/* columnas reales (flex). En LISTA forzamos 1 */
 function getCols(){
+  if(document.body.classList.contains("view-list")) return 1;
+
   var grid = $("grid");
   if(!grid) return 1;
 
@@ -477,7 +507,7 @@ function getCols(){
 
   var gridW = grid.clientWidth || (window.innerWidth || 1024);
 
-  var cardW = 180;
+  var cardW = 200;
   try{
     var r2 = document.documentElement;
     var cssW = (getComputedStyle(r2).getPropertyValue("--cardW") || "").trim();
@@ -505,7 +535,7 @@ function focusByIndex(idx){
   }catch(e){}
 }
 
-/* ✅ navegación GLOBAL estable */
+/* navegación GLOBAL estable */
 function enableRemoteNav(){
   if(window.__remoteNav) return;
   window.__remoteNav = true;
@@ -519,7 +549,6 @@ function enableRemoteNav(){
     var kc = e.keyCode || 0;
     var key = e.key || "";
 
-    // Enter/OK
     if(key === "Enter" || kc === 13){
       e.preventDefault();
       playChannel(CURRENT_LIST[ACTIVE_INDEX], CURRENT_LIST);
@@ -569,9 +598,6 @@ function renderChannels(){
       card.setAttribute("data-idx", String(index));
       card.setAttribute("data-id", String(c.id || ""));
 
-      // ✅ opcional: si querés mostrar el número en la tarjeta, descomentá:
-      // var num = c.number ? '<div style="position:absolute;top:8px;left:8px;font-weight:900;font-size:12px;opacity:.75">'+escapeHtml(c.number)+'</div>' : '';
-
       card.innerHTML =
         '<div class="cardInner">' +
           '<div class="logo">' +
@@ -611,11 +637,7 @@ function renderChannels(){
   enableRemoteNav();
 }
 
-/* ===== PLAY =====
-   ✅ AGREGADO:
-   - envía number (tvg-chno) dentro de cada channel
-   - envía selectedNumber/selectedName/selectedLogo para overlay Android
-*/
+/* PLAY: payload para Android */
 function playChannel(selected, list){
   var selectedIndex = 0;
   for(var i=0;i<list.length;i++){
@@ -630,13 +652,12 @@ function playChannel(selected, list){
         name: c.name,
         url: c.url,
         logo: c.logo || "",
-        number: c.number || ""     // ✅ clave para selección numérica en Android
+        number: c.number || ""
       };
     }),
 
     selectedIndex: selectedIndex,
 
-    // ✅ extras directos para overlay/info
     selectedName: selected.name || "",
     selectedLogo: selected.logo || "",
     selectedGroup: selected.group || "",
@@ -651,7 +672,7 @@ function playChannel(selected, list){
   }
 }
 
-/* ===== BOOT ===== */
+/* BOOT */
 function boot(){
   toast("Cargando...");
   loadChannels().then(function(chs){
@@ -661,26 +682,14 @@ function boot(){
       return;
     }
 
-    CURRENT_CATEGORY = "ALL";
     ACTIVE_INDEX = 0;
     LAST_FOCUSED_ID = "";
 
-    populateCategories();
     renderChannels();
 
     var s = $("search");
     if(s){
       s.addEventListener("input", function(){
-        ACTIVE_INDEX = 0;
-        LAST_FOCUSED_ID = "";
-        renderChannels();
-      });
-    }
-
-    var c = $("categorySelect");
-    if(c){
-      c.addEventListener("change", function(e){
-        CURRENT_CATEGORY = e.target.value;
         ACTIVE_INDEX = 0;
         LAST_FOCUSED_ID = "";
         renderChannels();
@@ -698,7 +707,6 @@ function boot(){
   });
 }
 </script>
-
 
 </body>
 </html>
