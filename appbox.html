@@ -27,15 +27,12 @@
   --logoBoxH: 72%;
   --radius:14px;
 
-  /* sidebar */
   --sideW: 170px;
   --sideBtnH: 74px;
   --sidePad: 14px;
 
-  /* topbar height aprox (para sticky sidebar) */
   --topH: 62px;
 }
-
 body.light{
   --bg:#f2f4f7;
   --top:#0b1b2d;
@@ -74,7 +71,6 @@ body{
   border-bottom:1px solid var(--line);
   z-index:20;
 }
-
 .title{
   font-weight:900;
   font-size:16px;
@@ -125,7 +121,7 @@ body{
   min-height: calc(100vh - var(--topH));
 }
 
-/* SIDEBAR (SIEMPRE visible) */
+/* SIDEBAR */
 .sidebar{
   width: var(--sideW);
   padding: var(--sidePad);
@@ -137,7 +133,7 @@ body{
   overflow:auto;
 }
 
-/* ✅ USAMOS BUTTON reales (mejor para TV WebView) */
+/* BOTONES */
 .sideBtn{
   width:100%;
   height: var(--sideBtnH);
@@ -155,18 +151,14 @@ body{
   cursor:pointer;
   outline:none;
   user-select:none;
-
-  /* reset botón */
   appearance:none;
   -webkit-appearance:none;
   padding:0;
 }
-
 .sideBtn:focus{
   border-color: rgba(34,199,230,.85);
   box-shadow: 0 0 0 2px rgba(34,199,230,.22), var(--shadow);
 }
-
 .sideBtn.active{
   border-color: rgba(34,199,230,.95);
   background: linear-gradient(180deg, rgba(24,182,214,.20), rgba(24,182,214,.08));
@@ -174,10 +166,7 @@ body{
 }
 
 /* content */
-.content{
-  flex:1;
-  padding: 12px;
-}
+.content{ flex:1; padding: 12px; }
 
 /* GRID */
 .grid{
@@ -185,7 +174,6 @@ body{
   flex-wrap:wrap;
   margin: calc(var(--gap) * -0.5);
 }
-
 .card{
   width: var(--cardW);
   margin: calc(var(--gap) * 0.5);
@@ -200,14 +188,11 @@ body{
   transform: translateZ(0);
 }
 body.light .card{ background: var(--card); }
-
 .card:focus{
   border-color: rgba(34,199,230,.85);
   box-shadow: 0 0 0 2px rgba(34,199,230,.22), var(--shadow);
 }
-
 .card::before{ content:""; display:block; padding-top:100%; }
-
 .cardInner{
   position:absolute;
   left: var(--pad);
@@ -219,7 +204,6 @@ body.light .card{ background: var(--card); }
   gap:8px;
   min-width:0;
 }
-
 .logo{
   flex:0 0 auto;
   height: var(--logoBoxH);
@@ -231,12 +215,7 @@ body.light .card{ background: var(--card); }
   justify-content:center;
   overflow:hidden;
 }
-.logo img{
-  max-width:98%;
-  max-height:98%;
-  object-fit:contain;
-  display:block;
-}
+.logo img{ max-width:98%; max-height:98%; object-fit:contain; display:block; }
 .meta{
   flex:1;
   min-width:0;
@@ -289,7 +268,7 @@ body.light .card{ background: var(--card); }
 <body>
 
 <header class="topbar">
-  <div class="title">Contenido</div>
+  <div class="title" id="pageTitle">Contenido</div>
   <input id="search" class="search" placeholder="Buscar" autocomplete="off" tabindex="0"/>
   <button id="btnTheme" class="btnTheme" type="button" title="Tema" tabindex="0">☀️</button>
 </header>
@@ -333,19 +312,30 @@ var JSON_FALLBACK = "";
 var ALL_CHANNELS = [];
 var CURRENT_LIST = [];
 var ACTIVE_INDEX = 0;
-var LAST_FOCUSED_ID = "";
 var CURRENT_CATEGORY = "tv en vivo";
+
+/* ===== SERIES SUBMENÚ ===== */
+var SERIES_MODE = "FLAT"; // "FLAT" | "SERIES" | "SEASONS" | "EPISODES"
+var SERIES_INDEX = null;
+var SERIES_KEYS = [];
+var ACTIVE_SERIES_KEY = "";
+var ACTIVE_SEASON_KEY = "";
+var SERIES_LIST = [];
+var SEASONS_LIST = [];
+var EPISODES_LIST = [];
 
 /* ===== KEYCODES TV ===== */
 var KC = {
   LEFT: 37, UP: 38, RIGHT: 39, DOWN: 40, ENTER: 13,
-  DPAD_LEFT: 21, DPAD_UP: 19, DPAD_RIGHT: 22, DPAD_DOWN: 20, DPAD_CENTER: 23
+  DPAD_LEFT: 21, DPAD_UP: 19, DPAD_RIGHT: 22, DPAD_DOWN: 20, DPAD_CENTER: 23,
+  BACK: 4, ESC: 27
 };
 function isLeft(k, c){ return k==="ArrowLeft" || c===KC.LEFT || c===KC.DPAD_LEFT; }
 function isRight(k, c){ return k==="ArrowRight" || c===KC.RIGHT || c===KC.DPAD_RIGHT; }
 function isUp(k, c){ return k==="ArrowUp" || c===KC.UP || c===KC.DPAD_UP; }
 function isDown(k, c){ return k==="ArrowDown" || c===KC.DOWN || c===KC.DPAD_DOWN; }
 function isOk(k, c){ return k==="Enter" || c===KC.ENTER || c===KC.DPAD_CENTER; }
+function isBack(k, c){ return k==="Escape" || c===KC.ESC || c===KC.BACK; }
 
 /* ===== UTIL ===== */
 function $(id){ return document.getElementById(id); }
@@ -371,6 +361,24 @@ function norm(s){
   try{ s = s.normalize("NFD").replace(/[\u0300-\u036f]/g, ""); }catch(e){}
   return s.trim().toLowerCase();
 }
+
+/* ✅ padStart killer (Android TV viejo) */
+function pad2(n){
+  n = parseInt(n, 10) || 0;
+  return (n < 10 ? "0" : "") + n;
+}
+
+/* título “limpio” para agrupar mejor (sin SxxExx, 3x08, etc.) */
+function cleanSeriesTitle(t){
+  t = String(t || "").replace(/[_\-|]+/g, " ").replace(/\s+/g, " ").trim();
+
+  // sacar tags comunes al final: 1080p, 720p, latino, castellano, etc (opcionales)
+  t = t.replace(/\b(1080p|720p|480p|4k|uhd|hdr|latino|castellano|espanol|sub|subs)\b/ig, "").trim();
+  t = t.replace(/\s+/g, " ").trim();
+
+  return t;
+}
+
 function catKeyFromGroup(group){
   var g = norm(group);
   if(g.indexOf("tv") >= 0 && g.indexOf("vivo") >= 0) return "tv en vivo";
@@ -378,6 +386,51 @@ function catKeyFromGroup(group){
   if(g.indexOf("seri") >= 0) return "series";
   if(g.indexOf("radio") >= 0) return "radios";
   return "";
+}
+
+/* ===== SERIES META (más tolerante) =====
+   Acepta:
+   - "Hechizada S03 E08" / "Hechizada S03E08" / "Hechizada S3 E8"
+   - "Hechizada 3x08"
+   - "Hechizada T3 E8"
+   - "Hechizada Temporada 3 Episodio 8"
+*/
+function parseSeriesMetaFromText(raw){
+  var s = String(raw || "").trim();
+  if(!s) return { title:"", season:0, episode:0 };
+
+  var clean = cleanSeriesTitle(s);
+
+  // TEMPORADA/EPISODIO (texto)
+  var mTxt = clean.match(/^(.*?)[\s\-:]*(temporada|season|temp|t)\s*(\d{1,2})[\s\-:]*(episodio|episode|ep|e)\s*(\d{1,3})\b/i);
+  if(mTxt){
+    var titleT = cleanSeriesTitle((mTxt[1] || "").trim());
+    return { title:titleT, season:parseInt(mTxt[3],10)||0, episode:parseInt(mTxt[5],10)||0 };
+  }
+
+  // S03 E08 / S03E08 / T03 E08
+  var m = clean.match(/^(.*?)[\s\-:]*[ST]\s*(\d{1,2})\s*[\s\-:]*E\s*(\d{1,3})\b/i);
+  if(m){
+    var title = cleanSeriesTitle((m[1] || "").trim());
+    return { title:title, season:parseInt(m[2],10)||0, episode:parseInt(m[3],10)||0 };
+  }
+
+  // S03E08 pegado
+  var mA = clean.match(/^(.*?)[\s\-:]*[ST]\s*(\d{1,2})\s*E\s*(\d{1,3})\b/i);
+  if(mA){
+    var titleA = cleanSeriesTitle((mA[1] || "").trim());
+    return { title:titleA, season:parseInt(mA[2],10)||0, episode:parseInt(mA[3],10)||0 };
+  }
+
+  // 3x08
+  var m2 = clean.match(/^(.*?)[\s\-:]*([0-9]{1,2})\s*x\s*([0-9]{1,3})\b/i);
+  if(m2){
+    var title2 = cleanSeriesTitle((m2[1] || "").trim());
+    return { title:title2, season:parseInt(m2[2],10)||0, episode:parseInt(m2[3],10)||0 };
+  }
+
+  // fallback: sin season/episode
+  return { title: cleanSeriesTitle(clean), season:0, episode:0 };
 }
 
 /* ===== THEME ===== */
@@ -407,9 +460,7 @@ firebase.initializeApp(firebaseConfig);
 var auth = firebase.auth();
 var db = firebase.firestore();
 
-function safeGoToLogin(){
-  window.location.replace("login.html");
-}
+function safeGoToLogin(){ window.location.replace("login.html"); }
 function isAllowlisted(uid){
   return db.collection(ALLOWLIST_COLLECTION).doc(uid).get().then(function(snap){
     return snap.exists && snap.data() && snap.data().enabled === true;
@@ -441,6 +492,7 @@ function parseM3U(text){
     if(line.indexOf("#EXTINF") === 0){
       name = line.split(",").slice(1).join(",").trim() || "Canal";
       logo=""; group=""; id=""; chno="";
+
       var re = /([\w-]+)\s*=\s*"([^"]*)"/g;
       var m;
       while((m = re.exec(line)) !== null){
@@ -451,15 +503,20 @@ function parseM3U(text){
         if(key === "tvg-chno") chno = val;
       }
     } else if(line.charAt(0) !== "#"){
+      var url = String(line).split(",")[0].trim();
+      var catKey = catKeyFromGroup(group);
+
       out.push({
         id: (id || name || ("ch_"+i)),
         name: (name || "Canal"),
         logo: (logo || ""),
         group: (group || "Otros"),
-        catKey: catKeyFromGroup(group),
+        catKey: catKey,
         number: (chno || ""),
-        url: line
+        url: url,
+        sMeta: (catKey==="series") ? parseSeriesMetaFromText(name) : null
       });
+
       name=""; logo=""; group=""; id=""; chno="";
     }
   }
@@ -471,16 +528,15 @@ function loadChannels(){
     try { return Promise.resolve(JSON.parse(JSON_FALLBACK)); }
     catch(e){ console.log(e); }
   }
-  if(M3U_TEXT){
-    return Promise.resolve(parseM3U(M3U_TEXT));
-  }
+  if(M3U_TEXT){ return Promise.resolve(parseM3U(M3U_TEXT)); }
+
   return fetch(M3U_URL, { cache:"no-store" })
     .then(function(res){ return res.text(); })
     .then(function(text){ return parseM3U(text); })
     .catch(function(e){ console.log(e); return []; });
 }
 
-/* ===== UI ===== */
+/* ===== UI LISTA NORMAL ===== */
 function buildFilteredList(){
   var searchEl = $("search");
   var search = (searchEl && searchEl.value ? searchEl.value : "").toLowerCase();
@@ -543,26 +599,245 @@ function focusActiveSidebarBtn(){
   return false;
 }
 
+/* ===== SERIES INDEX (agrupación real) ===== */
+function buildSeriesIndex(items){
+  var idx = {};
+
+  for(var i=0;i<items.length;i++){
+    var it = items[i];
+
+    var meta = it.sMeta || parseSeriesMetaFromText(it.name || "");
+    var title = cleanSeriesTitle((meta.title || it.name || "Serie")).trim();
+    if(!title) title = cleanSeriesTitle(it.name || "Serie");
+
+    var key = norm(title);
+    if(!idx[key]){
+      idx[key] = { title:title, logo:(it.logo||""), seasons:{} };
+    }
+
+    var season = parseInt(meta.season,10) || 0;
+    var episode = parseInt(meta.episode,10) || 0;
+
+    // ✅ Season key compatible TV vieja
+    var sKey = pad2(season); // "00","01","02"...
+    if(!idx[key].seasons[sKey]) idx[key].seasons[sKey] = [];
+
+    idx[key].seasons[sKey].push({
+      id: it.id,
+      rawName: it.name,
+      logo: it.logo || idx[key].logo || "",
+      group: it.group,
+      number: it.number || "",
+      url: it.url,
+      _season: season,
+      _episode: episode,
+      _seriesTitle: title
+    });
+  }
+
+  // ordenar episodios dentro de cada temporada
+  Object.keys(idx).forEach(function(k){
+    var seasons = idx[k].seasons;
+    Object.keys(seasons).forEach(function(sk){
+      seasons[sk].sort(function(a,b){
+        var ae = a._episode||0, be = b._episode||0;
+        if(ae !== be) return ae - be;
+        // fallback: por nombre si no hay episodio
+        return String(a.rawName||"").localeCompare(String(b.rawName||""));
+      });
+    });
+  });
+
+  return idx;
+}
+function setSeriesMode(mode){
+  SERIES_MODE = mode;
+  ACTIVE_INDEX = 0;
+
+  var t = $("pageTitle");
+  if(t){
+    if(CURRENT_CATEGORY !== "series") t.textContent = "Contenido";
+    else if(SERIES_MODE === "SERIES") t.textContent = "Series";
+    else if(SERIES_MODE === "SEASONS") t.textContent = "Temporadas";
+    else if(SERIES_MODE === "EPISODES") t.textContent = "Episodios";
+    else t.textContent = "Series";
+  }
+
+  renderChannels();
+  setTimeout(function(){ focusByIndex(0); }, 80);
+}
+
+function enterSeriesIfNeeded(){
+  if(CURRENT_CATEGORY !== "series"){
+    SERIES_MODE = "FLAT";
+    SERIES_INDEX = null;
+    SERIES_KEYS = [];
+    ACTIVE_SERIES_KEY = "";
+    ACTIVE_SEASON_KEY = "";
+    SERIES_LIST = [];
+    SEASONS_LIST = [];
+    EPISODES_LIST = [];
+    return;
+  }
+
+  try{
+    var seriesItems = ALL_CHANNELS.filter(function(c){ return c.catKey === "series"; });
+    SERIES_INDEX = buildSeriesIndex(seriesItems);
+
+    SERIES_KEYS = Object.keys(SERIES_INDEX).sort(function(a,b){
+      var A = String(SERIES_INDEX[a].title || "").toLowerCase();
+      var B = String(SERIES_INDEX[b].title || "").toLowerCase();
+      return A < B ? -1 : (A > B ? 1 : 0);
+    });
+
+    if(!SERIES_KEYS.length){
+      SERIES_MODE = "SERIES";
+      SERIES_LIST = [];
+      renderChannels();
+      return;
+    }
+
+    setSeriesMode("SERIES");
+  }catch(e){
+    console.log("SERIES ERR:", e);
+    toast("Error Series");
+    SERIES_MODE = "SERIES";
+    SERIES_LIST = [];
+    renderChannels();
+  }
+}
+
+function buildSeriesLists(){
+  if(CURRENT_CATEGORY !== "series") return;
+
+  if(SERIES_MODE === "SERIES"){
+    SERIES_LIST = SERIES_KEYS.map(function(k){
+      var s = SERIES_INDEX[k];
+      var total = 0;
+      var seasonsCount = 0;
+      Object.keys(s.seasons).forEach(function(sk){
+        seasonsCount++;
+        total += (s.seasons[sk] || []).length;
+      });
+
+      return {
+        __type: "SERIE",
+        __key: k,
+        name: s.title,
+        logo: s.logo || "",
+        group: "Series",
+        number: seasonsCount + " temp • " + total + " eps",
+        url: ""
+      };
+    });
+    return;
+  }
+
+  if(SERIES_MODE === "SEASONS"){
+    var sObj = SERIES_INDEX[ACTIVE_SERIES_KEY];
+    if(!sObj){ SEASONS_LIST = []; return; }
+
+    var seasonKeys = Object.keys(sObj.seasons).sort(function(a,b){
+      return (parseInt(a,10)||0) - (parseInt(b,10)||0);
+    });
+
+    SEASONS_LIST = seasonKeys.map(function(sk){
+      var eps = sObj.seasons[sk] || [];
+      var n = parseInt(sk,10) || 0;
+      return {
+        __type: "SEASON",
+        __key: sk,
+        name: (n > 0 ? ("Temporada " + n) : "Especiales"),
+        logo: sObj.logo || "",
+        group: sObj.title,
+        number: (eps.length + " eps"),
+        url: ""
+      };
+    });
+    return;
+  }
+
+  if(SERIES_MODE === "EPISODES"){
+    var sObj2 = SERIES_INDEX[ACTIVE_SERIES_KEY];
+    var eps2 = (sObj2 && sObj2.seasons[ACTIVE_SEASON_KEY]) ? sObj2.seasons[ACTIVE_SEASON_KEY] : [];
+
+    var seasonNum = parseInt(ACTIVE_SEASON_KEY,10) || 0;
+    var groupLabel = sObj2 ? (sObj2.title + (seasonNum>0 ? (" • T" + seasonNum) : " • Especiales")) : "Series";
+
+    EPISODES_LIST = eps2.map(function(ep, i){
+      var eNum = parseInt(ep._episode,10) || 0;
+      var label = eNum ? ("E" + pad2(eNum)) : ("E" + pad2(i+1)); // si no viene episodio, numeramos por orden
+
+      return {
+        __type: "EPISODE",
+        name: label,                  // ✅ limpio (no repetimos el título mil veces)
+        logo: ep.logo || "",
+        group: groupLabel,            // ✅ info abajo: "Hechizada • T3"
+        number: "",
+        url: ep.url,
+
+        id: ep.id,
+        _episode: ep._episode || 0,
+        _season: ep._season || 0
+      };
+    });
+  }
+}
+
+function getActiveRenderList(){
+  if(CURRENT_CATEGORY === "series"){
+    buildSeriesLists();
+    if(SERIES_MODE === "SERIES") return SERIES_LIST;
+    if(SERIES_MODE === "SEASONS") return SEASONS_LIST;
+    if(SERIES_MODE === "EPISODES") return EPISODES_LIST;
+  }
+  return CURRENT_LIST;
+}
+
+/* ===== RENDER ===== */
 function renderChannels(){
-  buildFilteredList();
+  if(CURRENT_CATEGORY !== "series"){
+    buildFilteredList();
+  }
+
   var grid = $("grid");
   if(!grid) return;
   grid.innerHTML = "";
 
-  if(!CURRENT_LIST.length){
+  var list = (CURRENT_CATEGORY === "series") ? getActiveRenderList() : CURRENT_LIST;
+
+  // search
+  var searchEl = $("search");
+  var search = (searchEl && searchEl.value ? searchEl.value : "").toLowerCase();
+
+  // En series: search SOLO en modo SERIES (lista de títulos)
+  if(CURRENT_CATEGORY === "series" && SERIES_MODE === "SERIES" && search){
+    list = list.filter(function(x){
+      return String(x.name||"").toLowerCase().indexOf(search) >= 0;
+    });
+  }
+
+  if(!list.length){
     grid.innerHTML = '<div style="padding:10px;font-weight:900;opacity:.8">No hay contenido</div>';
     return;
   }
 
-  for(var i=0;i<CURRENT_LIST.length;i++){
+  if(ACTIVE_INDEX >= list.length) ACTIVE_INDEX = Math.max(0, list.length - 1);
+  if(ACTIVE_INDEX < 0) ACTIVE_INDEX = 0;
+
+  for(var i=0;i<list.length;i++){
     (function(index){
-      var c = CURRENT_LIST[index];
+      var c = list[index];
 
       var card = document.createElement("div");
       card.className = "card";
       card.tabIndex = 0;
       card.setAttribute("data-idx", String(index));
       card.setAttribute("role", "button");
+
+      var line2 = (c.__type === "SERIE" || c.__type === "SEASON")
+        ? (c.number || "")
+        : (c.group || "Otros");
 
       card.innerHTML =
         '<div class="cardInner">' +
@@ -573,13 +848,13 @@ function renderChannels(){
           '</div>' +
           '<div class="meta">' +
             '<div class="name">'+escapeHtml(c.name)+'</div>' +
-            '<div class="group">'+escapeHtml(c.group || "Otros")+'</div>' +
+            '<div class="group">'+escapeHtml(line2)+'</div>' +
           '</div>' +
         '</div>';
 
       card.onclick = function(){
         ACTIVE_INDEX = index;
-        playChannel(c, CURRENT_LIST);
+        onSelectCard(c, list);
       };
 
       card.addEventListener("keydown", function(ev){
@@ -588,14 +863,11 @@ function renderChannels(){
         if(isOk(k, code)){
           ev.preventDefault();
           ACTIVE_INDEX = index;
-          playChannel(c, CURRENT_LIST);
+          onSelectCard(c, list);
         }
       }, true);
 
-      card.onfocus = function(){
-        ACTIVE_INDEX = index;
-      };
-
+      card.onfocus = function(){ ACTIVE_INDEX = index; };
       grid.appendChild(card);
     })(i);
   }
@@ -603,7 +875,45 @@ function renderChannels(){
   setTimeout(function(){ focusByIndex(ACTIVE_INDEX); }, 80);
 }
 
-/* ===== PLAY ===== */
+/* ===== SELECT ===== */
+function onSelectCard(item, currentList){
+  if(CURRENT_CATEGORY === "series"){
+    if(item.__type === "SERIE"){
+      ACTIVE_SERIES_KEY = item.__key;
+      ACTIVE_SEASON_KEY = "";
+      setSeriesMode("SEASONS");
+      return;
+    }
+    if(item.__type === "SEASON"){
+      ACTIVE_SEASON_KEY = item.__key;
+      setSeriesMode("EPISODES");
+      return;
+    }
+    if(item.__type === "EPISODE"){
+      var sObj = SERIES_INDEX[ACTIVE_SERIES_KEY];
+      var eps = (sObj && sObj.seasons[ACTIVE_SEASON_KEY]) ? sObj.seasons[ACTIVE_SEASON_KEY] : [];
+
+      var list = eps.map(function(ep){
+        return {
+          name: ep.rawName || ("E" + pad2(ep._episode||0)), // playlist mantiene rawName (no rompe nada)
+          url: ep.url,
+          logo: (ep.logo||""),
+          number: (ep.number||"")
+        };
+      });
+
+      playChannel({ name:item.name, url:item.url, logo:item.logo, number:"", group:item.group||"" }, list);
+      return;
+    }
+
+    if(item.url) playChannel(item, currentList);
+    return;
+  }
+
+  playChannel(item, currentList);
+}
+
+/* ===== PLAY (NO TOCO) ===== */
 function playChannel(selected, list){
   var selectedIndex = 0;
   for(var i=0;i<list.length;i++){
@@ -635,18 +945,31 @@ function setActiveCategory(cat){
   CURRENT_CATEGORY = norm(cat);
   ACTIVE_INDEX = 0;
 
+  // reset series
+  SERIES_MODE = "FLAT";
+  SERIES_INDEX = null;
+  SERIES_KEYS = [];
+  ACTIVE_SERIES_KEY = "";
+  ACTIVE_SEASON_KEY = "";
+  SERIES_LIST = [];
+  SEASONS_LIST = [];
+  EPISODES_LIST = [];
+
   var btns = document.querySelectorAll(".sideBtn");
   for(var i=0;i<btns.length;i++){
     btns[i].classList.toggle("active", btns[i].getAttribute("data-cat") === CURRENT_CATEGORY);
+  }
+
+  if(CURRENT_CATEGORY === "series"){
+    enterSeriesIfNeeded();
+    return;
   }
 
   renderChannels();
   setTimeout(function(){ focusByIndex(0); }, 120);
 }
 
-function sidebarButtons(){
-  return Array.prototype.slice.call(document.querySelectorAll(".sideBtn"));
-}
+function sidebarButtons(){ return Array.prototype.slice.call(document.querySelectorAll(".sideBtn")); }
 
 function moveSidebarFocus(delta){
   var btns = sidebarButtons();
@@ -654,11 +977,7 @@ function moveSidebarFocus(delta){
 
   var ae = document.activeElement;
   var idx = btns.indexOf(ae);
-  if(idx < 0){
-    // si por alguna razón no está enfocado, vamos al activo
-    focusActiveSidebarBtn();
-    return;
-  }
+  if(idx < 0){ focusActiveSidebarBtn(); return; }
 
   var next = idx + delta;
   if(next < 0) next = 0;
@@ -666,9 +985,7 @@ function moveSidebarFocus(delta){
 
   if(next !== idx){
     try{ btns[next].focus(); }catch(e){}
-    try{
-      btns[next].scrollIntoView({block:"nearest"});
-    }catch(e2){}
+    try{ btns[next].scrollIntoView({block:"nearest"}); }catch(e2){}
   }
 }
 
@@ -677,31 +994,15 @@ function initSidebar(){
   for(var i=0;i<btns.length;i++){
     (function(btn){
       btn.onclick = function(){ setActiveCategory(btn.getAttribute("data-cat")); };
-
       btn.addEventListener("keydown", function(ev){
         var k = ev.key || "";
         var code = ev.keyCode || 0;
 
-        // ✅ UP/DOWN manual (esto arregla tu problema)
-        if(isUp(k, code)){
-          ev.preventDefault();
-          moveSidebarFocus(-1);
-          return;
-        }
-        if(isDown(k, code)){
-          ev.preventDefault();
-          moveSidebarFocus(1);
-          return;
-        }
+        if(isUp(k, code)){ ev.preventDefault(); moveSidebarFocus(-1); return; }
+        if(isDown(k, code)){ ev.preventDefault(); moveSidebarFocus(1); return; }
 
-        // OK => filtra
-        if(isOk(k, code)){
-          ev.preventDefault();
-          setActiveCategory(btn.getAttribute("data-cat"));
-          return;
-        }
+        if(isOk(k, code)){ ev.preventDefault(); setActiveCategory(btn.getAttribute("data-cat")); return; }
 
-        // RIGHT desde sidebar => volver a grilla
         if(isRight(k, code)){
           ev.preventDefault();
           setTimeout(function(){ focusByIndex(ACTIVE_INDEX); }, 50);
@@ -712,7 +1013,7 @@ function initSidebar(){
   }
 }
 
-/* ===== REMOTE NAV GLOBAL ===== */
+/* ===== REMOTE NAV ===== */
 function enableRemoteNav(){
   if(window.__remoteNav) return;
   window.__remoteNav = true;
@@ -725,11 +1026,17 @@ function enableRemoteNav(){
     var kc = e.keyCode || 0;
     var key = e.key || "";
     var cols = getCols();
-
     var inSidebar = ae && ae.classList && ae.classList.contains("sideBtn");
 
-    // LEFT en grilla: solo si estás en primera columna => ir a sidebar
+    if(isBack(key, kc) && CURRENT_CATEGORY === "series"){
+      if(SERIES_MODE === "EPISODES"){ e.preventDefault(); setSeriesMode("SEASONS"); return; }
+      if(SERIES_MODE === "SEASONS"){ e.preventDefault(); setSeriesMode("SERIES"); return; }
+    }
+
     if(!inSidebar && isLeft(key, kc)){
+      var list = (CURRENT_CATEGORY === "series") ? getActiveRenderList() : CURRENT_LIST;
+      if(!list.length) return;
+
       var atFirstCol = (cols <= 1) ? (ACTIVE_INDEX === 0) : ((ACTIVE_INDEX % cols) === 0);
       if(atFirstCol){
         e.preventDefault();
@@ -738,26 +1045,24 @@ function enableRemoteNav(){
       }
     }
 
-    // RIGHT en sidebar => volver a grilla (por si no lo agarra el handler local)
     if(inSidebar && isRight(key, kc)){
       e.preventDefault();
       setTimeout(function(){ focusByIndex(ACTIVE_INDEX); }, 50);
       return;
     }
 
-    // Enter/OK en grilla => reproducir
     if(!inSidebar && isOk(key, kc)){
-      if(!CURRENT_LIST.length) return;
+      var list2 = (CURRENT_CATEGORY === "series") ? getActiveRenderList() : CURRENT_LIST;
+      if(!list2.length) return;
       e.preventDefault();
-      playChannel(CURRENT_LIST[ACTIVE_INDEX], CURRENT_LIST);
+      onSelectCard(list2[ACTIVE_INDEX], list2);
       return;
     }
 
-    // sidebar: UP/DOWN lo maneja initSidebar (manual)
     if(inSidebar) return;
 
-    // grilla navigation
-    if(!CURRENT_LIST.length) return;
+    var list3 = (CURRENT_CATEGORY === "series") ? getActiveRenderList() : CURRENT_LIST;
+    if(!list3.length) return;
 
     var next = ACTIVE_INDEX;
     var handled = true;
@@ -771,7 +1076,7 @@ function enableRemoteNav(){
     if(!handled) return;
 
     if(next < 0) next = 0;
-    if(next > CURRENT_LIST.length - 1) next = CURRENT_LIST.length - 1;
+    if(next > list3.length - 1) next = list3.length - 1;
 
     if(next !== ACTIVE_INDEX){
       e.preventDefault();
@@ -789,12 +1094,8 @@ function boot(){
 
   loadChannels().then(function(chs){
     ALL_CHANNELS = chs || [];
-    if(!ALL_CHANNELS.length){
-      toast("No hay contenido");
-      return;
-    }
+    if(!ALL_CHANNELS.length){ toast("No hay contenido"); return; }
 
-    // elegir categoría inicial por existencia
     var order = ["tv en vivo","peliculas","series","radios"];
     var found = "tv en vivo";
     for(var i=0;i<order.length;i++){
