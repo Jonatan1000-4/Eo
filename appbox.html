@@ -278,6 +278,7 @@ body.light .logo{
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
+
 <script>
 /* ===== CONFIG ===== */
 var firebaseConfig = {
@@ -320,7 +321,7 @@ function escapeHtml(s){
   });
 }
 
-
+/* ===== THEME (por defecto oscuro DIRECTV) ===== */
 function applyTheme(mode){
   var dark = (mode === "dark");
   document.body.classList.toggle("dark", dark);
@@ -341,7 +342,7 @@ if($("btnTheme")){
 }
 initTheme();
 
-
+/* ===== FIREBASE INIT ===== */
 firebase.initializeApp(firebaseConfig);
 var auth = firebase.auth();
 var db = firebase.firestore();
@@ -371,12 +372,14 @@ auth.onAuthStateChanged(function(user){
   });
 });
 
-/* ===== PARSER M3U (tolerante) ===== */
+/* ===== PARSER M3U (tolerante) =====
+   ✅ AGREGADO: lee tvg-chno="N" para selección por números en Android
+*/
 function parseM3U(text){
   text = (text || "").replace(/^\uFEFF/, "");
   var lines = text.split(/\r?\n/);
   var out = [];
-  var name="", logo="", group="", id="";
+  var name="", logo="", group="", id="", chno="";
 
   for(var i=0;i<lines.length;i++){
     var line = (lines[i] || "").trim();
@@ -384,7 +387,9 @@ function parseM3U(text){
 
     if(line.indexOf("#EXTINF") === 0){
       name = line.split(",").slice(1).join(",").trim() || "Canal";
-      logo=""; group=""; id="";
+      logo=""; group=""; id=""; chno="";
+
+      // attrs con regex permisiva (mantengo tu lógica)
       var re = /([\w-]+)\s*=\s*"([^"]*)"/g;
       var m;
       while((m = re.exec(line)) !== null){
@@ -392,6 +397,7 @@ function parseM3U(text){
         if(key === "tvg-logo") logo = val;
         if(key === "group-title") group = val;
         if(key === "tvg-id") id = val;
+        if(key === "tvg-chno") chno = val;            // ✅ nuevo
       }
     } else if(line.charAt(0) !== "#"){
       out.push({
@@ -399,9 +405,10 @@ function parseM3U(text){
         name: (name || "Canal"),
         logo: (logo || ""),
         group: (group || "Otros"),
+        number: (chno || ""),                          // ✅ nuevo
         url: line
       });
-      name=""; logo=""; group=""; id="";
+      name=""; logo=""; group=""; id=""; chno="";
     }
   }
   return out;
@@ -421,7 +428,7 @@ function loadChannels(){
     .catch(function(e){ console.log(e); return []; });
 }
 
-
+/* ===== UI ===== */
 function populateCategories(){
   var select = $("categorySelect");
   if(!select) return;
@@ -490,7 +497,6 @@ function focusByIndex(idx){
 
   try{ el.focus(); }catch(e){}
 
-  
   try{
     if(el.scrollIntoView){
       try{ el.scrollIntoView({block:"nearest", inline:"nearest"}); }
@@ -499,7 +505,7 @@ function focusByIndex(idx){
   }catch(e){}
 }
 
-
+/* ✅ navegación GLOBAL estable */
 function enableRemoteNav(){
   if(window.__remoteNav) return;
   window.__remoteNav = true;
@@ -513,7 +519,7 @@ function enableRemoteNav(){
     var kc = e.keyCode || 0;
     var key = e.key || "";
 
-  
+    // Enter/OK
     if(key === "Enter" || kc === 13){
       e.preventDefault();
       playChannel(CURRENT_LIST[ACTIVE_INDEX], CURRENT_LIST);
@@ -563,6 +569,9 @@ function renderChannels(){
       card.setAttribute("data-idx", String(index));
       card.setAttribute("data-id", String(c.id || ""));
 
+      // ✅ opcional: si querés mostrar el número en la tarjeta, descomentá:
+      // var num = c.number ? '<div style="position:absolute;top:8px;left:8px;font-weight:900;font-size:12px;opacity:.75">'+escapeHtml(c.number)+'</div>' : '';
+
       card.innerHTML =
         '<div class="cardInner">' +
           '<div class="logo">' +
@@ -590,7 +599,7 @@ function renderChannels(){
     })(i);
   }
 
-
+  // restaurar foco por ID
   var idx = -1;
   for(var j=0;j<CURRENT_LIST.length;j++){
     if(String(CURRENT_LIST[j].id || "") === LAST_FOCUSED_ID){ idx = j; break; }
@@ -602,8 +611,11 @@ function renderChannels(){
   enableRemoteNav();
 }
 
-
-
+/* ===== PLAY =====
+   ✅ AGREGADO:
+   - envía number (tvg-chno) dentro de cada channel
+   - envía selectedNumber/selectedName/selectedLogo para overlay Android
+*/
 function playChannel(selected, list){
   var selectedIndex = 0;
   for(var i=0;i<list.length;i++){
@@ -612,19 +624,23 @@ function playChannel(selected, list){
 
   var payload = {
     url: selected.url,
+
     channels: list.map(function(c){
       return {
         name: c.name,
         url: c.url,
-        logo: c.logo || ""   
+        logo: c.logo || "",
+        number: c.number || ""     // ✅ clave para selección numérica en Android
       };
     }),
+
     selectedIndex: selectedIndex,
 
-   
+    // ✅ extras directos para overlay/info
     selectedName: selected.name || "",
     selectedLogo: selected.logo || "",
-    selectedGroup: selected.group || ""
+    selectedGroup: selected.group || "",
+    selectedNumber: selected.number || ""
   };
 
   if(window.AndroidBridge && typeof window.AndroidBridge.playChannel === "function"){
@@ -635,7 +651,7 @@ function playChannel(selected, list){
   }
 }
 
-
+/* ===== BOOT ===== */
 function boot(){
   toast("Cargando...");
   loadChannels().then(function(chs){
