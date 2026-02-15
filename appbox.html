@@ -57,6 +57,7 @@ body{
     radial-gradient(800px 480px at 85% 25%, rgba(24,182,214,.10), transparent 60%),
     var(--bg);
   color:var(--text);
+  overflow: hidden; /* ✅ clave: el body NO scrollea */
 }
 
 /* TOP BAR */
@@ -118,26 +119,34 @@ body{
 /* LAYOUT */
 .mainRow{
   display:flex;
-  min-height: calc(100vh - var(--topH));
+  height: calc(100vh - var(--topH)); /* ✅ altura fija */
+  overflow: hidden;                  /* ✅ nada se escapa */
 }
 
-/* SIDEBAR */
+/* SIDEBAR (anclado, NO se mueve) */
 .sidebar{
   width: var(--sideW);
+  flex: 0 0 var(--sideW);
   padding: var(--sidePad);
   border-right: 1px solid var(--line);
   background: linear-gradient(180deg, rgba(10,32,54,.55), rgba(10,32,54,.25));
-  position: sticky;
-  top: var(--topH);
-  height: calc(100vh - var(--topH));
-  overflow:auto;
+  height: 100%;
+  overflow: hidden;          /* ✅ no scrollea */
+  display:flex;              /* ✅ footer abajo */
+  flex-direction:column;
+}
+
+/* contenedor de botones */
+.sideMenu{
+  display:flex;
+  flex-direction:column;
+  gap: 12px;
 }
 
 /* BOTONES */
 .sideBtn{
   width:100%;
   height: var(--sideBtnH);
-  margin-bottom: 12px;
   border-radius: 14px;
   border: 1px solid rgba(255,255,255,.12);
   background: rgba(255,255,255,.05);
@@ -165,8 +174,44 @@ body{
   box-shadow: 0 0 0 2px rgba(34,199,230,.18), var(--shadow);
 }
 
-/* content */
-.content{ flex:1; padding: 12px; }
+/* FOOTER fijo abajo */
+.sideFooter{
+  margin-top:auto;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  font-size:12px;
+}
+.sideFooter .email{
+  font-weight:900;
+  opacity:.95;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.sideFooter .days{
+  color: var(--muted);
+  font-weight:800;
+}
+.sideFooter .warn{
+  display:none;
+  padding:10px 10px;
+  border-radius:12px;
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(255, 184, 0, .12);
+  font-weight:900;
+}
+.sideFooter.warnOn .warn{ display:block; }
+
+/* content: SOLO acá scrollea */
+.content{
+  flex:1;
+  padding: 12px;
+  overflow:auto; /* ✅ */
+  -webkit-overflow-scrolling: touch;
+}
 
 /* GRID */
 .grid{
@@ -275,10 +320,20 @@ body.light .card{ background: var(--card); }
 
 <div class="mainRow">
   <aside class="sidebar" aria-label="Secciones" id="sidebar">
-    <button class="sideBtn active" type="button" tabindex="0" data-cat="tv en vivo">TV en vivo</button>
-    <button class="sideBtn" type="button" tabindex="0" data-cat="peliculas">Películas</button>
-    <button class="sideBtn" type="button" tabindex="0" data-cat="series">Series</button>
-    <button class="sideBtn" type="button" tabindex="0" data-cat="radios">Radios</button>
+
+    <div class="sideMenu" id="sideMenu">
+      <button class="sideBtn active" type="button" tabindex="0" data-cat="tv en vivo">TV en vivo</button>
+      <button class="sideBtn" type="button" tabindex="0" data-cat="peliculas">Películas</button>
+      <button class="sideBtn" type="button" tabindex="0" data-cat="series">Series</button>
+      <button class="sideBtn" type="button" tabindex="0" data-cat="radios">Radios</button>
+    </div>
+
+    <div class="sideFooter" id="sideFooter">
+      <div class="email" id="userEmail">—</div>
+      <div class="days" id="daysLeft">—</div>
+      <div class="warn" id="renewWarn">Renová tu suscripción. Quedan pocos días de servicio.</div>
+    </div>
+
   </aside>
 
   <main class="content">
@@ -371,11 +426,8 @@ function pad2(n){
 /* título “limpio” para agrupar mejor (sin SxxExx, 3x08, etc.) */
 function cleanSeriesTitle(t){
   t = String(t || "").replace(/[_\-|]+/g, " ").replace(/\s+/g, " ").trim();
-
-  // sacar tags comunes al final: 1080p, 720p, latino, castellano, etc (opcionales)
   t = t.replace(/\b(1080p|720p|480p|4k|uhd|hdr|latino|castellano|espanol|sub|subs)\b/ig, "").trim();
   t = t.replace(/\s+/g, " ").trim();
-
   return t;
 }
 
@@ -388,48 +440,37 @@ function catKeyFromGroup(group){
   return "";
 }
 
-/* ===== SERIES META (más tolerante) =====
-   Acepta:
-   - "Hechizada S03 E08" / "Hechizada S03E08" / "Hechizada S3 E8"
-   - "Hechizada 3x08"
-   - "Hechizada T3 E8"
-   - "Hechizada Temporada 3 Episodio 8"
-*/
+/* ===== SERIES META (más tolerante) ===== */
 function parseSeriesMetaFromText(raw){
   var s = String(raw || "").trim();
   if(!s) return { title:"", season:0, episode:0 };
 
   var clean = cleanSeriesTitle(s);
 
-  // TEMPORADA/EPISODIO (texto)
   var mTxt = clean.match(/^(.*?)[\s\-:]*(temporada|season|temp|t)\s*(\d{1,2})[\s\-:]*(episodio|episode|ep|e)\s*(\d{1,3})\b/i);
   if(mTxt){
     var titleT = cleanSeriesTitle((mTxt[1] || "").trim());
     return { title:titleT, season:parseInt(mTxt[3],10)||0, episode:parseInt(mTxt[5],10)||0 };
   }
 
-  // S03 E08 / S03E08 / T03 E08
   var m = clean.match(/^(.*?)[\s\-:]*[ST]\s*(\d{1,2})\s*[\s\-:]*E\s*(\d{1,3})\b/i);
   if(m){
     var title = cleanSeriesTitle((m[1] || "").trim());
     return { title:title, season:parseInt(m[2],10)||0, episode:parseInt(m[3],10)||0 };
   }
 
-  // S03E08 pegado
   var mA = clean.match(/^(.*?)[\s\-:]*[ST]\s*(\d{1,2})\s*E\s*(\d{1,3})\b/i);
   if(mA){
     var titleA = cleanSeriesTitle((mA[1] || "").trim());
     return { title:titleA, season:parseInt(mA[2],10)||0, episode:parseInt(mA[3],10)||0 };
   }
 
-  // 3x08
   var m2 = clean.match(/^(.*?)[\s\-:]*([0-9]{1,2})\s*x\s*([0-9]{1,3})\b/i);
   if(m2){
     var title2 = cleanSeriesTitle((m2[1] || "").trim());
     return { title:title2, season:parseInt(m2[2],10)||0, episode:parseInt(m2[3],10)||0 };
   }
 
-  // fallback: sin season/episode
   return { title: cleanSeriesTitle(clean), season:0, episode:0 };
 }
 
@@ -461,15 +502,82 @@ var auth = firebase.auth();
 var db = firebase.firestore();
 
 function safeGoToLogin(){ window.location.replace("login.html"); }
-function isAllowlisted(uid){
+
+/* ===== SUBS FOOTER (email + días restantes) ===== */
+function tsToMs(x){
+  if(!x) return 0;
+  try{ if(typeof x.toDate === "function") return x.toDate().getTime(); }catch(e){}
+  if(x instanceof Date) return x.getTime();
+  if(typeof x === "number") return x;
+  return 0;
+}
+function ceilDaysLeft(msLeft){
+  var day = 24*60*60*1000;
+  return Math.max(0, Math.ceil(msLeft / day));
+}
+function renderSubscriptionFooter(email, expiresAtMs){
+  var emailEl = $("userEmail");
+  var daysEl  = $("daysLeft");
+  var footer  = $("sideFooter");
+  var warnEl  = $("renewWarn");
+
+  if(emailEl) emailEl.textContent = email || "—";
+
+  if(!expiresAtMs){
+    if(daysEl) daysEl.textContent = "Días restantes: —";
+    if(footer) footer.classList.remove("warnOn");
+    return;
+  }
+
+  var now = Date.now();
+  var days = ceilDaysLeft(expiresAtMs - now);
+
+  if(daysEl) daysEl.textContent = "Días restantes: " + days;
+
+  if(footer){
+    footer.classList.toggle("warnOn", days <= 3);
+  }
+  if(warnEl && days <= 3){
+    warnEl.textContent = "Renová tu suscripción. Quedan " + days + " día" + (days===1?"":"s") + " de servicio.";
+  }
+}
+function loadSubscriptionInfo(uid, fallbackEmail){
   return db.collection(ALLOWLIST_COLLECTION).doc(uid).get().then(function(snap){
-    return snap.exists && snap.data() && snap.data().enabled === true;
+    var data = snap.exists ? (snap.data() || {}) : {};
+    var enabled = (data.enabled === true);
+    if(!enabled) return { ok:false };
+
+    var expiresAtMs = tsToMs(data.expiresAt);
+
+    if(!expiresAtMs){
+      var startMs = tsToMs(data.startAt) || tsToMs(data.createdAt);
+      if(startMs){
+        expiresAtMs = startMs + (30 * 24*60*60*1000);
+      }
+    }
+
+    return {
+      ok: true,
+      email: (data.email || fallbackEmail || ""),
+      expiresAtMs: expiresAtMs || 0
+    };
   });
 }
+
 auth.onAuthStateChanged(function(user){
   if(!user){ safeGoToLogin(); return; }
-  isAllowlisted(user.uid).then(function(ok){
-    if(!ok) return auth.signOut().then(safeGoToLogin);
+
+  loadSubscriptionInfo(user.uid, user.email).then(function(info){
+    if(!info.ok){
+      return auth.signOut().then(safeGoToLogin);
+    }
+
+    renderSubscriptionFooter(info.email, info.expiresAtMs);
+    clearInterval(window.__subTimer);
+    window.__subTimer = setInterval(function(){
+      renderSubscriptionFooter(info.email, info.expiresAtMs);
+    }, 30 * 60 * 1000);
+
     boot();
   }).catch(function(e){
     console.log(e);
@@ -618,7 +726,6 @@ function buildSeriesIndex(items){
     var season = parseInt(meta.season,10) || 0;
     var episode = parseInt(meta.episode,10) || 0;
 
-    // ✅ Season key compatible TV vieja
     var sKey = pad2(season); // "00","01","02"...
     if(!idx[key].seasons[sKey]) idx[key].seasons[sKey] = [];
 
@@ -635,14 +742,12 @@ function buildSeriesIndex(items){
     });
   }
 
-  // ordenar episodios dentro de cada temporada
   Object.keys(idx).forEach(function(k){
     var seasons = idx[k].seasons;
     Object.keys(seasons).forEach(function(sk){
       seasons[sk].sort(function(a,b){
         var ae = a._episode||0, be = b._episode||0;
         if(ae !== be) return ae - be;
-        // fallback: por nombre si no hay episodio
         return String(a.rawName||"").localeCompare(String(b.rawName||""));
       });
     });
@@ -650,6 +755,7 @@ function buildSeriesIndex(items){
 
   return idx;
 }
+
 function setSeriesMode(mode){
   SERIES_MODE = mode;
   ACTIVE_INDEX = 0;
@@ -766,13 +872,13 @@ function buildSeriesLists(){
 
     EPISODES_LIST = eps2.map(function(ep, i){
       var eNum = parseInt(ep._episode,10) || 0;
-      var label = eNum ? ("E" + pad2(eNum)) : ("E" + pad2(i+1)); // si no viene episodio, numeramos por orden
+      var label = eNum ? ("E" + pad2(eNum)) : ("E" + pad2(i+1));
 
       return {
         __type: "EPISODE",
-        name: label,                  // ✅ limpio (no repetimos el título mil veces)
+        name: label,
         logo: ep.logo || "",
-        group: groupLabel,            // ✅ info abajo: "Hechizada • T3"
+        group: groupLabel,
         number: "",
         url: ep.url,
 
@@ -806,11 +912,9 @@ function renderChannels(){
 
   var list = (CURRENT_CATEGORY === "series") ? getActiveRenderList() : CURRENT_LIST;
 
-  // search
   var searchEl = $("search");
   var search = (searchEl && searchEl.value ? searchEl.value : "").toLowerCase();
 
-  // En series: search SOLO en modo SERIES (lista de títulos)
   if(CURRENT_CATEGORY === "series" && SERIES_MODE === "SERIES" && search){
     list = list.filter(function(x){
       return String(x.name||"").toLowerCase().indexOf(search) >= 0;
@@ -895,7 +999,7 @@ function onSelectCard(item, currentList){
 
       var list = eps.map(function(ep){
         return {
-          name: ep.rawName || ("E" + pad2(ep._episode||0)), // playlist mantiene rawName (no rompe nada)
+          name: ep.rawName || ("E" + pad2(ep._episode||0)),
           url: ep.url,
           logo: (ep.logo||""),
           number: (ep.number||"")
@@ -945,7 +1049,6 @@ function setActiveCategory(cat){
   CURRENT_CATEGORY = norm(cat);
   ACTIVE_INDEX = 0;
 
-  // reset series
   SERIES_MODE = "FLAT";
   SERIES_INDEX = null;
   SERIES_KEYS = [];
@@ -985,7 +1088,7 @@ function moveSidebarFocus(delta){
 
   if(next !== idx){
     try{ btns[next].focus(); }catch(e){}
-    try{ btns[next].scrollIntoView({block:"nearest"}); }catch(e2){}
+    /* ✅ no scrollIntoView (sidebar fijo) */
   }
 }
 
