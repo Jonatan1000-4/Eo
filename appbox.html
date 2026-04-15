@@ -442,6 +442,7 @@ let FOCUS_I = 0;
 let SERIES_VIEW = "LIST"; // LIST | SEASONS | EPISODES
 let SELECTED_SERIE = null;
 let SELECTED_SEASON = null;
+let CURRENT_LIST = [];
 
 /* ================= UTILS ================= */
 const $ = id => document.getElementById(id);
@@ -814,6 +815,7 @@ function renderView(){
     };
   });
 
+  
   setTimeout(()=>focusCard(0),50);
 }
 
@@ -863,6 +865,7 @@ function renderSeriesList(){
 
 function renderSeasons(){
 
+
   const serie = SERIES_IDX[SELECTED_SERIE];
   const seasons = Object.keys(serie.seasons).sort();
 
@@ -897,6 +900,7 @@ function renderSeasons(){
 }
 
 function renderEpisodes(){
+
 
   const serie = SERIES_IDX[SELECTED_SERIE];
   const eps = serie.seasons[SELECTED_SEASON] || [];
@@ -939,11 +943,15 @@ function renderChannels(){
     return true;
   });
 
+  CURRENT_LIST = list;
+
   renderGrid(list);
 }
 
 /* ================= GRID ================= */
 function renderGrid(items){
+
+  CURRENT_LIST = items;
   const grid=$("grid");
   if(!grid) return;
 
@@ -981,18 +989,35 @@ function onSelect(item,list){
   playChannel(item,list);
 }
 
-function playChannel(sel,list){
-  const payload={
-    url:sel.url,
-    channels:list.map(c=>({name:c.name,url:c.url})),
-    selectedName:sel.name
+function playChannel(sel, list){
+
+  // 🔥 seguridad: reconstruir lista desde UI real si falla
+  const safeList = (list && list.length)
+    ? list
+    : [...document.querySelectorAll(".card")]
+        .map(el => {
+          const idx = el.dataset.idx;
+          return idx !== undefined ? null : null;
+        })
+        .filter(Boolean);
+
+  const payload = {
+    url: sel.url,
+
+    // 🔥 IMPORTANTE: solo canales reales visibles
+    channels: list.map(c => ({
+      name: c.name,
+      url: c.url
+    })),
+
+    selectedName: sel.name
   };
 
   if(window.AndroidBridge?.playChannel){
     AndroidBridge.playChannel(JSON.stringify(payload));
   } else {
     console.log(payload);
-    toast("▶ "+sel.name);
+    toast("▶ " + sel.name);
   }
 }
 
