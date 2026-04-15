@@ -4,412 +4,322 @@
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
 <title>TV | Canales</title>
-
 <style>
 :root{
   --bg:#0b1522;
-  --top:#102033;
+  --top:#0f1d2e;
   --panel:#0f1d2e;
-  --panel2:#12243a;
+  --panel2:#101e30;
   --card:#13263b;
-  --line:rgba(255,255,255,.10);
+  --card-focus:#1a3550;
+  --line:rgba(255,255,255,.09);
   --text:#eaf3ff;
-  --muted:rgba(234,243,255,.68);
+  --muted:rgba(234,243,255,.60);
   --accent:#18b6d6;
-  --focus:#22c7e6;
-  --input:#0d2135;
-  --radius:8px;
-  --shadow:0 4px 12px rgba(0,0,0,.22);
-  --gap:12px;
-  --cardW:200px;
-  --cardH:165px;
-  --pad:13px;
-  --logoBoxH:72%;
-  --sideW:170px;
-  --sideBtnH:72px;
-  --sidePad:14px;
-  --topH:62px;
+  --radius:10px;
+  --shadow:0 2px 8px rgba(0,0,0,.28);
+  --gap:10px;
+  --cardW:180px;
+  --pad:10px;
+  --sideW:160px;
+  --sideBtnH:68px;
+  --topH:58px;
 }
-
-.span{
-    width: 10px;
-}
-
 body.light{
-  --bg:#eef3f8;
-  --top:#ffffff;
-  --panel:#ffffff;
-  --panel2:#f5f9fd;
-  --card:#ffffff;
-  --line:rgba(0,0,0,.10);
-  --text:#102033;
-  --muted:rgba(16,32,51,.62);
-  --accent:#18b6d6;
-  --focus:#18b6d6;
-  --input:#ffffff;
-  --shadow:0 4px 12px rgba(0,0,0,.10);
+  --bg:#eef3f8;--top:#fff;--panel:#fff;--panel2:#f4f8fc;
+  --card:#fff;--card-focus:#e8f4ff;--line:rgba(0,0,0,.09);
+  --text:#0d1e30;--muted:rgba(13,30,48,.55);
 }
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--text)}
 
-*{box-sizing:border-box}
-html,body{height:100%}
-body{
-  margin:0;
-  font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+/* ── LOADER ── */
+#loader{
+  position:fixed;inset:0;z-index:999;
   background:var(--bg);
-  color:var(--text);
-  overflow:hidden;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;
+  transition:opacity .4s;
 }
+#loader.hide{opacity:0;pointer-events:none}
+.loader-ring{
+  width:52px;height:52px;
+  border:4px solid rgba(24,182,214,.18);
+  border-top-color:var(--accent);
+  border-radius:50%;
+  animation:spin .8s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loader-text{font-size:14px;font-weight:800;color:var(--muted);letter-spacing:.5px}
 
-/* TOPBAR */
+/* ── TOPBAR ── */
 .topbar{
-  position:sticky;
-  top:0;
-  z-index:20;
+  position:sticky;top:0;z-index:20;
   height:var(--topH);
-  display:flex;
-  align-items:center;
-  gap:10px;
-  padding:10px 12px;
+  display:flex;align-items:center;gap:10px;
+  padding:0 14px;
   background:var(--top);
   border-bottom:1px solid var(--line);
 }
-.brand{
-  min-width:0;
-  display:flex;
-  align-items:center;
-  gap:10px;
-}
+.brand{display:flex;align-items:center;gap:8px;flex-shrink:0}
 .brand-dot{
-  width:12px;
-  height:12px;
-  border-radius:50%;
+  width:10px;height:10px;border-radius:50%;
   background:var(--accent);
   box-shadow:0 0 0 3px rgba(24,182,214,.18);
-  flex:0 0 auto;
 }
-.brand-title{
-  font-weight:900;
-  font-size:16px;
-  letter-spacing:.2px;
-}
+.brand-title{font-weight:900;font-size:15px}
 .breadcrumb{
-  min-width:0;
-  display:flex;
-  align-items:center;
-  gap:6px;
-  color:var(--muted);
-  font-size:13px;
-  overflow:hidden;
+  display:flex;align-items:center;gap:5px;
+  font-size:12px;color:var(--muted);
+  overflow:hidden;min-width:0;flex:1;
 }
 .bc-item{
-  max-width:170px;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:150px;
 }
-.bc-item.clickable{cursor:pointer}
+.bc-item.clickable{cursor:pointer;color:var(--accent)}
 .bc-item.last{color:var(--text);font-weight:900}
-.bc-sep{opacity:.45}
-
+.bc-sep{opacity:.4;flex-shrink:0}
 .search{
-  margin-left:auto;
-  width:min(280px,34vw);
-  padding:9px 12px;
-  border-radius:12px;
+  flex-shrink:0;
+  width:min(240px,30vw);
+  padding:8px 12px;
+  border-radius:10px;
   border:1px solid var(--line);
-  background:var(--input);
-  color:var(--text);
-  font-weight:800;
+  background:rgba(255,255,255,.06);
+  color:var(--text);font-weight:700;font-size:13px;
   outline:none;
 }
-.search:focus,
-.btnTheme:focus,
-.sideBtn:focus,
-.card:focus{
-  border-color:rgba(34,199,230,.88);
-  box-shadow:0 0 0 2px rgba(34,199,230,.22), var(--shadow);
-}
-
+body.light .search{background:rgba(0,0,0,.05)}
+.search:focus{border-color:var(--accent);background:rgba(24,182,214,.06)}
 .btnTheme{
-  width:44px;
-  height:40px;
-  padding:0;
-  border-radius:12px;
-  border:1px solid var(--line);
-  background:var(--input);
-  color:var(--text);
-  font-weight:900;
-  cursor:pointer;
-  outline:none;
+  flex-shrink:0;width:40px;height:36px;
+  border-radius:10px;border:1px solid var(--line);
+  background:rgba(255,255,255,.05);
+  color:var(--text);font-size:15px;cursor:pointer;outline:none;
 }
+body.light .btnTheme{background:rgba(0,0,0,.05)}
 
-/* LAYOUT */
-.mainRow{
-  display:flex;
-  height:calc(100vh - var(--topH));
-  overflow:hidden;
-}
+/* ── LAYOUT ── */
+.mainRow{display:flex;height:calc(100vh - var(--topH));overflow:hidden}
 
-/* SIDEBAR */
+/* ── SIDEBAR ── */
 .sidebar{
-  width:var(--sideW);
-  flex:0 0 var(--sideW);
+  width:var(--sideW);flex:0 0 var(--sideW);
   height:100%;
-  padding:var(--sidePad);
+  padding:12px 10px;
   background:var(--panel);
   border-right:1px solid var(--line);
+  display:flex;flex-direction:column;
   overflow:hidden;
-  display:flex;
-  flex-direction:column;
 }
-.sideMenu{
-  display:flex;
-  flex-direction:column;
-  gap:12px;
-}
+.sideMenu{display:flex;flex-direction:column;gap:8px}
 .sideBtn{
-  width:100%;
-  height:var(--sideBtnH);
-  border-radius:14px;
-  border:1px solid rgba(255,255,255,.12);
+  width:100%;height:var(--sideBtnH);
+  border-radius:12px;
+  border:2px solid transparent;
   background:rgba(255,255,255,.04);
   color:var(--text);
-  font-weight:900;
-  letter-spacing:.2px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  text-align:center;
-  cursor:pointer;
-  outline:none;
-  user-select:none;
-  appearance:none;
-  -webkit-appearance:none;
+  font-weight:900;font-size:13px;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;outline:none;
+  user-select:none;-webkit-appearance:none;appearance:none;
+  transition:background .15s,border-color .15s;
 }
-body.light .sideBtn{
-  background:#f7fbff;
+body.light .sideBtn{background:rgba(0,0,0,.04)}
+.sideBtn:focus,.sideBtn:hover{
+  background:rgba(24,182,214,.10);
+  border-color:rgba(24,182,214,.5);
 }
 .sideBtn.active{
-  border-color:rgba(34,199,230,.95);
-  background:rgba(24,182,214,.12);
+  background:rgba(24,182,214,.14);
+  border-color:var(--accent);
+  color:var(--accent);
 }
 .sideFooter{
-  margin-top:auto;
-  padding-top:12px;
+  margin-top:auto;padding-top:10px;
   border-top:1px solid var(--line);
-  display:flex;
-  flex-direction:column;
-  gap:8px;
-  font-size:12px;
+  display:flex;flex-direction:column;gap:6px;
+  font-size:11px;
 }
-.sideFooter .email{
-  font-weight:900;
-  opacity:.96;
-  overflow:hidden;
-  text-overflow:ellipsis;
-  white-space:nowrap;
-}
-.sideFooter .days{
-  color:var(--muted);
-  font-weight:800;
-}
+.sideFooter .email{font-weight:900;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sideFooter .days{color:var(--muted);font-weight:700}
 .sideFooter .warn{
-  display:none;
-  padding:10px;
-  border-radius:12px;
-  border:1px solid rgba(255,255,255,.14);
-  background:rgba(255,184,0,.12);
-  font-weight:900;
+  display:none;padding:8px;border-radius:10px;
+  border:1px solid rgba(255,184,0,.3);
+  background:rgba(255,184,0,.10);
+  font-weight:900;font-size:10px;line-height:1.4;
 }
 .sideFooter.warnOn .warn{display:block}
 
-/* CONTENT */
+/* ── CONTENT ── */
 .content{
-  flex:1;
-  overflow:auto;
+  flex:1;overflow-y:auto;overflow-x:hidden;
   -webkit-overflow-scrolling:touch;
   background:var(--panel2);
 }
-.section{
-  padding:14px 14px 6px;
-}
-.sectionTitle{
-  font-size:22px;
-  font-weight:900;
-  letter-spacing:-.2px;
-}
-.sectionMeta{
-  margin-top:4px;
-  color:var(--muted);
-  font-size:13px;
-  font-weight:800;
+.content::-webkit-scrollbar{width:3px}
+.content::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:3px}
+.section{padding:14px 14px 8px}
+.sectionTitle{font-size:20px;font-weight:900;letter-spacing:-.3px}
+.sectionMeta{margin-top:3px;color:var(--muted);font-size:12px;font-weight:700}
+
+/* ── GRID ── */
+.grid{
+  display:flex;flex-wrap:wrap;
+  padding:6px 8px 16px;
+  gap:var(--gap);
 }
 
-/* GRID */
-.grid{
-  display:flex;
-  flex-wrap:wrap;
-  padding:8px;
-  margin:calc(var(--gap) * -0.5);
-}
+/* ── CARD ── */
 .card{
   width:var(--cardW);
-  height: var(--cardH);
-  margin:calc(var(--gap) * .5);
   background:var(--card);
-  border:1px solid var(--line);
+  border:2px solid var(--line);
   border-radius:var(--radius);
-  cursor:pointer;
-  outline:none;
+  cursor:pointer;outline:none;
   position:relative;
   user-select:none;
   box-shadow:var(--shadow);
+  display:flex;flex-direction:column;
+  overflow:hidden;
+  transition:border-color .12s,background .12s,transform .12s;
+  /* aspect ratio via padding trick for old TVs */
 }
-.card::before{
-  content:"";
-  display:block;
-  padding-top:100%;
-}
-.card.wide::before{
-  padding-top:62%;
-}
-.cardInner{
-  position:absolute;
-  left:var(--pad);
-  right:var(--pad);
-  top:var(--pad);
-  bottom:var(--pad);
-  display:flex;
-  flex-direction:column;
-  gap:8px;
-  min-width:0;
-}
-.logo{
-  flex:0 0 auto;
-  height:var(--logoBoxH);
-  border-radius:14px;
-  border:1px solid rgba(255,255,255,.10);
-  background:rgba(255,255,255,.05);
-  display:flex;
-  align-items:center;
-  justify-content:center;
+/* poster area: 16:9 */
+.card-poster{
+  width:100%;
+  padding-top:56.25%; /* 16:9 */
+  position:relative;
+  background:#0a1828;
   overflow:hidden;
 }
-body.light .logo{
-  background:#f7fbff;
-}
-.logo img{
-  max-width:98%;
-  max-height:98%;
+body.light .card-poster{background:#e8f0f8}
+.card-poster img{
+  position:absolute;inset:0;
+  width:100%;height:100%;
   object-fit:contain;
   display:block;
 }
-.meta{
-  flex:1;
+.card-poster .ph{
+  position:absolute;inset:0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:32px;font-weight:900;
+  color:var(--accent);opacity:.7;
+}
+/* channel card: logo centered, contain */
+.card.ch .card-poster{padding-top:62%}
+.card.ch .card-poster img{object-fit:contain;padding:6px}
+
+/* info bar */
+.card-info{
+  padding:7px 9px 8px;
+  display:flex;flex-direction:column;gap:2px;
   min-width:0;
-  display:flex;
-  flex-direction:column;
-  justify-content:flex-end;
 }
-.name{
-  font-weight:900;
-  font-size:13px;
-  line-height:1.15;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
+.card-name{
+  font-size:12px;font-weight:900;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  line-height:1.2;
 }
-.group{
-  font-size:11px;
-  color:var(--muted);
-  margin-top:4px;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
+.card-sub{
+  font-size:10px;color:var(--muted);font-weight:700;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
-.badge{
-  position:absolute;
-  top:10px;
-  right:10px;
-  font-size:10px;
-  font-weight:900;
-  padding:3px 8px;
-  border-radius:999px;
-  border:1px solid rgba(34,199,230,.35);
+.card-badge{
+  position:absolute;top:6px;right:6px;
+  font-size:9px;font-weight:900;
+  padding:2px 7px;border-radius:999px;
+  border:1px solid rgba(24,182,214,.35);
   background:rgba(24,182,214,.14);
   color:var(--accent);
 }
-.placeholder{
-  font-weight:900;
-  font-size:28px;
-  color:var(--accent);
-  opacity:.82;
+
+/* focus / hover */
+.card:hover,.card:focus{
+  border-color:var(--accent);
+  background:var(--card-focus);
+  transform:scale(1.025);
+  z-index:2;
+}
+.card:focus{
+  box-shadow:0 0 0 3px rgba(24,182,214,.30), var(--shadow);
 }
 
-/* EMPTY */
-.empty{
-  padding:24px 14px 30px;
-  color:var(--muted);
-  font-weight:900;
-}
+/* wide card (categories / series) */
+.card.wide{width:calc(var(--cardW) * 1.35)}
+.card.wide .card-poster{padding-top:46%}
 
-/* TOAST */
+/* ── EMPTY ── */
+.empty{padding:28px 14px;color:var(--muted);font-weight:900;font-size:14px}
+
+/* ── TOAST ── */
 .toast{
-  position:fixed;
-  left:50%;
-  bottom:16px;
+  position:fixed;left:50%;bottom:18px;
   transform:translateX(-50%);
-  background:rgba(0,0,0,.82);
-  color:#fff;
-  padding:10px 14px;
-  border-radius:12px;
-  font-size:12px;
-  opacity:0;
-  pointer-events:none;
-  transition:.2s;
-  z-index:50;
+  background:rgba(0,0,0,.85);color:#fff;
+  padding:9px 16px;border-radius:12px;
+  font-size:12px;font-weight:700;
+  opacity:0;pointer-events:none;transition:.2s;z-index:200;
 }
 .toast.show{opacity:1}
 
-@media (max-width:700px){
-  :root{
-    --cardW:46vw;
-    --sideW:140px;
-  }
-  .search{width:45vw}
+/* ── BACK HINT ── */
+.back-hint{
+  display:inline-flex;align-items:center;gap:6px;
+  margin:0 14px 4px;
+  padding:5px 12px;
+  border-radius:8px;
+  border:1px solid var(--line);
+  background:rgba(255,255,255,.04);
+  font-size:11px;font-weight:800;color:var(--muted);
+  cursor:pointer;
+}
+body.light .back-hint{background:rgba(0,0,0,.04)}
+.back-hint:hover,.back-hint:focus{color:var(--accent);border-color:var(--accent);outline:none}
+
+/* ── RESPONSIVE ── */
+@media(max-width:700px){
+  :root{--cardW:42vw;--sideW:130px;--sideBtnH:58px}
+  .search{width:38vw}
+  .card.wide{width:calc(42vw * 1.3)}
+}
+@media(max-width:480px){
+  :root{--cardW:44vw;--sideW:110px}
+  .brand-title{display:none}
+  .card.wide{width:calc(44vw * 1.25)}
 }
 </style>
 </head>
 <body>
+
+<!-- LOADER -->
+<div id="loader">
+  <div class="loader-ring"></div>
+  <div class="loader-text">Cargando canales…</div>
+</div>
 
 <header class="topbar">
   <div class="brand">
     <div class="brand-dot"></div>
     <div class="brand-title">StreamTV</div>
   </div>
-
   <div class="breadcrumb" id="breadcrumb"></div>
-
-  <input id="search" class="search" placeholder="Buscar" autocomplete="off" tabindex="0"/>
-  <button id="btnTheme" class="btnTheme" type="button" title="Tema" tabindex="0">☀️</button>
+  <input id="search" class="search" placeholder="Buscar…" autocomplete="off" tabindex="0"/>
+  <button id="btnTheme" class="btnTheme" type="button" title="Tema">☀️</button>
 </header>
 
 <div class="mainRow">
-  <aside class="sidebar" aria-label="Secciones" id="sidebar">
+  <aside class="sidebar" id="sidebar">
     <div class="sideMenu" id="sideMenu">
-      <button class="sideBtn active" type="button" tabindex="0" data-cat="tv en vivo">TV en vivo</button>
-      <span> </span>
-      <button class="sideBtn" type="button" tabindex="0" data-cat="peliculas">Películas</button>
-      <span> </span>
-      <button class="sideBtn" type="button" tabindex="0" data-cat="series">Series</button>
-      <span> </span>
-      <button class="sideBtn" type="button" tabindex="0" data-cat="radios">Radios</button>
+      <button class="sideBtn active" type="button" tabindex="0" data-cat="tv en vivo">📺 TV en vivo</button>
+      <button class="sideBtn" type="button" tabindex="0" data-cat="peliculas">🎬 Películas</button>
+      <button class="sideBtn" type="button" tabindex="0" data-cat="series">📂 Series</button>
+      <button class="sideBtn" type="button" tabindex="0" data-cat="radios">📻 Radios</button>
     </div>
-
     <div class="sideFooter" id="sideFooter">
       <div class="email" id="userEmail">—</div>
       <div class="days" id="daysLeft">—</div>
-      <div class="warn" id="renewWarn">Renová tu suscripción. Quedan pocos días de servicio.</div>
+      <div class="warn" id="renewWarn">Renovar suscripción pronto.</div>
     </div>
   </aside>
 
@@ -418,6 +328,7 @@ body.light .logo{
       <div class="sectionTitle" id="sectionTitle">Contenido</div>
       <div class="sectionMeta" id="sectionMeta"></div>
     </div>
+    <div id="backHintWrap"></div>
     <div class="grid" id="grid"></div>
     <div class="empty" id="empty" style="display:none"></div>
   </main>
@@ -428,1169 +339,597 @@ body.light .logo{
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-
 <script>
-/* ================= CONFIG ================= */
-var firebaseConfig = {
-  apiKey: "AIzaSyBKSdaRAQTN-Gen0k4WerLu1GvBLKzjZlQ",
-  authDomain: "aweme-46b1e.firebaseapp.com",
-  projectId: "aweme-46b1e",
-  storageBucket: "aweme-46b1e.firebasestorage.app",
-  messagingSenderId: "762479825387",
-  appId: "1:762479825387:web:8ffb3a629c0eb9f52fc9ae"
+/* ===== CONFIG ===== */
+var FB_CFG = {
+  apiKey:"AIzaSyBKSdaRAQTN-Gen0k4WerLu1GvBLKzjZlQ",
+  authDomain:"aweme-46b1e.firebaseapp.com",
+  projectId:"aweme-46b1e",
+  storageBucket:"aweme-46b1e.firebasestorage.app",
+  messagingSenderId:"762479825387",
+  appId:"1:762479825387:web:8ffb3a629c0eb9f52fc9ae"
 };
+var ALLOWLIST = "allowlist";
+var M3U_URL   = "https://jonatan1000-4.github.io/mi_app_rv22/canales.m3u";
+var LAST_CH_KEY = "tv_last_channel"; // localStorage key
 
-var ALLOWLIST_COLLECTION = "allowlist";
-var M3U_URL = "https://jonatan1000-4.github.io/mi_app_rv22/canales.m3u";
+/* ===== STATE ===== */
+var ALL=[], CURRENT_LIST=[], ACTIVE_INDEX=0;
+var CURRENT_CATEGORY="tv en vivo", CURRENT_SUBCATEGORY="", VIEW_MODE="SUBCATEGORIES";
+var SERIES_MODE="SERIES", SERIES_INDEX=null, SERIES_KEYS=[];
+var ACTIVE_SERIES_KEY="", ACTIVE_SEASON_KEY="";
+var INDEX_BY_CAT={}, SUBCAT_CARDS={};
+var RENDER_TOKEN=0, CHUNK=20;
 
-/* ================= STATE ================= */
-var ALL_CHANNELS = [];
-var CURRENT_LIST = [];
-var ACTIVE_INDEX = 0;
-var CURRENT_CATEGORY = "tv en vivo";
-var CURRENT_SUBCATEGORY = "";
-var VIEW_MODE = "SUBCATEGORIES"; // SUBCATEGORIES | CHANNELS
-var SEARCH_TEXT = "";
+/* ===== KEYCODES ===== */
+var KC={LEFT:37,UP:38,RIGHT:39,DOWN:40,ENTER:13,DPAD_L:21,DPAD_U:19,DPAD_R:22,DPAD_D:20,DPAD_OK:23,BACK:4,ESC:27};
+function isL(k,c){return k==="ArrowLeft"||c===KC.LEFT||c===KC.DPAD_L}
+function isR(k,c){return k==="ArrowRight"||c===KC.RIGHT||c===KC.DPAD_R}
+function isU(k,c){return k==="ArrowUp"||c===KC.UP||c===KC.DPAD_U}
+function isD(k,c){return k==="ArrowDown"||c===KC.DOWN||c===KC.DPAD_D}
+function isOK(k,c){return k==="Enter"||c===KC.ENTER||c===KC.DPAD_OK}
+function isBK(k,c){return k==="Escape"||c===KC.ESC||c===KC.BACK||k==="Backspace"}
 
-/* ================= SERIES STATE ================= */
-var SERIES_MODE = "SERIES"; // SERIES | SEASONS | EPISODES
-var SERIES_INDEX = null;
-var SERIES_KEYS = [];
-var ACTIVE_SERIES_KEY = "";
-var ACTIVE_SEASON_KEY = "";
-
-/* ================= CACHED INDEXES ================= */
-var INDEX_BY_CATEGORY = {};
-var SUBCATEGORY_CARDS = {};
-
-/* ================= RENDER PERF ================= */
-var RENDER_TOKEN = 0;
-var CHUNK_SIZE = 24;
-
-/* ================= KEYCODES TV ================= */
-var KC = {
-  LEFT: 37, UP: 38, RIGHT: 39, DOWN: 40, ENTER: 13,
-  DPAD_LEFT: 21, DPAD_UP: 19, DPAD_RIGHT: 22, DPAD_DOWN: 20, DPAD_CENTER: 23,
-  BACK: 4, ESC: 27
-};
-function isLeft(k, c){ return k==="ArrowLeft" || c===KC.LEFT || c===KC.DPAD_LEFT; }
-function isRight(k, c){ return k==="ArrowRight" || c===KC.RIGHT || c===KC.DPAD_RIGHT; }
-function isUp(k, c){ return k==="ArrowUp" || c===KC.UP || c===KC.DPAD_UP; }
-function isDown(k, c){ return k==="ArrowDown" || c===KC.DOWN || c===KC.DPAD_DOWN; }
-function isOk(k, c){ return k==="Enter" || c===KC.ENTER || c===KC.DPAD_CENTER; }
-function isBack(k, c){ return k==="Escape" || c===KC.ESC || c===KC.BACK || k==="Backspace"; }
-
-/* ================= UTIL ================= */
-function $(id){ return document.getElementById(id); }
-
-function toast(t){
-  var el = $("toast");
-  if(!el) return;
-  el.textContent = t;
-  el.classList.add("show");
-  clearTimeout(window.__toastT);
-  window.__toastT = setTimeout(function(){ el.classList.remove("show"); }, 1300);
+/* ===== UTILS ===== */
+function $(i){return document.getElementById(i)}
+function esc(s){
+  s=String(s==null?"":s);
+  return s.replace(/[&<>"']/g,function(c){return{"&":"&amp;","<​":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]});
 }
-
-function escapeHtml(s){
-  s = String(s == null ? "" : s);
-  return s.replace(/[&<>"']/g, function(c){
-    return ({ "&":"&amp;","<​":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;" })[c];
-  });
-}
-
 function norm(s){
-  s = String(s || "");
-  try{ s = s.normalize("NFD").replace(/[\u0300-\u036f]/g, ""); }catch(e){}
+  s=String(s||"");
+  try{s=s.normalize("NFD").replace(/[\u0300-\u036f]/g,"")}catch(e){}
   return s.trim().toLowerCase();
 }
+function pad2(n){n=parseInt(n,10)||0;return(n<10?"0":"")+n}
+function debounce(fn,w){var t=0;return function(){var a=arguments;clearTimeout(t);t=setTimeout(function(){fn.apply(null,a)},w||180)}}
 
-function pad2(n){
-  n = parseInt(n, 10) || 0;
-  return (n < 10 ? "0" : "") + n;
+function toast(t){
+  var el=$("toast");if(!el)return;
+  el.textContent=t;el.classList.add("show");
+  clearTimeout(window.__tt);
+  window.__tt=setTimeout(function(){el.classList.remove("show")},1400);
+}
+function setEmpty(m){var e=$("empty");if(!e)return;e.textContent=m||"";e.style.display=m?"block":"none"}
+function setSection(t,m){if($("sectionTitle"))$("sectionTitle").textContent=t||"";if($("sectionMeta"))$("sectionMeta").textContent=m||""}
+function getCatLabel(c){return{tv:"TV en vivo","tv en vivo":"TV en vivo",peliculas:"Películas",series:"Series",radios:"Radios"}[c]||"Contenido"}
+
+function hideLoader(){
+  var l=$("loader");
+  if(!l)return;
+  l.classList.add("hide");
+  setTimeout(function(){l.style.display="none"},450);
 }
 
-function debounce(fn, wait){
-  var t = 0;
-  return function(){
-    var args = arguments;
-    clearTimeout(t);
-    t = setTimeout(function(){ fn.apply(null, args); }, wait || 180);
-  };
+/* ===== THEME ===== */
+function applyTheme(m){
+  var dark=(m==="dark");
+  document.body.classList.toggle("dark",dark);
+  document.body.classList.toggle("light",!dark);
+  try{localStorage.setItem("theme",dark?"dark":"light")}catch(e){}
+  var b=$("btnTheme");if(b)b.textContent=dark?"☀️":"🌙";
+}
+(function(){
+  var s=null;try{s=localStorage.getItem("theme")}catch(e){}
+  applyTheme(s==="light"?"light":"dark");
+})();
+$("btnTheme").onclick=function(){applyTheme(document.body.classList.contains("dark")?"light":"dark")};
+
+/* ===== LAST CHANNEL (autoplay) ===== */
+function saveLastChannel(payload){
+  try{localStorage.setItem(LAST_CH_KEY,JSON.stringify(payload))}catch(e){}
+}
+function loadLastChannel(){
+  try{var s=localStorage.getItem(LAST_CH_KEY);return s?JSON.parse(s):null}catch(e){return null}
+}
+function tryAutoplay(){
+  var last=loadLastChannel();
+  if(!last||!last.url)return;
+  if(window.AndroidBridge&&typeof window.AndroidBridge.playChannel==="function"){
+    window.AndroidBridge.playChannel(JSON.stringify(last));
+  }
 }
 
-function setEmpty(msg){
-  var e = $("empty");
-  if(!e) return;
-  e.textContent = msg || "";
-  e.style.display = msg ? "block" : "none";
-}
-
-function setSection(title, meta){
-  if($("sectionTitle")) $("sectionTitle").textContent = title || "Contenido";
-  if($("sectionMeta")) $("sectionMeta").textContent = meta || "";
-}
-
-function getCatLabel(cat){
-  if(cat === "tv en vivo") return "TV en vivo";
-  if(cat === "peliculas") return "Películas";
-  if(cat === "series") return "Series";
-  if(cat === "radios") return "Radios";
-  return "Contenido";
-}
-
-/* ================= THEME ================= */
-function applyTheme(mode){
-  var dark = (mode === "dark");
-  document.body.classList.toggle("dark", dark);
-  document.body.classList.toggle("light", !dark);
-  try{ localStorage.setItem("theme", dark ? "dark" : "light"); }catch(e){}
-  var b = $("btnTheme");
-  if(b) b.textContent = dark ? "☀️" : "🌙";
-}
-function initTheme(){
-  var saved = null;
-  try{ saved = localStorage.getItem("theme"); }catch(e){}
-  if(saved === "dark" || saved === "light") applyTheme(saved);
-  else applyTheme("dark");
-}
-if($("btnTheme")){
-  $("btnTheme").onclick = function(){
-    applyTheme(document.body.classList.contains("dark") ? "light" : "dark");
-  };
-}
-initTheme();
-
-/* ================= FIREBASE ================= */
-firebase.initializeApp(firebaseConfig);
-var auth = firebase.auth();
-var db = firebase.firestore();
-
-function safeGoToLogin(){
-  window.location.replace("login.html");
-}
-
-function tsToMs(x){
-  if(!x) return 0;
-  try{ if(typeof x.toDate === "function") return x.toDate().getTime(); }catch(e){}
-  if(x instanceof Date) return x.getTime();
-  if(typeof x === "number") return x;
+/* ===== FIREBASE ===== */
+firebase.initializeApp(FB_CFG);
+var auth=firebase.auth(), db=firebase.firestore();
+function goLogin(){window.location.replace("login.html")}
+function tsMs(x){
+  if(!x)return 0;
+  try{if(typeof x.toDate==="function")return x.toDate().getTime()}catch(e){}
+  if(x instanceof Date)return x.getTime();
+  if(typeof x==="number")return x;
   return 0;
 }
-
-function ceilDaysLeft(msLeft){
-  var day = 24 * 60 * 60 * 1000;
-  return Math.max(0, Math.ceil(msLeft / day));
+function renderFooter(email,expMs){
+  var eEl=$("userEmail"),dEl=$("daysLeft"),ft=$("sideFooter"),wEl=$("renewWarn");
+  if(eEl)eEl.textContent=email||"—";
+  if(!expMs){if(dEl)dEl.textContent="—";return}
+  var days=Math.max(0,Math.ceil((expMs-Date.now())/(86400000)));
+  if(dEl)dEl.textContent="Vence en "+days+"d";
+  if(ft)ft.classList.toggle("warnOn",days<=3);
+  if(wEl&&days<=3)wEl.textContent="Quedan "+days+" día"+(days===1?"":"s")+". Renovar.";
 }
-
-function renderSubscriptionFooter(email, expiresAtMs){
-  var emailEl = $("userEmail");
-  var daysEl  = $("daysLeft");
-  var footer  = $("sideFooter");
-  var warnEl  = $("renewWarn");
-
-  if(emailEl) emailEl.textContent = email || "—";
-
-  if(!expiresAtMs){
-    if(daysEl) daysEl.textContent = "Días restantes: —";
-    if(footer) footer.classList.remove("warnOn");
-    return;
-  }
-
-  var now = Date.now();
-  var days = ceilDaysLeft(expiresAtMs - now);
-
-  if(daysEl) daysEl.textContent = "Días restantes: " + days;
-  if(footer) footer.classList.toggle("warnOn", days <= 3);
-
-  if(warnEl && days <= 3){
-    warnEl.textContent = "Renová tu suscripción. Quedan " + days + " día" + (days === 1 ? "" : "s") + " de servicio.";
-  }
-}
-
-function loadSubscriptionInfo(uid, fallbackEmail){
-  return db.collection(ALLOWLIST_COLLECTION).doc(uid).get().then(function(snap){
-    var data = snap.exists ? (snap.data() || {}) : {};
-    var enabled = (data.enabled === true);
-    if(!enabled) return { ok:false };
-
-    var expiresAtMs = tsToMs(data.expiresAt);
-    if(!expiresAtMs){
-      var startMs = tsToMs(data.startAt) || tsToMs(data.createdAt);
-      if(startMs) expiresAtMs = startMs + (30 * 24 * 60 * 60 * 1000);
-    }
-
-    return {
-      ok:true,
-      email:(data.email || fallbackEmail || ""),
-      expiresAtMs: expiresAtMs || 0
-    };
-  });
-}
-
 auth.onAuthStateChanged(function(user){
-  if(!user){ safeGoToLogin(); return; }
-
-  loadSubscriptionInfo(user.uid, user.email).then(function(info){
-    if(!info.ok){
-      return auth.signOut().then(safeGoToLogin);
-    }
-
-    renderSubscriptionFooter(info.email, info.expiresAtMs);
-    clearInterval(window.__subTimer);
-    window.__subTimer = setInterval(function(){
-      renderSubscriptionFooter(info.email, info.expiresAtMs);
-    }, 30 * 60 * 1000);
-
+  if(!user){goLogin();return}
+  db.collection(ALLOWLIST).doc(user.uid).get().then(function(snap){
+    var d=snap.exists?(snap.data()||{}):{};
+    if(d.enabled!==true){auth.signOut().then(goLogin);return}
+    var exp=tsMs(d.expiresAt)||(tsMs(d.startAt||d.createdAt)+30*86400000);
+    renderFooter(d.email||user.email||"",exp||0);
+    clearInterval(window.__subT);
+    window.__subT=setInterval(function(){renderFooter(d.email||user.email||"",exp||0)},1800000);
     boot();
-  }).catch(function(e){
-    console.log(e);
-    toast("Error de acceso");
-    auth.signOut().then(safeGoToLogin);
-  });
+  }).catch(function(){toast("Error de acceso");auth.signOut().then(goLogin)});
 });
 
-/* ================= PARSE CATEGORY / SUB ================= */
-function parseCatAndSub(group, name){
-  var g = String(group || "");
-  var gNorm = norm(g);
-  var full = norm((group || "") + " " + (name || ""));
-  var catKey = "tv en vivo";
-
-  if(gNorm.indexOf("pelicula") >= 0 || gNorm.indexOf("movie") >= 0 || gNorm.indexOf("film") >= 0){
-    catKey = "peliculas";
-  }else if(gNorm.indexOf("serie") >= 0 && gNorm.indexOf("tv en vivo") < 0){
-    catKey = "series";
-  }else if(gNorm.indexOf("radio") >= 0 || gNorm.indexOf(" fm") >= 0 || gNorm.indexOf(" am") >= 0 || gNorm === "fm" || gNorm === "am"){
-    catKey = "radios";
-  }else{
-    var isTrueSeries =
-      /\bs\d{1,2}\s?e\d{1,2}\b/i.test(full) ||
-      /\b\d+x\d+\b/i.test(full) ||
-      full.indexOf("temporada") >= 0 ||
-      full.indexOf("episodio") >= 0;
-    if(isTrueSeries) catKey = "series";
-  }
-
-  var sub = "";
-  if(g.indexOf(" - ") >= 0){
-    sub = g.split(" - ").slice(1).join(" - ").trim();
-  }else{
-    sub = g.trim();
-  }
-
-  if(!sub) sub = "General";
-  return { catKey:catKey, sub:sub };
+/* ===== PARSE ===== */
+function parseCatSub(group,name){
+  var g=String(group||""),gn=norm(g),full=norm(g+" "+(name||""));
+  var cat="tv en vivo";
+  if(gn.indexOf("pelicula")>=0||gn.indexOf("movie")>=0||gn.indexOf("film")>=0)cat="peliculas";
+  else if(gn.indexOf("serie")>=0&&gn.indexOf("tv en vivo")<0)cat="series";
+  else if(gn.indexOf("radio")>=0||gn.indexOf(" fm")>=0||gn.indexOf(" am")>=0||gn==="fm"||gn==="am")cat="radios";
+  else if(/\bs\d{1,2}\s?e\d{1,2}\b/i.test(full)||/\b\d+x\d+\b/i.test(full)||full.indexOf("temporada")>=0||full.indexOf("episodio")>=0)cat="series";
+  var sub=g.indexOf(" - ")>=0?g.split(" - ").slice(1).join(" - ").trim():g.trim();
+  return{catKey:cat,sub:sub||"General"};
 }
-
-/* ================= SERIES META ================= */
-function cleanSeriesTitle(t){
-  t = String(t || "").replace(/[_\-|]+/g, " ").replace(/\s+/g, " ").trim();
-  t = t.replace(/\b(1080p|720p|480p|4k|uhd|hdr|latino|castellano|espanol|sub|subs)\b/ig, "").trim();
-  t = t.replace(/\s+/g, " ").trim();
-  return t;
+function cleanT(t){
+  return String(t||"").replace(/[_\-|]+/g," ").replace(/\b(1080p|720p|480p|4k|uhd|hdr|latino|castellano|espanol|sub|subs)\b/ig,"").replace(/\s+/g," ").trim();
 }
-
-function parseSeriesMetaFromText(raw){
-  var s = String(raw || "").trim();
-  if(!s) return { title:"", season:0, episode:0 };
-
-  var clean = cleanSeriesTitle(s);
-
-  var mTxt = clean.match(/^(.*?)[\s\-:]*(temporada|season|temp|t)\s*(\d{1,2})[\s\-:]*(episodio|episode|ep|e)\s*(\d{1,3})\b/i);
-  if(mTxt){
-    return {
-      title: cleanSeriesTitle((mTxt[1] || "").trim()),
-      season: parseInt(mTxt[3],10) || 0,
-      episode: parseInt(mTxt[5],10) || 0
-    };
-  }
-
-  var m = clean.match(/^(.*?)[\s\-:]*[sS]\s*(\d{1,2})\s*[\s\-:]*[eE]\s*(\d{1,3})\b/);
-  if(m){
-    return {
-      title: cleanSeriesTitle((m[1] || "").trim()),
-      season: parseInt(m[2],10) || 0,
-      episode: parseInt(m[3],10) || 0
-    };
-  }
-
-  var m2 = clean.match(/^(.*?)[\s\-:]*([0-9]{1,2})\s*x\s*([0-9]{1,3})\b/i);
-  if(m2){
-    return {
-      title: cleanSeriesTitle((m2[1] || "").trim()),
-      season: parseInt(m2[2],10) || 0,
-      episode: parseInt(m2[3],10) || 0
-    };
-  }
-
-  return { title:cleanSeriesTitle(clean), season:0, episode:0 };
+function parseSeriesMeta(raw){
+  var s=cleanT(String(raw||""));
+  var m=s.match(/^(.*?)[\s\-:]*(temporada|season|temp|t)\s*(\d{1,2})[\s\-:]*(episodio|episode|ep|e)\s*(\d{1,3})\b/i);
+  if(m)return{title:cleanT(m[1]),season:parseInt(m[3],10)||0,episode:parseInt(m[5],10)||0};
+  m=s.match(/^(.*?)[\s\-:]*[sS]\s*(\d{1,2})\s*[\s\-:]*[eE]\s*(\d{1,3})\b/);
+  if(m)return{title:cleanT(m[1]),season:parseInt(m[2],10)||0,episode:parseInt(m[3],10)||0};
+  m=s.match(/^(.*?)[\s\-:]*(\d{1,2})\s*x\s*(\d{1,3})\b/i);
+  if(m)return{title:cleanT(m[1]),season:parseInt(m[2],10)||0,episode:parseInt(m[3],10)||0};
+  return{title:cleanT(s),season:0,episode:0};
 }
-
-/* ================= PARSE M3U ================= */
 function parseM3U(text){
-  text = (text || "").replace(/^\uFEFF/, "");
-  var lines = text.split(/\r?\n/);
-  var out = [];
-  var name="", logo="", group="", id="", chno="";
-
+  text=(text||"").replace(/^\uFEFF/,"");
+  var lines=text.split(/\r?\n/),out=[],name="",logo="",group="",id="",chno="";
   for(var i=0;i<lines.length;i++){
-    var line = (lines[i] || "").trim();
-    if(!line) continue;
-
-    if(line.indexOf("#EXTINF") === 0){
-      name = line.split(",").slice(1).join(",").trim() || "Canal";
-      logo = "";
-      group = "";
-      id = "";
-      chno = "";
-
-      var re = /([\w-]+)\s*=\s*"([^"]*)"/g;
-      var m;
-      while((m = re.exec(line)) !== null){
-        var key = m[1], val = m[2];
-        if(key === "tvg-logo") logo = val;
-        if(key === "group-title") group = val;
-        if(key === "tvg-id") id = val;
-        if(key === "tvg-chno") chno = val;
+    var line=(lines[i]||"").trim();if(!line)continue;
+    if(line.indexOf("#EXTINF")===0){
+      name=line.split(",").slice(1).join(",").trim()||"Canal";
+      logo="";group="";id="";chno="";
+      var re=/([\w-]+)\s*=\s*"([^"]*)"/g,m;
+      while((m=re.exec(line))!==null){
+        if(m[1]==="tvg-logo")logo=m[2];
+        if(m[1]==="group-title")group=m[2];
+        if(m[1]==="tvg-id")id=m[2];
+        if(m[1]==="tvg-chno")chno=m[2];
       }
-    }else if(line.charAt(0) !== "#"){
-      var url = String(line).split(",")[0].trim();
-      var catSub = parseCatAndSub(group, name);
-
+    }else if(line.charAt(0)!=="#"){
+      var url=String(line).split(",")[0].trim();
+      var cs=parseCatSub(group,name);
       out.push({
-        id: (id || name || ("ch_" + i)),
-        name: (name || "Canal"),
-        logo: (logo || ""),
-        group: (group || "Otros"),
-        catKey: catSub.catKey,
-        sub: catSub.sub,
-        number: (chno || ""),
-        url: url,
-        sMeta: (catSub.catKey === "series") ? parseSeriesMetaFromText(name) : null
+        id:id||name||("ch_"+i),name:name||"Canal",logo:logo||"",
+        group:group||"Otros",catKey:cs.catKey,sub:cs.sub,
+        number:chno||"",url:url,
+        sMeta:cs.catKey==="series"?parseSeriesMeta(name):null
       });
-
-      name=""; logo=""; group=""; id=""; chno="";
+      name="";logo="";group="";id="";chno="";
     }
   }
-
   return out;
 }
 
-function loadChannels(){
-  return fetch(M3U_URL, { cache:"no-store" })
-    .then(function(res){ return res.text(); })
-    .then(function(text){ return parseM3U(text); })
-    .catch(function(e){
-      console.log(e);
-      return [];
-    });
-}
-
-/* ================= BUILD INDEXES ================= */
-function buildIndexes(channels){
-  INDEX_BY_CATEGORY = {
-    "tv en vivo": {},
-    "peliculas": {},
-    "series": {},
-    "radios": {}
-  };
-
-  SUBCATEGORY_CARDS = {
-    "tv en vivo": [],
-    "peliculas": [],
-    "series": [],
-    "radios": []
-  };
-
-  var temp = {
-    "tv en vivo": {},
-    "peliculas": {},
-    "series": {},
-    "radios": {}
-  };
-
-  for(var i=0;i<channels.length;i++){
-    var c = channels[i];
-    if(!INDEX_BY_CATEGORY[c.catKey]) INDEX_BY_CATEGORY[c.catKey] = {};
-    if(!INDEX_BY_CATEGORY[c.catKey][c.sub]) INDEX_BY_CATEGORY[c.catKey][c.sub] = [];
-    INDEX_BY_CATEGORY[c.catKey][c.sub].push(c);
-
-    if(!temp[c.catKey][c.sub]){
-      temp[c.catKey][c.sub] = {
-        __type:"SUBCATEGORY",
-        name:c.sub,
-        logo:c.logo || "",
-        group:getCatLabel(c.catKey),
-        number:"1",
-        count:1
-      };
+/* ===== BUILD INDEXES ===== */
+function buildIndexes(chs){
+  INDEX_BY_CAT={"tv en vivo":{},"peliculas":{},"series":{},"radios":{}};
+  SUBCAT_CARDS={"tv en vivo":[],"peliculas":[],"series":[],"radios":[]};
+  var tmp={"tv en vivo":{},"peliculas":{},"series":{},"radios":{}};
+  for(var i=0;i<chs.length;i++){
+    var c=chs[i];
+    if(!INDEX_BY_CAT[c.catKey])INDEX_BY_CAT[c.catKey]={};
+    if(!INDEX_BY_CAT[c.catKey][c.sub])INDEX_BY_CAT[c.catKey][c.sub]=[];
+    INDEX_BY_CAT[c.catKey][c.sub].push(c);
+    if(!tmp[c.catKey][c.sub]){
+      tmp[c.catKey][c.sub]={__type:"SUBCATEGORY",name:c.sub,logo:c.logo||"",group:getCatLabel(c.catKey),number:"1",count:1};
     }else{
-      temp[c.catKey][c.sub].count++;
-      temp[c.catKey][c.sub].number = String(temp[c.catKey][c.sub].count);
-      if(!temp[c.catKey][c.sub].logo && c.logo) temp[c.catKey][c.sub].logo = c.logo;
+      tmp[c.catKey][c.sub].count++;
+      tmp[c.catKey][c.sub].number=String(tmp[c.catKey][c.sub].count);
+      if(!tmp[c.catKey][c.sub].logo&&c.logo)tmp[c.catKey][c.sub].logo=c.logo;
     }
   }
-
-  Object.keys(temp).forEach(function(cat){
-    SUBCATEGORY_CARDS[cat] = Object.keys(temp[cat]).map(function(subKey){
-      return temp[cat][subKey];
-    }).sort(function(a,b){
-      return (b.count || 0) - (a.count || 0);
-    });
+  Object.keys(tmp).forEach(function(cat){
+    SUBCAT_CARDS[cat]=Object.keys(tmp[cat]).map(function(k){return tmp[cat][k]}).sort(function(a,b){return(b.count||0)-(a.count||0)});
   });
-
-  buildSeriesIndex();
+  buildSeriesIdx();
 }
-
-function buildSeriesIndex(){
-  var items = ALL_CHANNELS.filter(function(c){ return c.catKey === "series"; });
-  var idx = {};
-
+function buildSeriesIdx(){
+  var items=ALL.filter(function(c){return c.catKey==="series"}),idx={};
   for(var i=0;i<items.length;i++){
-    var it = items[i];
-    var meta = it.sMeta || parseSeriesMetaFromText(it.name || "");
-    var title = cleanSeriesTitle((meta.title || it.name || "Serie")).trim();
-    if(!title) title = cleanSeriesTitle(it.name || "Serie");
-
-    var key = norm(title);
-    if(!idx[key]){
-      idx[key] = { title:title, logo:(it.logo || ""), seasons:{} };
-    }
-
-    var season = parseInt(meta.season,10) || 0;
-    var episode = parseInt(meta.episode,10) || 0;
-    var sKey = pad2(season);
-
-    if(!idx[key].seasons[sKey]) idx[key].seasons[sKey] = [];
-    idx[key].seasons[sKey].push({
-      id: it.id,
-      rawName: it.name,
-      logo: it.logo || idx[key].logo || "",
-      group: it.group,
-      number: it.number || "",
-      url: it.url,
-      _season: season,
-      _episode: episode,
-      _seriesTitle: title
+    var it=items[i],meta=it.sMeta||parseSeriesMeta(it.name||"");
+    var title=cleanT((meta.title||it.name||"Serie").trim())||cleanT(it.name||"Serie");
+    var key=norm(title);
+    if(!idx[key])idx[key]={title:title,logo:it.logo||"",seasons:{}};
+    var sk=pad2(parseInt(meta.season,10)||0);
+    if(!idx[key].seasons[sk])idx[key].seasons[sk]=[];
+    idx[key].seasons[sk].push({
+      id:it.id,rawName:it.name,logo:it.logo||idx[key].logo||"",
+      group:it.group,number:it.number||"",url:it.url,
+      _season:parseInt(meta.season,10)||0,_episode:parseInt(meta.episode,10)||0,_seriesTitle:title
     });
   }
-
   Object.keys(idx).forEach(function(k){
     Object.keys(idx[k].seasons).forEach(function(sk){
       idx[k].seasons[sk].sort(function(a,b){
-        var ae = a._episode || 0;
-        var be = b._episode || 0;
-        if(ae !== be) return ae - be;
-        return String(a.rawName || "").localeCompare(String(b.rawName || ""));
+        var ae=a._episode||0,be=b._episode||0;
+        return ae!==be?ae-be:String(a.rawName||"").localeCompare(String(b.rawName||""));
       });
     });
   });
-
-  SERIES_INDEX = idx;
-  SERIES_KEYS = Object.keys(idx).sort(function(a,b){
-    var A = String(idx[a].title || "").toLowerCase();
-    var B = String(idx[b].title || "").toLowerCase();
-    return A < B ? -1 : (A > B ? 1 : 0);
+  SERIES_INDEX=idx;
+  SERIES_KEYS=Object.keys(idx).sort(function(a,b){
+    return String(idx[a].title||"").toLowerCase()<String(idx[b].title||"").toLowerCase()?-1:1;
   });
 }
 
-/* ================= BREADCRUMB ================= */
+/* ===== BREADCRUMB ===== */
 function updateBreadcrumb(){
-  var bc = $("breadcrumb");
-  if(!bc) return;
-
-  var parts = [];
-
-  parts.push({ label:getCatLabel(CURRENT_CATEGORY), click:function(){ setActiveCategory(CURRENT_CATEGORY); } });
-
-  if(CURRENT_CATEGORY === "series"){
-    if(SERIES_MODE === "SEASONS" && ACTIVE_SERIES_KEY){
-      parts.push({
-        label:(SERIES_INDEX[ACTIVE_SERIES_KEY] ? SERIES_INDEX[ACTIVE_SERIES_KEY].title : "Serie"),
-        click:null
-      });
-    }else if(SERIES_MODE === "EPISODES" && ACTIVE_SERIES_KEY){
-      parts.push({
-        label:(SERIES_INDEX[ACTIVE_SERIES_KEY] ? SERIES_INDEX[ACTIVE_SERIES_KEY].title : "Serie"),
-        click:function(){
-          SERIES_MODE = "SEASONS";
-          ACTIVE_SEASON_KEY = "";
-          ACTIVE_INDEX = 0;
-          renderCurrentView();
-        }
-      });
-      parts.push({
-        label:(parseInt(ACTIVE_SEASON_KEY,10) > 0 ? ("Temporada " + parseInt(ACTIVE_SEASON_KEY,10)) : "Especiales"),
-        click:null
-      });
+  var bc=$("breadcrumb");if(!bc)return;
+  var parts=[{label:getCatLabel(CURRENT_CATEGORY),click:function(){setActiveCategory(CURRENT_CATEGORY)}}];
+  if(CURRENT_CATEGORY==="series"){
+    if(SERIES_MODE==="SEASONS"&&ACTIVE_SERIES_KEY){
+      parts.push({label:(SERIES_INDEX[ACTIVE_SERIES_KEY]?SERIES_INDEX[ACTIVE_SERIES_KEY].title:"Serie"),click:null});
+    }else if(SERIES_MODE==="EPISODES"&&ACTIVE_SERIES_KEY){
+      parts.push({label:(SERIES_INDEX[ACTIVE_SERIES_KEY]?SERIES_INDEX[ACTIVE_SERIES_KEY].title:"Serie"),click:function(){SERIES_MODE="SEASONS";ACTIVE_SEASON_KEY="";ACTIVE_INDEX=0;renderView()}});
+      parts.push({label:(parseInt(ACTIVE_SEASON_KEY,10)>0?"Temporada "+parseInt(ACTIVE_SEASON_KEY,10):"Especiales"),click:null});
     }
-  }else{
-    if(CURRENT_SUBCATEGORY){
-      parts.push({ label:CURRENT_SUBCATEGORY, click:null });
-    }
+  }else if(CURRENT_SUBCATEGORY){
+    parts.push({label:CURRENT_SUBCATEGORY,click:null});
   }
-
-  var html = "";
+  var html="";
   for(var i=0;i<parts.length;i++){
-    if(i > 0) html += '<span class="bc-sep">›</span>';
-    html += '<span class="bc-item ' + (parts[i].click ? 'clickable' : '') + ' ' + (i === parts.length - 1 ? 'last' : '') + '" data-bc-idx="' + i + '">' + escapeHtml(parts[i].label) + '</span>';
+    if(i>0)html+='<span class="bc-sep">›</span>';
+    html+='<span class="bc-item'+(parts[i].click?" clickable":"")+(i===parts.length-1?" last":"")+(i===0?" root":"")+'" data-bi="'+i+'">'+esc(parts[i].label)+'</span>';
   }
-  bc.innerHTML = html;
-
-  var clickable = bc.querySelectorAll(".bc-item.clickable");
-  for(var j=0;j<clickable.length;j++){
-    clickable[j].onclick = (function(idx){
-      return function(){ if(parts[idx] && parts[idx].click) parts[idx].click(); };
-    })(parseInt(clickable[j].getAttribute("data-bc-idx"), 10));
+  bc.innerHTML=html;
+  var cls=bc.querySelectorAll(".bc-item.clickable");
+  for(var j=0;j<cls.length;j++){
+    cls[j].onclick=(function(idx){return function(){if(parts[idx]&&parts[idx].click)parts[idx].click()}})(parseInt(cls[j].getAttribute("data-bi"),10));
   }
 }
 
-/* ================= FILTER HELPERS ================= */
-function getSearchValue(){
-  var s = $("search");
-  return norm((s && s.value) ? s.value : "");
+/* ===== BACK HINT ===== */
+function renderBackHint(show){
+  var w=$("backHintWrap");if(!w)return;
+  if(!show){w.innerHTML="";return}
+  w.innerHTML='<button class="back-hint" id="backHintBtn" tabindex="0">&#8592; Volver</button>';
+  var b=$("backHintBtn");
+  if(b)b.onclick=function(){goBack()};
 }
 
-function getFilteredSubcategories(cat){
-  var q = getSearchValue();
-  var list = (SUBCATEGORY_CARDS[cat] || []).slice();
-  if(q){
-    list = list.filter(function(x){
-      return norm(x.name).indexOf(q) >= 0;
-    });
-  }
-  return list;
+/* ===== FILTER HELPERS ===== */
+function getQ(){var s=$("search");return norm((s&&s.value)?s.value:"")}
+function filteredSubs(cat){
+  var q=getQ(),list=(SUBCAT_CARDS[cat]||[]).slice();
+  return q?list.filter(function(x){return norm(x.name).indexOf(q)>=0}):list;
 }
-
-function getFilteredChannels(cat, sub){
-  var q = getSearchValue();
-  var base = (((INDEX_BY_CATEGORY[cat] || {})[sub] || [])).slice();
-  if(q){
-    base = base.filter(function(c){
-      return norm(c.name).indexOf(q) >= 0;
-    });
-  }
-  return base;
+function filteredChs(cat,sub){
+  var q=getQ(),base=((INDEX_BY_CAT[cat]||{})[sub]||[]).slice();
+  return q?base.filter(function(c){return norm(c.name).indexOf(q)>=0}):base;
 }
-
 function getSeriesList(){
-  var q = getSearchValue();
-  var list = SERIES_KEYS.map(function(k){
-    var s = SERIES_INDEX[k];
-    var total = 0;
-    var seasonsCount = 0;
-
-    Object.keys(s.seasons).forEach(function(sk){
-      seasonsCount++;
-      total += (s.seasons[sk] || []).length;
-    });
-
-    return {
-      __type:"SERIE",
-      __key:k,
-      name:s.title,
-      logo:s.logo || "",
-      group:"Series",
-      number:(seasonsCount + " temp • " + total + " eps"),
-      url:""
-    };
+  var q=getQ();
+  var list=SERIES_KEYS.map(function(k){
+    var s=SERIES_INDEX[k],total=0,sc=0;
+    Object.keys(s.seasons).forEach(function(sk){sc++;total+=(s.seasons[sk]||[]).length});
+    return{__type:"SERIE",__key:k,name:s.title,logo:s.logo||"",group:"Series",number:sc+" temp • "+total+" eps",url:""};
   });
-
-  if(q){
-    list = list.filter(function(x){
-      return norm(x.name).indexOf(q) >= 0;
-    });
-  }
-
-  return list;
+  return q?list.filter(function(x){return norm(x.name).indexOf(q)>=0}):list;
 }
-
 function getSeasonList(){
-  var sObj = SERIES_INDEX[ACTIVE_SERIES_KEY];
-  if(!sObj) return [];
-
-  return Object.keys(sObj.seasons).sort(function(a,b){
-    return (parseInt(a,10)||0) - (parseInt(b,10)||0);
-  }).map(function(sk){
-    var eps = sObj.seasons[sk] || [];
-    var n = parseInt(sk,10) || 0;
-    return {
-      __type:"SEASON",
-      __key:sk,
-      name:(n > 0 ? ("Temporada " + n) : "Especiales"),
-      logo:sObj.logo || "",
-      group:sObj.title,
-      number:(eps.length + " eps"),
-      url:""
-    };
+  var sObj=SERIES_INDEX[ACTIVE_SERIES_KEY];if(!sObj)return[];
+  return Object.keys(sObj.seasons).sort(function(a,b){return(parseInt(a,10)||0)-(parseInt(b,10)||0)}).map(function(sk){
+    var eps=sObj.seasons[sk]||[],n=parseInt(sk,10)||0;
+    return{__type:"SEASON",__key:sk,name:(n>0?"Temporada "+n:"Especiales"),logo:sObj.logo||"",group:sObj.title,number:eps.length+" eps",url:""};
   });
 }
-
 function getEpisodeList(){
-  var sObj = SERIES_INDEX[ACTIVE_SERIES_KEY];
-  var eps = (sObj && sObj.seasons[ACTIVE_SEASON_KEY]) ? sObj.seasons[ACTIVE_SEASON_KEY].slice() : [];
-  var q = getSearchValue();
-
-  var seasonNum = parseInt(ACTIVE_SEASON_KEY,10) || 0;
-  var groupLabel = sObj ? (sObj.title + (seasonNum > 0 ? (" • T" + seasonNum) : " • Especiales")) : "Series";
-
-  var list = eps.map(function(ep, i){
-    var eNum = parseInt(ep._episode,10) || 0;
-    var label = eNum ? ("E" + pad2(eNum)) : ("E" + pad2(i + 1));
-
-    return {
-      __type:"EPISODE",
-      __key:String(i),
-      name:label,
-      logo:ep.logo || "",
-      group:groupLabel,
-      number:"",
-      url:ep.url,
-      id:ep.id,
-      rawName:ep.rawName,
-      _episode:ep._episode || 0,
-      _season:ep._season || 0
-    };
+  var sObj=SERIES_INDEX[ACTIVE_SERIES_KEY];
+  var eps=(sObj&&sObj.seasons[ACTIVE_SEASON_KEY])?sObj.seasons[ACTIVE_SEASON_KEY].slice():[];
+  var q=getQ(),sn=parseInt(ACTIVE_SEASON_KEY,10)||0;
+  var gl=sObj?(sObj.title+(sn>0?" • T"+sn:" • Especiales")):"Series";
+  var list=eps.map(function(ep,i){
+    var eNum=parseInt(ep._episode,10)||0;
+    return{__type:"EPISODE",__key:String(i),name:eNum?"E"+pad2(eNum):"E"+pad2(i+1),
+      logo:ep.logo||"",group:gl,number:"",url:ep.url,id:ep.id,rawName:ep.rawName,
+      _episode:ep._episode||0,_season:ep._season||0};
   });
-
-  if(q){
-    list = list.filter(function(x){
-      return norm(x.rawName || x.name).indexOf(q) >= 0;
-    });
-  }
-
-  return list;
+  return q?list.filter(function(x){return norm(x.rawName||x.name).indexOf(q)>=0}):list;
 }
 
-/* ================= CARD BUILDERS ================= */
-function createCard(item, index, wide){
-  var card = document.createElement("div");
-  card.className = "card" + (wide ? " wide" : "");
-  card.tabIndex = 0;
-  card.setAttribute("data-idx", String(index));
-  card.setAttribute("role", "button");
+/* ===== CARD ===== */
+function createCard(item,index,wide){
+  var card=document.createElement("div");
+  var isCh=(item.__type!=="SUBCATEGORY"&&item.__type!=="SERIE"&&item.__type!=="SEASON");
+  card.className="card"+(wide?" wide":"")+(isCh?" ch":"");
+  card.tabIndex=0;
+  card.setAttribute("data-idx",String(index));
+  card.setAttribute("role","button");
 
-  var logoHtml = item.logo
-    ? '<img loading="lazy" decoding="async" referrerpolicy="no-referrer" src="' + escapeHtml(item.logo) + '" alt="">'
-    : '<span class="placeholder">' + escapeHtml((item.name || "TV").substring(0,1).toUpperCase()) + '</span>';
-
-  var secondLine = "";
-  if(item.__type === "SUBCATEGORY"){
-    secondLine = (item.count || item.number || 0) + " canales";
-  }else if(item.__type === "SERIE" || item.__type === "SEASON"){
-    secondLine = item.number || "";
+  /* poster */
+  var poster=document.createElement("div");
+  poster.className="card-poster";
+  if(item.logo){
+    var img=document.createElement("img");
+    img.loading="lazy";img.decoding="async";img.referrerPolicy="no-referrer";
+    img.alt="";img.src=item.logo;
+    img.onerror=function(){
+      poster.removeChild(img);
+      var ph=document.createElement("div");ph.className="ph";
+      ph.textContent=(item.name||"TV").substring(0,1).toUpperCase();
+      poster.appendChild(ph);
+    };
+    poster.appendChild(img);
   }else{
-    secondLine = item.group || "";
+    var ph=document.createElement("div");ph.className="ph";
+    ph.textContent=(item.name||"TV").substring(0,1).toUpperCase();
+    poster.appendChild(ph);
   }
+  card.appendChild(poster);
 
-  card.innerHTML =
-    '<div class="cardInner">' +
-      '<div class="logo">' + logoHtml + '</div>' +
-      '<div class="meta">' +
-        '<div class="name">' + escapeHtml(item.name || "") + '</div>' +
-        '<div class="group">' + escapeHtml(secondLine) + '</div>' +
-      '</div>' +
-      ((item.__type === "SUBCATEGORY") ? '<div class="badge">CAT</div>' : '') +
-    '</div>';
+  /* info */
+  var info=document.createElement("div");info.className="card-info";
+  var nm=document.createElement("div");nm.className="card-name";nm.textContent=item.name||"";
+  info.appendChild(nm);
+  var sub2="";
+  if(item.__type==="SUBCATEGORY")sub2=(item.count||0)+" canales";
+  else if(item.__type==="SERIE"||item.__type==="SEASON")sub2=item.number||"";
+  else sub2=item.group||"";
+  if(sub2){var sg=document.createElement("div");sg.className="card-sub";sg.textContent=sub2;info.appendChild(sg)}
+  card.appendChild(info);
+
+  /* badge */
+  if(item.__type==="SUBCATEGORY"){
+    var bdg=document.createElement("div");bdg.className="card-badge";bdg.textContent="CAT";card.appendChild(bdg);
+  }
 
   return card;
 }
 
-/* ================= RENDER CHUNKED ================= */
-function renderListChunked(list, onSelect, options){
-  var grid = $("grid");
-  var token = ++RENDER_TOKEN;
-  var wide = !!(options && options.wide);
-  var content = $("content");
-
-  CURRENT_LIST = list.slice();
-  grid.innerHTML = "";
-  setEmpty("");
-
-  if(content) content.scrollTop = 0;
-
-  if(!list.length){
-    setEmpty("No hay contenido");
-    return;
-  }
-
-  if(ACTIVE_INDEX >= list.length) ACTIVE_INDEX = Math.max(0, list.length - 1);
-  if(ACTIVE_INDEX < 0) ACTIVE_INDEX = 0;
-
-  var i = 0;
+/* ===== RENDER CHUNKED ===== */
+function renderListChunked(list,onSelect,opts){
+  var grid=$("grid"),token=++RENDER_TOKEN,wide=!!(opts&&opts.wide),content=$("content");
+  CURRENT_LIST=list.slice();
+  grid.innerHTML="";setEmpty("");
+  if(content)content.scrollTop=0;
+  if(!list.length){setEmpty("Sin contenido");return}
+  if(ACTIVE_INDEX>=list.length)ACTIVE_INDEX=Math.max(0,list.length-1);
+  if(ACTIVE_INDEX<0)ACTIVE_INDEX=0;
+  var i=0;
   function step(){
-    if(token !== RENDER_TOKEN) return;
-
-    var frag = document.createDocumentFragment();
-    var max = Math.min(i + CHUNK_SIZE, list.length);
-
-    for(; i < max; i++){
-      (function(index){
-        var item = list[index];
-        var card = createCard(item, index, wide);
-
-        card.onclick = function(){
-          ACTIVE_INDEX = index;
-          onSelect(item, list, index);
-        };
-
-        card.onfocus = function(){
-          ACTIVE_INDEX = index;
-        };
-
-        card.addEventListener("keydown", function(ev){
-          var k = ev.key || "";
-          var code = ev.keyCode || 0;
-          if(isOk(k, code)){
-            ev.preventDefault();
-            ACTIVE_INDEX = index;
-            onSelect(item, list, index);
-          }
-        }, true);
-
+    if(token!==RENDER_TOKEN)return;
+    var frag=document.createDocumentFragment(),max=Math.min(i+CHUNK,list.length);
+    for(;i<max;i++){
+      (function(idx){
+        var item=list[idx],card=createCard(item,idx,wide);
+        card.onclick=function(){ACTIVE_INDEX=idx;onSelect(item,list,idx)};
+        card.onfocus=function(){ACTIVE_INDEX=idx};
+        card.addEventListener("keydown",function(ev){
+          var k=ev.key||"",c=ev.keyCode||0;
+          if(isOK(k,c)){ev.preventDefault();ACTIVE_INDEX=idx;onSelect(item,list,idx)}
+        },true);
         frag.appendChild(card);
       })(i);
     }
-
     grid.appendChild(frag);
-
-    var activeCard = grid.querySelector('.card[data-idx="' + ACTIVE_INDEX + '"]');
-    if(activeCard){
-      try{ activeCard.focus(); }catch(e){}
-    }
-
-    if(i < list.length){
-      requestAnimationFrame(step);
-    }else{
-      setTimeout(function(){ focusByIndex(ACTIVE_INDEX); }, 40);
-    }
+    var ac=grid.querySelector('.card[data-idx="'+ACTIVE_INDEX+'"]');
+    if(ac)try{ac.focus()}catch(e){}
+    if(i<list.length)requestAnimationFrame(step);
+    else setTimeout(function(){focusByIdx(ACTIVE_INDEX)},40);
   }
-
   requestAnimationFrame(step);
 }
 
-/* ================= PLAY FIXED ================= */
-/*
-  IMPORTANTE:
-  Esto replica la lógica compatible del código viejo.
-  El reproductor externo necesita selectedIndex y metadata.
-*/
-function playChannel(selected, list, selectedIndexOverride){
-  var selectedIndex = 0;
-
-  if(typeof selectedIndexOverride === "number" && selectedIndexOverride >= 0){
-    selectedIndex = selectedIndexOverride;
-  }else{
-    for(var i=0;i<list.length;i++){
-      if(list[i].url === selected.url){
-        selectedIndex = i;
-        break;
-      }
-    }
-  }
-
-  var payload = {
-    url: selected.url,
-    channels: list.map(function(c){
-      return {
-        name: c.name,
-        url: c.url,
-        logo: (c.logo || ""),
-        number: (c.number || "")
-      };
-    }),
-    selectedIndex: selectedIndex,
-    selectedName: selected.name || "",
-    selectedLogo: selected.logo || "",
-    selectedGroup: selected.group || "",
-    selectedNumber: selected.number || ""
+/* ===== PLAY ===== */
+function playChannel(sel,list,idxOverride){
+  var si=0;
+  if(typeof idxOverride==="number"&&idxOverride>=0){si=idxOverride}
+  else{for(var i=0;i<list.length;i++){if(list[i].url===sel.url){si=i;break}}}
+  var payload={
+    url:sel.url,
+    channels:list.map(function(c){return{name:c.name,url:c.url,logo:c.logo||"",number:c.number||""}}),
+    selectedIndex:si,selectedName:sel.name||"",
+    selectedLogo:sel.logo||"",selectedGroup:sel.group||"",selectedNumber:sel.number||""
   };
-
-  if(window.AndroidBridge && typeof window.AndroidBridge.playChannel === "function"){
+  saveLastChannel(payload);
+  if(window.AndroidBridge&&typeof window.AndroidBridge.playChannel==="function"){
     window.AndroidBridge.playChannel(JSON.stringify(payload));
   }else{
-    console.log("PLAY PAYLOAD:", payload);
-    toast("Play (modo prueba)");
+    console.log("PLAY:",payload);toast("▶ "+sel.name);
   }
 }
 
-/* ================= VIEW RENDER ================= */
-function renderCurrentView(){
+/* ===== RENDER VIEW ===== */
+function renderView(){
   updateBreadcrumb();
+  var canGoBack=(VIEW_MODE==="CHANNELS")||(CURRENT_CATEGORY==="series"&&SERIES_MODE!=="SERIES");
+  renderBackHint(canGoBack);
 
-  if(CURRENT_CATEGORY === "series"){
-    if(SERIES_MODE === "SERIES"){
-      var seriesList = getSeriesList();
-      setSection("Series", seriesList.length + " series");
-      renderListChunked(seriesList, function(item){
-        ACTIVE_SERIES_KEY = item.__key;
-        ACTIVE_SEASON_KEY = "";
-        ACTIVE_INDEX = 0;
-        SERIES_MODE = "SEASONS";
-        renderCurrentView();
-      }, { wide:true });
+  if(CURRENT_CATEGORY==="series"){
+    if(SERIES_MODE==="SERIES"){
+      var sl=getSeriesList();setSection("Series",sl.length+" series");
+      renderListChunked(sl,function(item){ACTIVE_SERIES_KEY=item.__key;ACTIVE_SEASON_KEY="";ACTIVE_INDEX=0;SERIES_MODE="SEASONS";renderView()},{wide:true});
       return;
     }
-
-    if(SERIES_MODE === "SEASONS"){
-      var seasons = getSeasonList();
-      var sObj = SERIES_INDEX[ACTIVE_SERIES_KEY];
-      setSection(sObj ? sObj.title : "Temporadas", seasons.length + " temporadas");
-      renderListChunked(seasons, function(item){
-        ACTIVE_SEASON_KEY = item.__key;
-        ACTIVE_INDEX = 0;
-        SERIES_MODE = "EPISODES";
-        renderCurrentView();
-      }, { wide:true });
+    if(SERIES_MODE==="SEASONS"){
+      var ss=getSeasonList(),sObj=SERIES_INDEX[ACTIVE_SERIES_KEY];
+      setSection(sObj?sObj.title:"Temporadas",ss.length+" temporadas");
+      renderListChunked(ss,function(item){ACTIVE_SEASON_KEY=item.__key;ACTIVE_INDEX=0;SERIES_MODE="EPISODES";renderView()},{wide:true});
       return;
     }
-
-    if(SERIES_MODE === "EPISODES"){
-      var episodes = getEpisodeList();
-      var title = "Episodios";
-      if(SERIES_INDEX[ACTIVE_SERIES_KEY]){
-        var seasonNum = parseInt(ACTIVE_SEASON_KEY,10) || 0;
-        title = SERIES_INDEX[ACTIVE_SERIES_KEY].title + " • " + (seasonNum > 0 ? ("Temporada " + seasonNum) : "Especiales");
-      }
-      setSection(title, episodes.length + " episodios");
-
-      renderListChunked(episodes, function(item, currentList, index){
-        var sObj = SERIES_INDEX[ACTIVE_SERIES_KEY];
-        var eps = (sObj && sObj.seasons[ACTIVE_SEASON_KEY]) ? sObj.seasons[ACTIVE_SEASON_KEY] : [];
-
-        var playList = eps.map(function(ep, i){
-          var eNum = parseInt(ep._episode,10) || 0;
-          return {
-            name: ep.rawName || ("E" + pad2(eNum || (i + 1))),
-            url: ep.url,
-            logo: ep.logo || "",
-            number: ep.number || "",
-            group: sObj ? sObj.title : "Series"
-          };
+    if(SERIES_MODE==="EPISODES"){
+      var eps=getEpisodeList(),sn=parseInt(ACTIVE_SEASON_KEY,10)||0;
+      var sObj2=SERIES_INDEX[ACTIVE_SERIES_KEY];
+      setSection(sObj2?sObj2.title+" • "+(sn>0?"T"+sn:"Especiales"):"Episodios",eps.length+" episodios");
+      renderListChunked(eps,function(item,clist,idx){
+        var sO=SERIES_INDEX[ACTIVE_SERIES_KEY];
+        var rawEps=(sO&&sO.seasons[ACTIVE_SEASON_KEY])?sO.seasons[ACTIVE_SEASON_KEY]:[];
+        var pl=rawEps.map(function(ep,i){
+          var en=parseInt(ep._episode,10)||0;
+          return{name:ep.rawName||("E"+pad2(en||i+1)),url:ep.url,logo:ep.logo||"",number:ep.number||"",group:sO?sO.title:"Series"};
         });
-
-        // Para evitar reproducir siempre el primero:
-        // mandamos selectedIndex exacto del episodio clickeado.
-        playChannel({
-          name: item.rawName || item.name,
-          url: item.url,
-          logo: item.logo || "",
-          number: "",
-          group: item.group || ""
-        }, playList, index);
-      }, { wide:false });
-
+        playChannel({name:item.rawName||item.name,url:item.url,logo:item.logo||"",number:"",group:item.group||""},pl,idx);
+      },{wide:false});
       return;
     }
   }
 
-  if(VIEW_MODE === "SUBCATEGORIES"){
-    var subs = getFilteredSubcategories(CURRENT_CATEGORY);
-    setSection(getCatLabel(CURRENT_CATEGORY), subs.length + " categorías");
-
-    renderListChunked(subs, function(item){
-      CURRENT_SUBCATEGORY = item.name;
-      VIEW_MODE = "CHANNELS";
-      ACTIVE_INDEX = 0;
-      renderCurrentView();
-    }, { wide:true });
-
+  if(VIEW_MODE==="SUBCATEGORIES"){
+    var subs=filteredSubs(CURRENT_CATEGORY);
+    setSection(getCatLabel(CURRENT_CATEGORY),subs.length+" categorías");
+    renderListChunked(subs,function(item){CURRENT_SUBCATEGORY=item.name;VIEW_MODE="CHANNELS";ACTIVE_INDEX=0;renderView()},{wide:true});
     return;
   }
 
-  if(VIEW_MODE === "CHANNELS"){
-    var channels = getFilteredChannels(CURRENT_CATEGORY, CURRENT_SUBCATEGORY);
-    setSection(CURRENT_SUBCATEGORY, channels.length + " canales");
-
-    renderListChunked(channels, function(item, currentList, index){
-      playChannel(item, currentList, index);
-    }, { wide:false });
-
+  if(VIEW_MODE==="CHANNELS"){
+    var chs=filteredChs(CURRENT_CATEGORY,CURRENT_SUBCATEGORY);
+    setSection(CURRENT_SUBCATEGORY,chs.length+" canales");
+    renderListChunked(chs,function(item,clist,idx){playChannel(item,clist,idx)},{wide:false});
     return;
   }
 }
 
-/* ================= CATEGORY CHANGE ================= */
+/* ===== CATEGORY ===== */
 function setActiveCategory(cat){
-  CURRENT_CATEGORY = norm(cat);
-  CURRENT_SUBCATEGORY = "";
-  VIEW_MODE = "SUBCATEGORIES";
-  ACTIVE_INDEX = 0;
-
-  SERIES_MODE = "SERIES";
-  ACTIVE_SERIES_KEY = "";
-  ACTIVE_SEASON_KEY = "";
-
-  var btns = document.querySelectorAll(".sideBtn");
-  for(var i=0;i<btns.length;i++){
-    btns[i].classList.toggle("active", btns[i].getAttribute("data-cat") === CURRENT_CATEGORY);
-  }
-
-  renderCurrentView();
+  CURRENT_CATEGORY=norm(cat);CURRENT_SUBCATEGORY="";VIEW_MODE="SUBCATEGORIES";ACTIVE_INDEX=0;
+  SERIES_MODE="SERIES";ACTIVE_SERIES_KEY="";ACTIVE_SEASON_KEY="";
+  var btns=document.querySelectorAll(".sideBtn");
+  for(var i=0;i<btns.length;i++)btns[i].classList.toggle("active",btns[i].getAttribute("data-cat")===CURRENT_CATEGORY);
+  renderView();
 }
 
-/* ================= BACK NAV ================= */
+/* ===== BACK ===== */
 function goBack(){
-  if(CURRENT_CATEGORY === "series"){
-    if(SERIES_MODE === "EPISODES"){
-      SERIES_MODE = "SEASONS";
-      ACTIVE_INDEX = 0;
-      renderCurrentView();
-      return true;
-    }
-    if(SERIES_MODE === "SEASONS"){
-      SERIES_MODE = "SERIES";
-      ACTIVE_SERIES_KEY = "";
-      ACTIVE_SEASON_KEY = "";
-      ACTIVE_INDEX = 0;
-      renderCurrentView();
-      return true;
-    }
+  if(CURRENT_CATEGORY==="series"){
+    if(SERIES_MODE==="EPISODES"){SERIES_MODE="SEASONS";ACTIVE_INDEX=0;renderView();return true}
+    if(SERIES_MODE==="SEASONS"){SERIES_MODE="SERIES";ACTIVE_SERIES_KEY="";ACTIVE_SEASON_KEY="";ACTIVE_INDEX=0;renderView();return true}
     return false;
   }
-
-  if(VIEW_MODE === "CHANNELS"){
-    VIEW_MODE = "SUBCATEGORIES";
-    CURRENT_SUBCATEGORY = "";
-    ACTIVE_INDEX = 0;
-    renderCurrentView();
-    return true;
-  }
-
+  if(VIEW_MODE==="CHANNELS"){VIEW_MODE="SUBCATEGORIES";CURRENT_SUBCATEGORY="";ACTIVE_INDEX=0;renderView();return true}
   return false;
 }
 
-/* ================= FOCUS / NAV ================= */
+/* ===== FOCUS / NAV ===== */
 function getCols(){
-  var grid = $("grid");
-  if(!grid) return 1;
-
-  var gap = 12;
-  try{
-    var cssGap = (getComputedStyle(document.documentElement).getPropertyValue("--gap") || "").trim();
-    var g = parseInt(cssGap, 10);
-    if(!isNaN(g)) gap = g;
-  }catch(e){}
-
-  var gridW = grid.clientWidth || (window.innerWidth || 1024);
-
-  var cardW = 190;
-  try{
-    var cssW = (getComputedStyle(document.documentElement).getPropertyValue("--cardW") || "").trim();
-    var p = parseInt(cssW, 10);
-    if(!isNaN(p)) cardW = p;
-  }catch(e){}
-
-  var cols = Math.floor((gridW + gap) / (cardW + gap));
-  if(!cols || cols < 1) cols = 1;
-  return cols;
+  var grid=$("grid");if(!grid)return 1;
+  var gw=grid.clientWidth||(window.innerWidth||1024);
+  var cw=180;
+  try{var p=parseInt((getComputedStyle(document.documentElement).getPropertyValue("--cardW")||"").trim(),10);if(!isNaN(p))cw=p}catch(e){}
+  var gap=10;
+  try{var g=parseInt((getComputedStyle(document.documentElement).getPropertyValue("--gap")||"").trim(),10);if(!isNaN(g))gap=g}catch(e){}
+  var cols=Math.floor((gw+gap)/(cw+gap));
+  return cols<1?1:cols;
 }
-
-function focusByIndex(idx){
-  var grid = $("grid");
-  if(!grid) return;
-
-  var el = grid.querySelector('.card[data-idx="' + idx + '"]');
-  if(!el) return;
-
-  try{ el.focus(); }catch(e){}
-  try{
-    if(el.scrollIntoView){
-      try{ el.scrollIntoView({ block:"nearest", inline:"nearest" }); }
-      catch(e2){ el.scrollIntoView(); }
-    }
-  }catch(e){}
+function focusByIdx(idx){
+  var grid=$("grid");if(!grid)return;
+  var el=grid.querySelector('.card[data-idx="'+idx+'"]');if(!el)return;
+  try{el.focus()}catch(e){}
+  try{el.scrollIntoView?el.scrollIntoView({block:"nearest",inline:"nearest"}):el.scrollIntoView()}catch(e){}
 }
-
-function focusActiveSidebarBtn(){
-  var btn = document.querySelector('.sideBtn[data-cat="' + CURRENT_CATEGORY + '"]');
-  if(btn){ try{ btn.focus(); }catch(e){} return true; }
-  var first = document.querySelector(".sideBtn");
-  if(first){ try{ first.focus(); }catch(e){} return true; }
-  return false;
+function focusSideBtn(){
+  var b=document.querySelector('.sideBtn[data-cat="'+CURRENT_CATEGORY+'"]')||document.querySelector(".sideBtn");
+  if(b)try{b.focus()}catch(e){}
 }
-
-function sidebarButtons(){
-  return Array.prototype.slice.call(document.querySelectorAll(".sideBtn"));
-}
-
-function moveSidebarFocus(delta){
-  var btns = sidebarButtons();
-  if(!btns.length) return;
-
-  var ae = document.activeElement;
-  var idx = btns.indexOf(ae);
-  if(idx < 0){
-    focusActiveSidebarBtn();
-    return;
-  }
-
-  var next = idx + delta;
-  if(next < 0) next = 0;
-  if(next > btns.length - 1) next = btns.length - 1;
-
-  if(next !== idx){
-    try{ btns[next].focus(); }catch(e){}
-  }
+function moveSideFocus(d){
+  var btns=Array.prototype.slice.call(document.querySelectorAll(".sideBtn"));
+  if(!btns.length)return;
+  var ae=document.activeElement,idx=btns.indexOf(ae);
+  if(idx<0){focusSideBtn();return}
+  var nx=Math.max(0,Math.min(btns.length-1,idx+d));
+  if(nx!==idx)try{btns[nx].focus()}catch(e){}
 }
 
 function initSidebar(){
-  var btns = sidebarButtons();
+  var btns=Array.prototype.slice.call(document.querySelectorAll(".sideBtn"));
   for(var i=0;i<btns.length;i++){
     (function(btn){
-      btn.onclick = function(){
-        setActiveCategory(btn.getAttribute("data-cat"));
-      };
-
-      btn.addEventListener("keydown", function(ev){
-        var k = ev.key || "";
-        var code = ev.keyCode || 0;
-
-        if(isUp(k, code)){ ev.preventDefault(); moveSidebarFocus(-1); return; }
-        if(isDown(k, code)){ ev.preventDefault(); moveSidebarFocus(1); return; }
-
-        if(isOk(k, code)){
-          ev.preventDefault();
-          setActiveCategory(btn.getAttribute("data-cat"));
-          return;
-        }
-
-        if(isRight(k, code)){
-          ev.preventDefault();
-          setTimeout(function(){ focusByIndex(ACTIVE_INDEX); }, 40);
-          return;
-        }
-      }, true);
+      btn.onclick=function(){setActiveCategory(btn.getAttribute("data-cat"))};
+      btn.addEventListener("keydown",function(ev){
+        var k=ev.key||"",c=ev.keyCode||0;
+        if(isU(k,c)){ev.preventDefault();moveSideFocus(-1);return}
+        if(isD(k,c)){ev.preventDefault();moveSideFocus(1);return}
+        if(isOK(k,c)){ev.preventDefault();setActiveCategory(btn.getAttribute("data-cat"));return}
+        if(isR(k,c)){ev.preventDefault();setTimeout(function(){focusByIdx(ACTIVE_INDEX)},40);return}
+      },true);
     })(btns[i]);
   }
 }
 
 function enableRemoteNav(){
-  if(window.__remoteNav) return;
-  window.__remoteNav = true;
+  if(window.__rnav)return;window.__rnav=true;
+  document.addEventListener("keydown",function(e){
+    var ae=document.activeElement,tag=(ae&&ae.tagName)?ae.tagName.toLowerCase():"";
+    if(tag==="input"||tag==="textarea")return;
+    var kc=e.keyCode||0,key=e.key||"";
+    var cols=getCols();
+    var inSide=ae&&ae.classList&&ae.classList.contains("sideBtn");
 
-  document.addEventListener("keydown", function(e){
-    var ae = document.activeElement;
-    var tag = (ae && ae.tagName) ? ae.tagName.toLowerCase() : "";
-    if(tag === "input" || tag === "textarea") return;
+    if(isBK(key,kc)){if(goBack()){e.preventDefault();return}}
 
-    var kc = e.keyCode || 0;
-    var key = e.key || "";
-    var cols = getCols();
-    var inSidebar = ae && ae.classList && ae.classList.contains("sideBtn");
-
-    if(isBack(key, kc)){
-      if(goBack()){
-        e.preventDefault();
-        return;
-      }
+    if(!inSide&&isL(key,kc)){
+      if(!CURRENT_LIST.length)return;
+      var atFirst=(cols<=1)?(ACTIVE_INDEX===0):((ACTIVE_INDEX%cols)===0);
+      if(atFirst){e.preventDefault();focusSideBtn();return}
     }
-
-    if(!inSidebar && isLeft(key, kc)){
-      if(!CURRENT_LIST.length) return;
-      var atFirstCol = (cols <= 1) ? (ACTIVE_INDEX === 0) : ((ACTIVE_INDEX % cols) === 0);
-      if(atFirstCol){
-        e.preventDefault();
-        focusActiveSidebarBtn();
-        return;
-      }
-    }
-
-    if(inSidebar && isRight(key, kc)){
+    if(inSide&&isR(key,kc)){e.preventDefault();setTimeout(function(){focusByIdx(ACTIVE_INDEX)},40);return}
+    if(!inSide&&isOK(key,kc)){
+      if(!CURRENT_LIST.length)return;
       e.preventDefault();
-      setTimeout(function(){ focusByIndex(ACTIVE_INDEX); }, 40);
+      var item=CURRENT_LIST[ACTIVE_INDEX];
+      if(item){var card=document.querySelector('.card[data-idx="'+ACTIVE_INDEX+'"]');if(card)card.click()}
       return;
     }
-
-    if(!inSidebar && isOk(key, kc)){
-      if(!CURRENT_LIST.length) return;
-      e.preventDefault();
-      var item = CURRENT_LIST[ACTIVE_INDEX];
-      if(item){
-        var card = document.querySelector('.card[data-idx="' + ACTIVE_INDEX + '"]');
-        if(card) card.click();
-      }
-      return;
-    }
-
-    if(inSidebar) return;
-    if(!CURRENT_LIST.length) return;
-
-    var next = ACTIVE_INDEX;
-    var handled = true;
-
-    if(isRight(key, kc)) next = ACTIVE_INDEX + 1;
-    else if(isLeft(key, kc)) next = ACTIVE_INDEX - 1;
-    else if(isDown(key, kc)) next = ACTIVE_INDEX + (cols > 1 ? cols : 1);
-    else if(isUp(key, kc)) next = ACTIVE_INDEX - (cols > 1 ? cols : 1);
-    else handled = false;
-
-    if(!handled) return;
-
-    if(next < 0) next = 0;
-    if(next > CURRENT_LIST.length - 1) next = CURRENT_LIST.length - 1;
-
-    if(next !== ACTIVE_INDEX){
-      e.preventDefault();
-      ACTIVE_INDEX = next;
-      focusByIndex(ACTIVE_INDEX);
-    }
-  }, true);
+    if(inSide)return;
+    if(!CURRENT_LIST.length)return;
+    var nx=ACTIVE_INDEX,handled=true;
+    if(isR(key,kc))nx=ACTIVE_INDEX+1;
+    else if(isL(key,kc))nx=ACTIVE_INDEX-1;
+    else if(isD(key,kc))nx=ACTIVE_INDEX+(cols>1?cols:1);
+    else if(isU(key,kc))nx=ACTIVE_INDEX-(cols>1?cols:1);
+    else handled=false;
+    if(!handled)return;
+    if(nx<0)nx=0;if(nx>CURRENT_LIST.length-1)nx=CURRENT_LIST.length-1;
+    if(nx!==ACTIVE_INDEX){e.preventDefault();ACTIVE_INDEX=nx;focusByIdx(ACTIVE_INDEX)}
+  },true);
 }
 
-/* ================= SEARCH ================= */
 function initSearch(){
-  var s = $("search");
-  if(!s) return;
-
-  s.addEventListener("input", debounce(function(){
-    SEARCH_TEXT = getSearchValue();
-    ACTIVE_INDEX = 0;
-    renderCurrentView();
-  }, 160));
+  var s=$("search");if(!s)return;
+  s.addEventListener("input",debounce(function(){ACTIVE_INDEX=0;renderView()},180));
 }
 
-/* ================= BOOT ================= */
+/* ===== BOOT ===== */
 function boot(){
-  toast("Cargando...");
-  initSidebar();
-  enableRemoteNav();
-  initSearch();
+  initSidebar();enableRemoteNav();initSearch();
 
-  loadChannels().then(function(chs){
-    ALL_CHANNELS = chs || [];
-    if(!ALL_CHANNELS.length){
-      setEmpty("No hay contenido");
-      toast("Sin contenido");
-      return;
-    }
+  /* autoplay último canal antes de cargar lista */
+  tryAutoplay();
 
-    buildIndexes(ALL_CHANNELS);
-
-    var order = ["tv en vivo", "peliculas", "series", "radios"];
-    var found = "tv en vivo";
-    for(var i=0;i<order.length;i++){
-      if((SUBCATEGORY_CARDS[order[i]] && SUBCATEGORY_CARDS[order[i]].length) || ALL_CHANNELS.some(function(c){ return c.catKey === order[i]; })){
-        found = order[i];
-        break;
+  fetch(M3U_URL,{cache:"no-store"})
+    .then(function(r){return r.text()})
+    .then(function(text){
+      ALL=parseM3U(text);
+      if(!ALL.length){hideLoader();setEmpty("Sin canales");return}
+      buildIndexes(ALL);
+      var order=["tv en vivo","peliculas","series","radios"],found="tv en vivo";
+      for(var i=0;i<order.length;i++){
+        if(SUBCAT_CARDS[order[i]]&&SUBCAT_CARDS[order[i]].length){found=order[i];break}
       }
-    }
-
-    setActiveCategory(found);
-
-    window.addEventListener("resize", function(){
-      setTimeout(function(){ focusByIndex(ACTIVE_INDEX); }, 60);
+      setActiveCategory(found);
+      hideLoader();
+      window.addEventListener("resize",function(){setTimeout(function(){focusByIdx(ACTIVE_INDEX)},60)});
+    })
+    .catch(function(e){
+      console.log(e);hideLoader();setEmpty("Error al cargar canales");toast("Error de red");
     });
-
-    toast("Listo");
-  }).catch(function(e){
-    console.log(e);
-    setEmpty("Error cargando");
-    toast("Error cargando");
-  });
 }
 </script>
-
 </body>
 </html>
