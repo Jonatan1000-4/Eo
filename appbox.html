@@ -823,14 +823,16 @@ console.log("TOTAL SERIES:", ALL.filter(x=>x.catKey==="series").length);
 
 function renderSeriesList(){
 
-  const grid = $("grid");
-
   const list = SERIES_KEYS.map(k => ({
     key: k,
     title: SERIES_IDX[k].title,
     logo: SERIES_IDX[k].logo,
     seasonsCount: Object.keys(SERIES_IDX[k].seasons).length
   }));
+
+  CURRENT_LIST = list; // ✔ OK ahora
+
+  const grid = $("grid");
 
   grid.innerHTML = list.map((s,i)=>`
     <div class="card category-card" data-i="${i}" tabindex="0">
@@ -845,8 +847,6 @@ function renderSeriesList(){
         <div class="card-name">${esc(s.title)}</div>
         <div class="card-sub">${s.seasonsCount} temporadas</div>
       </div>
-
-      <div class="card-category-badge">SERIE</div>
     </div>
   `).join("");
 
@@ -862,12 +862,14 @@ function renderSeriesList(){
 
   setTimeout(()=>focusCard(0),50);
 }
-
 function renderSeasons(){
-
 
   const serie = SERIES_IDX[SELECTED_SERIE];
   const seasons = Object.keys(serie.seasons).sort();
+
+  const list = seasons;
+
+  CURRENT_LIST = list;
 
   const grid = $("grid");
 
@@ -881,8 +883,6 @@ function renderSeasons(){
         <div class="card-name">Temporada ${parseInt(s)}</div>
         <div class="card-sub">${serie.seasons[s].length} episodios</div>
       </div>
-
-      <div class="card-category-badge">TEMP</div>
     </div>
   `).join("");
 
@@ -901,9 +901,10 @@ function renderSeasons(){
 
 function renderEpisodes(){
 
-
   const serie = SERIES_IDX[SELECTED_SERIE];
   const eps = serie.seasons[SELECTED_SEASON] || [];
+
+  CURRENT_LIST = eps; // ✔ ESTO ES LO IMPORTANTE
 
   const grid = $("grid");
 
@@ -916,9 +917,7 @@ function renderEpisodes(){
         </div>
 
         <div class="card-info">
-          <div class="card-name">
-            EP ${e.episode} - ${serie.title}
-          </div>
+          <div class="card-name">EP ${e.episode} - ${serie.title}</div>
         </div>
       </div>
     `).join("");
@@ -926,39 +925,21 @@ function renderEpisodes(){
   const cards=[...grid.querySelectorAll(".card")];
 
   cards.forEach((el,i)=>{
-    el.onclick=()=>playChannel(eps[i], eps);
+    el.onclick = (e)=>{
+  const idx = i;
+  playChannel(eps[idx], eps);
+};
   });
 
   setTimeout(()=>focusCard(0),50);
-}
-
-function renderChannels(){
-
-  const q = (searchInput?.value || "").toLowerCase();
-
-  const list = ALL.filter(c=>{
-    if(c.catKey !== CAT) return false;
-    if(SUB && c.sub !== SUB) return false;
-    if(q && !c.name.toLowerCase().includes(q)) return false;
-    return true;
-  });
-
-  CURRENT_LIST = list;
-
-  renderGrid(list);
 }
 
 /* ================= GRID ================= */
 function renderGrid(items){
 
   CURRENT_LIST = items;
-  const grid=$("grid");
-  if(!grid) return;
 
-  if(!items.length){
-    grid.innerHTML="<div class='empty-state'>Sin contenido</div>";
-    return;
-  }
+  const grid = $("grid");
 
   grid.innerHTML = items.map((c,i)=>`
     <div class="card" data-idx="${i}" tabindex="0">
@@ -968,6 +949,7 @@ function renderGrid(items){
           : `<div class="card-poster-placeholder">${(c.name||"?")[0]}</div>`
         }
       </div>
+
       <div class="card-info">
         <div class="card-name">${esc(c.name)}</div>
       </div>
@@ -976,9 +958,15 @@ function renderGrid(items){
 
   const cards = [...grid.querySelectorAll(".card")];
 
-  cards.forEach((el,i)=>{
-    el.onclick=()=>onSelect(items[i],items);
-    el.onfocus=()=>FOCUS_I=i;
+  cards.forEach((el)=>{
+    el.onclick = (e)=>{
+
+      const idx = parseInt(el.dataset.idx,10);
+
+      const item = CURRENT_LIST[idx];
+
+      playChannel(item, CURRENT_LIST); // 🔥 SIEMPRE CONSISTENTE
+    };
   });
 
   setTimeout(()=>focusCard(FOCUS_I),50);
@@ -991,21 +979,12 @@ function onSelect(item,list){
 
 function playChannel(sel, list){
 
-  // 🔥 seguridad: reconstruir lista desde UI real si falla
-  const safeList = (list && list.length)
-    ? list
-    : [...document.querySelectorAll(".card")]
-        .map(el => {
-          const idx = el.dataset.idx;
-          return idx !== undefined ? null : null;
-        })
-        .filter(Boolean);
+  const safeList = CURRENT_LIST || list || [];
 
   const payload = {
     url: sel.url,
 
-    // 🔥 IMPORTANTE: solo canales reales visibles
-    channels: list.map(c => ({
+    channels: safeList.map(c => ({
       name: c.name,
       url: c.url
     })),
