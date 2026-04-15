@@ -209,7 +209,7 @@ body.light .chip{background:rgba(0,0,0,.05);}
 .grid{
   padding:0 20px 20px;
   display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(150px,1fr));
+  grid-template-columns:repeat(auto-fill,minmax(200px,1fr));
   gap:12px;
 }
 .card{
@@ -342,6 +342,28 @@ body.light .chip{background:rgba(0,0,0,.05);}
   transform: scale(1.05);
   z-index: 10;
 }
+
+.card.category-card{
+  aspect-ratio: 16/9;
+  height:120px;
+}
+
+.card.category-card .card-name{
+  font-size:14px;
+}
+
+.card-category-badge{
+  position:absolute;
+  top:8px;
+  right:8px;
+  background:rgba(0,200,232,.2);
+  border:1px solid rgba(0,200,232,.4);
+  color:var(--accent);
+  font-size:10px;
+  padding:2px 8px;
+  border-radius:10px;
+  font-weight:800;
+}
 </style>
 </head>
 <body>
@@ -417,6 +439,9 @@ let SERIES_KEYS = [];
 let ACTIVE_SERIE = "";
 let ACTIVE_SEASON = "";
 let FOCUS_I = 0;
+let SERIES_VIEW = "LIST"; // LIST | SEASONS | EPISODES
+let SELECTED_SERIE = null;
+let SELECTED_SEASON = null;
 
 /* ================= UTILS ================= */
 const $ = id => document.getElementById(id);
@@ -437,41 +462,57 @@ function toast(t){
 }
 
 /* ================= CATEGORY PARSE ================= */
-function parseCatAndSub(group){
-  const g = String(group||"");
-  const gn = norm(g);
+
+function parseCatAndSub(group, name=""){
+  const g = String(group||"").toLowerCase();
+  const full = (g + " " + name).toLowerCase();
 
   let catKey = "tv en vivo";
 
-  if(
-    gn.includes("pel") ||
-    gn.includes("movie") ||
-    gn.includes("film") ||
-    gn.includes("cine")
-  ){
+  // 🛑 1. PRIORIDAD ABSOLUTA: GROUP-TITLE
+  if(g.includes("pelicula") || g.includes("movie") || g.includes("film")){
     catKey = "peliculas";
   }
-  else if(
-    gn.includes("serie") ||
-    gn.includes("series") ||
-    gn.includes("season")
-  ){
+
+  else if(g.includes("serie") && !g.includes("tv en vivo")){
     catKey = "series";
   }
-  else if(
-    gn.includes("radio")
-  ){
+
+  else if(g.includes("radio") || g.includes("fm") || g.includes("am")){
     catKey = "radios";
   }
 
+  // 🟡 2. SOLO SI NO SE DEFINIÓ POR GROUP
+  else if(catKey === "tv en vivo"){
+
+    // SERIES SOLO SI ES MUY CLARO
+    const isTrueSeries =
+      /\bS\d{1,2}\s?E\d{1,2}\b/i.test(full) ||
+      /\bS\d{1,2}E\d{1,2}\b/i.test(full) ||
+      /\b\d+x\d+\b/i.test(full) ||
+      full.includes("temporada") ||
+      full.includes("episodio");
+
+    if(isTrueSeries){
+      catKey = "series";
+    }
+
+    // películas solo si es explícito
+    else if(
+      full.includes("pelicula") ||
+      full.includes("movie") ||
+      full.includes("film")
+    ){
+      catKey = "peliculas";
+    }
+  }
+
+  // subcategoría limpia
   let sub = g.includes(" - ")
     ? g.split(" - ").slice(1).join(" - ").trim()
     : g.trim();
 
-  return {
-    catKey,
-    sub: sub || "General"
-  };
+  return { catKey, sub: sub || "General" };
 }
 
 /* ================= M3U ================= */
@@ -503,7 +544,7 @@ function parseM3U(text){
     }
     else if(!line.startsWith("#")){
       const url=line.split(",")[0].trim();
-      const cs=parseCatAndSub(meta.group);
+      const cs=parseCatAndSub(meta.group, meta.name);
 
       out.push({
         id: meta.id || meta.name,
@@ -533,15 +574,41 @@ function cleanTitle(t){
 }
 
 function parseSeriesMeta(raw){
-  const s=cleanTitle(raw);
+  const s = cleanTitle(raw);
 
-  let m=s.match(/^(.*?)[\s\-:]*[sS](\d+)[\s\-:]*[eE](\d+)/);
-  if(m) return {title:cleanTitle(m[1]), season:+m[2], episode:+m[3]};
+  // S01E01 / S1E1
+  let m = s.match(/^(.*?)[\s\-:]*[sS](\d+)[\s\-:]*[eE](\d+)/);
+  if(m){
+    return {
+      title: cleanTitle(m[1]),
+      season: parseInt(m[2],10),
+      episode: parseInt(m[3],10)
+    };
+  }
 
-  m=s.match(/^(.*?)(\d+)\s*x\s*(\d+)/);
-  if(m) return {title:cleanTitle(m[1]), season:+m[2], episode:+m[3]};
+  // 1x01 formato latino
+  m = s.match(/^(.*?)(\d+)\s*x\s*(\d+)/);
+  if(m){
+    return {
+      title: cleanTitle(m[1]),
+      season: parseInt(m[2],10),
+      episode: parseInt(m[3],10)
+    };
+  }
 
-  return {title:s, season:0, episode:0};
+  return {
+    title: cleanTitle(s),
+    season: 0,
+    episode: 0
+  };
+}
+
+function getSeriesKey(title){
+  return cleanTitle(title)
+    .toLowerCase()
+    .replace(/\b(s\d{1,2}e\d{1,2}|season\s*\d+|\d+x\d+)\b/gi, "")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 /* ================= FIREBASE ================= */
@@ -580,6 +647,28 @@ auth.onAuthStateChanged(async user=>{
   boot();
 });
 
+
+function getSubCategoryCards(cat){
+  const map = {};
+
+  ALL
+    .filter(c => c.catKey === cat)
+    .forEach(c => {
+      const key = c.sub || "General";
+      if(!map[key]){
+        map[key] = {
+          name: key,
+          count: 0,
+          logo: c.logo || ""
+        };
+      }
+      map[key].count++;
+      if(!map[key].logo && c.logo) map[key].logo = c.logo;
+    });
+
+  return Object.values(map)
+    .sort((a,b)=>b.count-a.count);
+}
 /* ================= THEME ================= */
 function applyTheme(m){
   document.body.classList.toggle("light",m==="light");
@@ -589,23 +678,33 @@ applyTheme(localStorage.getItem("theme")||"dark");
 
 /* ================= SERIES INDEX ================= */
 function buildSeriesIdx(items){
-  const idx={};
+  const idx = {};
 
   for(const it of items){
-    const meta=it.sMeta||parseSeriesMeta(it.name);
-    const key=norm(meta.title);
+
+    const meta = parseSeriesMeta(it.name);
+
+    const baseTitle = getSeriesKey(meta.title);
+    const key = norm(baseTitle);
 
     if(!idx[key]){
-      idx[key]={title:meta.title,logo:it.logo,seasons:{}};
+      idx[key] = {
+        title: baseTitle,
+        logo: it.logo,
+        seasons: {}
+      };
     }
 
-    const sk=String(meta.season||0).padStart(2,"0");
-    if(!idx[key].seasons[sk]) idx[key].seasons[sk]=[];
+    const seasonKey = pad2(meta.season || 1);
 
-    idx[key].seasons[sk].push({
+    if(!idx[key].seasons[seasonKey]){
+      idx[key].seasons[seasonKey] = [];
+    }
+
+    idx[key].seasons[seasonKey].push({
       ...it,
-      _episode:meta.episode,
-      _season:meta.season
+      episode: meta.episode,
+      season: meta.season
     });
   }
 
@@ -623,22 +722,17 @@ if(searchInput){
 
 /* ================= CATEGORY ================= */
 function setCategory(cat){
-  CAT = String(cat).toLowerCase(); // SIN norm()
+  CAT = String(cat).toLowerCase();
 
   SUB="";
   FOCUS_I=0;
 
-  SERIES_MODE="SERIES";
   SERIES_IDX=null;
   SERIES_KEYS=[];
-  ACTIVE_SERIE="";
-  ACTIVE_SEASON="";
 
- document.querySelectorAll(".side-btn").forEach(btn=>{
-  btn.onclick=()=>{
-    setCategory(btn.dataset.cat);
-  };
-});
+  SERIES_VIEW = "LIST";
+  SELECTED_SERIE = null;
+  SELECTED_SEASON = null;
 
   if(CAT==="series"){
     const si=ALL.filter(x=>x.catKey==="series");
@@ -646,18 +740,201 @@ function setCategory(cat){
     SERIES_KEYS=Object.keys(SERIES_IDX);
   }
 
+  document.querySelectorAll(".side-btn").forEach(b=>{
+    b.classList.toggle("active", b.dataset.cat === CAT);
+  });
+
   renderView();
 }
 
 /* ================= VIEW ================= */
 function renderView(){
-  if(CAT==="series") return renderSeriesView();
 
-  const q=(searchInput?.value||"").toLowerCase();
+  // =========================
+  // 🎬 SERIES FLOW (3 niveles)
+  // =========================
+  if(CAT === "series"){
 
-  const list=ALL.filter(c=>{
-    if(c.catKey!==CAT) return false;
-    if(SUB && c.sub!==SUB) return false;
+    if(SERIES_VIEW === "LIST"){
+      renderSeriesList();
+      return;
+    }
+
+    if(SERIES_VIEW === "SEASONS"){
+      renderSeasons();
+      return;
+    }
+
+    if(SERIES_VIEW === "EPISODES"){
+      renderEpisodes();
+      return;
+    }
+
+    return;
+  }
+
+  // =========================
+  // 📺 NORMAL (TV / PELIS / RADIO)
+  // =========================
+
+  SUB = "";
+
+  const categories = getSubCategoryCards(CAT);
+  const grid = $("grid");
+
+  if(!categories.length){
+    grid.innerHTML = "<div class='empty-state'>Sin contenido</div>";
+    return;
+  }
+
+  grid.innerHTML = categories.map((c,i)=>`
+    <div class="card category-card" data-i="${i}" tabindex="0">
+      <div class="card-poster">
+        ${c.logo
+          ? `<img src="${esc(c.logo)}" loading="lazy">`
+          : `<div class="card-poster-placeholder">${(c.name || "?")[0]}</div>`
+        }
+      </div>
+
+      <div class="card-info">
+        <div class="card-name">${esc(c.name)}</div>
+        <div class="card-sub">${c.count} canales</div>
+      </div>
+
+      <div class="card-category-badge">CAT</div>
+    </div>
+  `).join("");
+
+  const cards = [...grid.querySelectorAll(".card")];
+
+  cards.forEach((el,i)=>{
+    el.onclick = () => {
+      SUB = categories[i].name;
+      renderChannels();
+    };
+  });
+
+  setTimeout(()=>focusCard(0),50);
+}
+
+console.log("TOTAL SERIES:", ALL.filter(x=>x.catKey==="series").length);
+
+function renderSeriesList(){
+
+  const grid = $("grid");
+
+  const list = SERIES_KEYS.map(k => ({
+    key: k,
+    title: SERIES_IDX[k].title,
+    logo: SERIES_IDX[k].logo,
+    seasonsCount: Object.keys(SERIES_IDX[k].seasons).length
+  }));
+
+  grid.innerHTML = list.map((s,i)=>`
+    <div class="card category-card" data-i="${i}" tabindex="0">
+      <div class="card-poster">
+        ${s.logo
+          ? `<img src="${esc(s.logo)}">`
+          : `<div class="card-poster-placeholder">🎬</div>`
+        }
+      </div>
+
+      <div class="card-info">
+        <div class="card-name">${esc(s.title)}</div>
+        <div class="card-sub">${s.seasonsCount} temporadas</div>
+      </div>
+
+      <div class="card-category-badge">SERIE</div>
+    </div>
+  `).join("");
+
+  const cards=[...grid.querySelectorAll(".card")];
+
+  cards.forEach((el,i)=>{
+    el.onclick=()=>{
+      SELECTED_SERIE = list[i].key;
+      SERIES_VIEW = "SEASONS";
+      renderView();
+    };
+  });
+
+  setTimeout(()=>focusCard(0),50);
+}
+
+function renderSeasons(){
+
+  const serie = SERIES_IDX[SELECTED_SERIE];
+  const seasons = Object.keys(serie.seasons).sort();
+
+  const grid = $("grid");
+
+  grid.innerHTML = seasons.map((s,i)=>`
+    <div class="card category-card" data-i="${i}" tabindex="0">
+      <div class="card-poster">
+        <div class="card-poster-placeholder">📁</div>
+      </div>
+
+      <div class="card-info">
+        <div class="card-name">Temporada ${parseInt(s)}</div>
+        <div class="card-sub">${serie.seasons[s].length} episodios</div>
+      </div>
+
+      <div class="card-category-badge">TEMP</div>
+    </div>
+  `).join("");
+
+  const cards=[...grid.querySelectorAll(".card")];
+
+  cards.forEach((el,i)=>{
+    el.onclick=()=>{
+      SELECTED_SEASON = seasons[i];
+      SERIES_VIEW = "EPISODES";
+      renderView();
+    };
+  });
+
+  setTimeout(()=>focusCard(0),50);
+}
+
+function renderEpisodes(){
+
+  const serie = SERIES_IDX[SELECTED_SERIE];
+  const eps = serie.seasons[SELECTED_SEASON] || [];
+
+  const grid = $("grid");
+
+  grid.innerHTML = eps
+    .sort((a,b)=>a.episode-b.episode)
+    .map((e,i)=>`
+      <div class="card" data-idx="${i}" tabindex="0">
+        <div class="card-poster">
+          <div class="card-poster-placeholder">▶</div>
+        </div>
+
+        <div class="card-info">
+          <div class="card-name">
+            EP ${e.episode} - ${serie.title}
+          </div>
+        </div>
+      </div>
+    `).join("");
+
+  const cards=[...grid.querySelectorAll(".card")];
+
+  cards.forEach((el,i)=>{
+    el.onclick=()=>playChannel(eps[i], eps);
+  });
+
+  setTimeout(()=>focusCard(0),50);
+}
+
+function renderChannels(){
+
+  const q = (searchInput?.value || "").toLowerCase();
+
+  const list = ALL.filter(c=>{
+    if(c.catKey !== CAT) return false;
+    if(SUB && c.sub !== SUB) return false;
     if(q && !c.name.toLowerCase().includes(q)) return false;
     return true;
   });
@@ -724,6 +1001,12 @@ function focusCard(i){
   const el=document.querySelector(`.card[data-idx="${i}"]`);
   el?.focus();
 }
+
+document.querySelectorAll(".side-btn").forEach(btn=>{
+  btn.onclick = () => {
+    setCategory(btn.dataset.cat);
+  };
+});
 
 /* ================= KEYBOARD ================= */
 document.addEventListener("keydown",function(e){
