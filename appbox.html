@@ -18,16 +18,21 @@
   --accent:#18b6d6;
   --focus:#22c7e6;
   --input:#0d2135;
-  --radius:14px;
+  --radius:8px;
   --shadow:0 4px 12px rgba(0,0,0,.22);
   --gap:12px;
-  --cardW:190px;
-  --pad:10px;
+  --cardW:200px;
+  --cardH:165px;
+  --pad:13px;
   --logoBoxH:72%;
   --sideW:170px;
   --sideBtnH:72px;
   --sidePad:14px;
   --topH:62px;
+}
+
+.span{
+    width: 10px;
 }
 
 body.light{
@@ -249,6 +254,7 @@ body.light .sideBtn{
 }
 .card{
   width:var(--cardW);
+  height: var(--cardH);
   margin:calc(var(--gap) * .5);
   background:var(--card);
   border:1px solid var(--line);
@@ -392,8 +398,11 @@ body.light .logo{
   <aside class="sidebar" aria-label="Secciones" id="sidebar">
     <div class="sideMenu" id="sideMenu">
       <button class="sideBtn active" type="button" tabindex="0" data-cat="tv en vivo">TV en vivo</button>
+      <span> </span>
       <button class="sideBtn" type="button" tabindex="0" data-cat="peliculas">Películas</button>
+      <span> </span>
       <button class="sideBtn" type="button" tabindex="0" data-cat="series">Series</button>
+      <span> </span>
       <button class="sideBtn" type="button" tabindex="0" data-cat="radios">Radios</button>
     </div>
 
