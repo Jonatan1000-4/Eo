@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
-<title>TV | Canales</title>
+<title>TV</title>
 <style>
 :root{
   --bg:#0b1522;
@@ -399,7 +399,7 @@ body.light .logo{background:#f0f6ff;border-color:rgba(0,0,0,.08)}
 
 <div id="loader">
   <div class="loader-ring"></div>
-  <div class="loader-text">Cargando canales…</div>
+  <div class="loader-text">Cargando…</div>
 </div>
 
 <header class="topbar">
@@ -407,31 +407,12 @@ body.light .logo{background:#f0f6ff;border-color:rgba(0,0,0,.08)}
     <div class="brand-dot"></div>
     <div class="brand-title">StreamTV</div>
   </div>
-  <div class="breadcrumb" id="breadcrumb"></div>
   <input id="search" class="search" placeholder="Buscar…" autocomplete="off" tabindex="0"/>
   <button id="btnTheme" class="btnTheme" type="button" title="Tema">☀️</button>
 </header>
 
 <div class="mainRow">
-  <aside class="sidebar" id="sidebar">
-    <div class="sideMenu" id="sideMenu">
-      <button class="sideBtn active" type="button" tabindex="0" data-cat="tv en vivo">📺 TV en vivo</button>
-      <button class="sideBtn" type="button" tabindex="0" data-cat="peliculas">🎬 Películas</button>
-      <button class="sideBtn" type="button" tabindex="0" data-cat="series">📂 Series</button>
-      <button class="sideBtn" type="button" tabindex="0" data-cat="radios">📻 Radios</button>
-    </div>
-    <div class="sideFooter" id="sideFooter">
-      <div class="email" id="userEmail">—</div>
-      <div class="days" id="daysLeft">—</div>
-      <div class="warn" id="renewWarn">Renovar suscripción pronto.</div>
-    </div>
-  </aside>
-
   <main class="content" id="content">
-    <div class="section">
-      <div class="sectionTitle" id="sectionTitle">Contenido</div>
-      <div class="sectionMeta" id="sectionMeta"></div>
-    </div>
     <div id="backHintWrap"></div>
     <div class="grid" id="grid"></div>
     <div class="empty" id="empty" style="display:none"></div>
@@ -522,7 +503,7 @@ function setSection(t,m){
   if($("sectionMeta"))$("sectionMeta").textContent=m||"";
 }
 function getCatLabel(c){
-  return{"tv en vivo":"TV en vivo","peliculas":"Películas","series":"Series","radios":"Radios"}[c]||"Contenido";
+  return{"tv en vivo":"","peliculas":"Películas","series":"Series","radios":"Radios"}[c]||"Contenido";
 }
 function hideLoader(){
   var l=$("loader");
@@ -746,7 +727,6 @@ function updateBreadcrumb(){
 function renderBackHint(show){
   var w=$("backHintWrap");if(!w)return;
   if(!show){w.innerHTML="";return}
-  w.innerHTML='<button class="back-hint" id="backHintBtn">&#8592; Volver</button>';
   var b=$("backHintBtn");
   if(b)b.onclick=function(){goBack()};
 }
@@ -761,7 +741,18 @@ function filteredSubs(cat){
   return out;
 }
 function filteredChs(cat,sub){
-  var q=getQ(),base=((INDEX_BY_CAT[cat]||{})[sub]||[]).slice();
+  var q=getQ();
+  var base=[];
+  if(sub){
+    base=((INDEX_BY_CAT[cat]||{})[sub]||[]).slice();
+  }else{
+    var catIndex=INDEX_BY_CAT[cat]||{};
+    for(var key in catIndex){
+      if(catIndex.hasOwnProperty(key)){
+        base=base.concat(catIndex[key]||[]);
+      }
+    }
+  }
   if(!q)return base;
   var out=[];
   for(var i=0;i<base.length;i++){if(norm(base[i].name).indexOf(q)>=0)out.push(base[i])}
@@ -1014,7 +1005,7 @@ function renderView(){
 /* ===== CATEGORY ===== */
 function setActiveCategory(cat){
   CURRENT_CATEGORY=norm(cat);
-  CURRENT_SUBCATEGORY="";VIEW_MODE="SUBCATEGORIES";ACTIVE_INDEX=0;
+  CURRENT_SUBCATEGORY="";VIEW_MODE="CHANNELS";ACTIVE_INDEX=0;
   SERIES_MODE="SERIES";ACTIVE_SERIES_KEY="";ACTIVE_SEASON_KEY="";
   var btns=document.querySelectorAll(".sideBtn");
   for(var i=0;i<btns.length;i++){
