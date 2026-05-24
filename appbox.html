@@ -393,6 +393,49 @@ body.light .logo{background:#f0f6ff;border-color:rgba(0,0,0,.08)}
   .sidebar{width:110px;-webkit-flex:0 0 110px;flex:0 0 110px}
   .brand-title{display:none}
 }
+
+/* ===== UI polish (solo visual) ===== */
+:root{--accent2:#22c7e6}
+.brand-dot{box-shadow:0 0 0 3px rgba(24,182,214,.12)}
+.bc-item.clickable{color:var(--accent2)}
+.accountPill{
+  -webkit-flex-shrink:0;flex-shrink:0;
+  max-width:240px;min-width:0;
+  padding:6px 10px;
+  border-radius:999px;
+  border:1px solid var(--line);
+  background:rgba(255,255,255,.04);
+  display:-webkit-box;
+  display:-webkit-flex;
+  display:flex;
+  -webkit-box-orient:vertical;
+  -webkit-flex-direction:column;
+  flex-direction:column;
+  gap:1px;
+  line-height:1.05;
+}
+.accountPill .email{font-weight:900;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.accountPill .days{font-weight:800;font-size:10px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.accountPill.warnOn{border-color:rgba(255,184,0,.35);background:rgba(255,184,0,.08)}
+.search{
+  -webkit-appearance:none;appearance:none;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.03);
+}
+.search:focus{
+  border-color:var(--accent2);
+  box-shadow:0 0 0 2px rgba(34,199,230,.18), inset 0 0 0 1px rgba(255,255,255,.03);
+}
+.btnTheme{box-shadow:0 1px 0 rgba(255,255,255,.05)}
+.btnTheme:focus{border-color:var(--accent2);box-shadow:0 0 0 2px rgba(34,199,230,.18)}
+.btnTheme:active{transform:translateY(1px)}
+.sideBtn{letter-spacing:.2px;box-shadow:0 6px 14px rgba(0,0,0,.18)}
+.sideBtn:focus{box-shadow:0 0 0 2px rgba(34,199,230,.18),0 8px 18px rgba(0,0,0,.18)}
+.card{background:linear-gradient(180deg, rgba(18,42,68,.98), rgba(12,31,50,.98))}
+.card:focus{box-shadow:0 0 0 2px rgba(34,199,230,.22),0 10px 22px rgba(0,0,0,.34)}
+.card:active{transform:translateY(1px)}
+.logo .ph{color:var(--accent2)}
+.card-badge{color:var(--accent2)}
+@media(max-width:480px){.breadcrumb{display:none}}
 </style>
 </head>
 <body>
@@ -405,14 +448,24 @@ body.light .logo{background:#f0f6ff;border-color:rgba(0,0,0,.08)}
 <header class="topbar">
   <div class="brand">
     <div class="brand-dot"></div>
-    <div class="brand-title">StreamTV</div>
+    <div class="brand-title">PRO-TV</div>
   </div>
+  <nav id="breadcrumb" class="breadcrumb" aria-label="Ruta"></nav>
   <input id="search" class="search" placeholder="Buscar…" autocomplete="off" tabindex="0"/>
   <button id="btnTheme" class="btnTheme" type="button" title="Tema">☀️</button>
+  <div class="accountPill" id="sideFooter" aria-label="Cuenta">
+    <div class="email" id="userEmail">—</div>
+    <div class="days" id="daysLeft">—</div>
+    <div class="warn" id="renewWarn" style="display:none"></div>
+  </div>
 </header>
 
 <div class="mainRow">
   <main class="content" id="content">
+    <div class="section">
+      <div id="sectionTitle" class="sectionTitle"></div>
+      <div id="sectionMeta" class="sectionMeta"></div>
+    </div>
     <div id="backHintWrap"></div>
     <div class="grid" id="grid"></div>
     <div class="empty" id="empty" style="display:none"></div>
@@ -503,7 +556,7 @@ function setSection(t,m){
   if($("sectionMeta"))$("sectionMeta").textContent=m||"";
 }
 function getCatLabel(c){
-  return{"tv en vivo":"","peliculas":"Películas","series":"Series","radios":"Radios"}[c]||"Contenido";
+  return{"tv en vivo":"TV en vivo","peliculas":"Películas","series":"Series","radios":"Radios"}[c]||"Contenido";
 }
 function hideLoader(){
   var l=$("loader");
@@ -536,13 +589,27 @@ $("btnTheme").onclick=function(){
 };
 
 /* ===== LAST CHANNEL ===== */
-function saveLastChannel(p){try{localStorage.setItem(LAST_CH_KEY,JSON.stringify(p))}catch(e){}}
+function saveLastChannel(p){
+  try{
+    var copy=JSON.parse(JSON.stringify(p||{}));
+    try{copy.selectedLogo=""}catch(e){}
+    try{copy.channels=(copy.channels||[]).map(function(c){return{name:c.name||"",url:c.url||"",logo:"",number:c.number||""}})}catch(e){}
+    localStorage.setItem(LAST_CH_KEY,JSON.stringify(copy));
+  }catch(e){}
+}
 function loadLastChannel(){try{var s=localStorage.getItem(LAST_CH_KEY);return s?JSON.parse(s):null}catch(e){return null}}
 function tryAutoplay(){
   var last=loadLastChannel();
   if(!last||!last.url)return;
   if(window.AndroidBridge&&typeof window.AndroidBridge.playChannel==="function"){
-    window.AndroidBridge.playChannel(JSON.stringify(last));
+    try{
+      var safe=JSON.parse(JSON.stringify(last));
+      safe.selectedLogo="";
+      safe.channels=(safe.channels||[]).map(function(c){return{name:c.name||"",url:c.url||"",logo:"",number:c.number||""}});
+      window.AndroidBridge.playChannel(JSON.stringify(safe));
+    }catch(e){
+      window.AndroidBridge.playChannel(JSON.stringify(last));
+    }
   }
 }
 
@@ -563,8 +630,16 @@ function renderFooter(email,expMs){
   if(!expMs){if(dEl)dEl.textContent="—";return}
   var days=Math.max(0,Math.ceil((expMs-Date.now())/86400000));
   if(dEl)dEl.textContent="Vence en "+days+"d";
-  if(ft)ft.className="sideFooter"+(days<=3?" warnOn":"");
-  if(wEl&&days<=3)wEl.textContent="Quedan "+days+" día"+(days===1?"":"s")+". Renovar.";
+  if(ft)ft.className="accountPill"+(days<=3?" warnOn":"");
+  if(wEl){
+    if(days<=3){
+      wEl.style.display="block";
+      wEl.textContent="Quedan "+days+" día"+(days===1?"":"s")+". Renovar.";
+    }else{
+      wEl.style.display="none";
+      wEl.textContent="";
+    }
+  }
 }
 auth.onAuthStateChanged(function(user){
   if(!user){goLogin();return}
@@ -1047,7 +1122,8 @@ function focusByIdx(idx){
 }
 function focusSideBtn(){
   var b=document.querySelector('.sideBtn[data-cat="'+CURRENT_CATEGORY+'"]')||document.querySelector(".sideBtn");
-  if(b)try{b.focus()}catch(e){}
+  if(!b)return false;
+  try{b.focus();return true}catch(e){return false}
 }
 function moveSideFocus(d){
   var btns=[];
@@ -1101,7 +1177,9 @@ function enableRemoteNav(){
       if(!CURRENT_LIST.length)return;
       var cols=getCols();
       var atFirst=(cols<=1)?(ACTIVE_INDEX===0):((ACTIVE_INDEX%cols)===0);
-      if(atFirst){e.preventDefault();focusSideBtn();return}
+      if(atFirst){
+        if(focusSideBtn()){e.preventDefault();return}
+      }
     }
 
     /* Desde sidebar: derecha → grid */
@@ -1167,11 +1245,7 @@ function boot(){
       ALL=parseM3U(text);
       if(!ALL.length){hideLoader();setEmpty("Sin canales");return}
       buildIndexes(ALL);
-      var order=["tv en vivo","peliculas","series","radios"],found="tv en vivo";
-      for(var i=0;i<order.length;i++){
-        if(SUBCAT_CARDS[order[i]]&&SUBCAT_CARDS[order[i]].length){found=order[i];break}
-      }
-      setActiveCategory(found);
+      setActiveCategory("tv en vivo");
       hideLoader();
       window.addEventListener("resize",function(){
         setTimeout(function(){focusByIdx(ACTIVE_INDEX)},80);
