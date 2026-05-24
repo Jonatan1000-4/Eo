@@ -504,12 +504,40 @@ body:before{
   border:1px solid rgba(34,199,230,.20);
   box-shadow:0 0 0 4px rgba(34,199,230,.06);
   background:rgba(0,0,0,.35);
+  position:relative;
 }
 .previewVideo{
   width:100%;
   height:202px;
   background:#000;
   display:block;
+}
+.previewLogo{
+  position:absolute;
+  left:0;right:0;top:0;bottom:0;
+  display:-webkit-box;
+  display:-webkit-flex;
+  display:flex;
+  -webkit-box-align:center;
+  -webkit-align-items:center;
+  align-items:center;
+  -webkit-box-pack:center;
+  -webkit-justify-content:center;
+  justify-content:center;
+  background:linear-gradient(180deg, rgba(0,0,0,.08), rgba(0,0,0,.46));
+  opacity:0;
+  pointer-events:none;
+  -webkit-transition:opacity .14s ease;
+  transition:opacity .14s ease;
+}
+.previewLogo.show{opacity:1}
+.previewLogo img{
+  max-width:86%;
+  max-height:70%;
+  object-fit:contain;
+  display:block;
+  -webkit-filter:drop-shadow(0 10px 14px rgba(0,0,0,.55));
+  filter:drop-shadow(0 10px 14px rgba(0,0,0,.55));
 }
 .previewMeta{margin-top:10px}
 .previewName{font-weight:900;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -628,6 +656,9 @@ body:before{
     <div class="previewCard">
       <div class="previewVideoWrap">
         <video id="previewPlayer" class="previewVideo" muted autoplay playsinline preload="none"></video>
+        <div class="previewLogo" id="previewLogo">
+          <img id="previewLogoImg" alt=""/>
+        </div>
       </div>
       <div class="previewMeta">
         <div class="previewName" id="previewName">—</div>
@@ -1338,6 +1369,17 @@ function enableRemoteNav(){
       if(atFirst){e.preventDefault();focusSideBtn();return}
     }
 
+    /* Desde grid: arriba en primera fila → topbar (search) */
+    if(!inSide&&isU(key,kc)){
+      if(!CURRENT_LIST.length)return;
+      var colsTop=getCols();
+      var atTop=(colsTop<=1)?(ACTIVE_INDEX===0):(ACTIVE_INDEX<colsTop);
+      if(atTop){
+        var s=$("search");
+        if(s){e.preventDefault();try{s.focus()}catch(e2){};return}
+      }
+    }
+
     /* Desde sidebar: derecha → grid */
     if(inSide&&isR(key,kc)){
       e.preventDefault();
@@ -1447,6 +1489,8 @@ function boot(){
     try{pv.pause()}catch(e){}
     try{pv.removeAttribute("src")}catch(e2){}
     try{pv.load()}catch(e3){}
+    var ol=document.getElementById("previewLogo");
+    if(ol)ol.className="previewLogo";
   }
   function setView(mode){
     var grid=document.getElementById("grid");
@@ -1459,6 +1503,8 @@ function boot(){
     if(pane)pane.style.display=list?"none":"";
     if(list)clearPreview();
     try{localStorage.setItem("viewMode",list?"list":"grid")}catch(e2){}
+    /* Evita que el listener global de DPAD "secuestrE" flechas en topbar */
+    try{setTimeout(function(){focusByIdx(ACTIVE_INDEX)},40)}catch(e3){}
   }
   (function(){
     var vm=null;try{vm=localStorage.getItem("viewMode")}catch(e){}
@@ -1472,13 +1518,38 @@ function boot(){
     try{renderView()}catch(e2){}
   };
 
+  /* DPAD: permitir llegar y usar botones de la topbar */
+  function topbarKeyNav(){
+    var s=document.getElementById("search");
+    var v=document.getElementById("btnView");
+    var t=document.getElementById("btnTheme");
+    function h(el){return function(ev){
+      var k=ev.key||"",c=ev.keyCode||0;
+      if(isD(k,c)){ev.preventDefault();ev.stopPropagation();setTimeout(function(){focusByIdx(ACTIVE_INDEX)},40);return}
+      if(isL(k,c)){
+        if(el===v&&s){ev.preventDefault();ev.stopPropagation();try{s.focus()}catch(e){};return}
+        if(el===t&&v){ev.preventDefault();ev.stopPropagation();try{v.focus()}catch(e2){};return}
+      }
+      if(isR(k,c)){
+        if(el===s&&v){ev.preventDefault();ev.stopPropagation();try{v.focus()}catch(e3){};return}
+        if(el===v&&t){ev.preventDefault();ev.stopPropagation();try{t.focus()}catch(e4){};return}
+      }
+    }; }
+    if(s&&!s.__dpad){s.__dpad=true;s.addEventListener("keydown",h(s),true)}
+    if(v&&!v.__dpad){v.__dpad=true;v.addEventListener("keydown",h(v),true)}
+    if(t&&!t.__dpad){t.__dpad=true;t.addEventListener("keydown",h(t),true)}
+  }
+  topbarKeyNav();
+
   var previewTimer=0;
+  var logoTimer=0;
   document.addEventListener("focusin",function(ev){
     var t=ev.target;
     if(!t)return;
     if(!(t.classList&&t.classList.contains("card"))){
       var tag=(t.tagName||"").toLowerCase();
-      if(tag==="input"||(t.classList&&t.classList.contains("sideBtn"))){
+      var isTopBtn=(tag==="button"&&(t.id==="btnView"||t.id==="btnTheme"));
+      if(tag==="input"||isTopBtn||(t.classList&&t.classList.contains("sideBtn"))){
         clearTimeout(previewTimer);
         clearPreview();
       }
@@ -1503,6 +1574,17 @@ function boot(){
         ps.textContent="LIVE"+(q?" · "+q:"");
       }
 
+      /* Mostrar logo 3s sobre el preview */
+      clearTimeout(logoTimer);
+      var ol=document.getElementById("previewLogo");
+      var oi=document.getElementById("previewLogoImg");
+      if(ol){
+        if(oi&&it.logo){oi.src=it.logo;oi.style.display=""}
+        else if(oi){oi.removeAttribute("src");oi.style.display="none"}
+        ol.className="previewLogo show";
+        logoTimer=setTimeout(function(){ol.className="previewLogo"},3000);
+      }
+
       var pv=document.getElementById("previewPlayer");
       if(!pv)return;
       try{
@@ -1513,7 +1595,7 @@ function boot(){
         pv.setAttribute("src",it.url);
         pv.play();
       }catch(e3){}
-    },700);
+    },150);
   },true);
 })();
 </script>
