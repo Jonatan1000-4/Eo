@@ -932,8 +932,16 @@ function playChannel(sel,list,idxOverride){
     selectedNumber:sel.number||""
   };
   saveLastChannel(payload);
+  /* Enviar payload sin logos al reproductor externo para evitar mostrar el logo en pantalla */
   if(window.AndroidBridge&&typeof window.AndroidBridge.playChannel==="function"){
-    window.AndroidBridge.playChannel(JSON.stringify(payload));
+    try{
+      var payloadForPlayer=JSON.parse(JSON.stringify(payload));
+      payloadForPlayer.selectedLogo="";
+      payloadForPlayer.channels=payloadForPlayer.channels.map(function(c){return{name:c.name,url:c.url,logo:"",number:c.number||""}});
+      window.AndroidBridge.playChannel(JSON.stringify(payloadForPlayer));
+    }catch(e){
+      window.AndroidBridge.playChannel(JSON.stringify(payload));
+    }
   }else{
     console.log("PLAY:",payload);
     toast("▶ "+sel.name);
