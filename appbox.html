@@ -524,7 +524,7 @@ body:before{
   -webkit-box-pack:center;
   -webkit-justify-content:center;
   justify-content:center;
-  background:linear-gradient(180deg, rgba(0,0,0,.08), rgba(0,0,0,.46));
+  background:rgba(0,0,0,.92);
   opacity:0;
   pointer-events:none;
   -webkit-transition:opacity .14s ease;
@@ -1542,7 +1542,25 @@ function boot(){
   topbarKeyNav();
 
   var previewTimer=0;
-  var logoTimer=0;
+  var previewShownUrl="";
+
+  (function bindPreviewEvents(){
+    var pv=document.getElementById("previewPlayer");
+    if(!pv||pv.__pvBound)return;
+    pv.__pvBound=true;
+    function onReady(){
+      var ol=document.getElementById("previewLogo");
+      if(!ol||!ol.className||ol.className.indexOf("show")<0)return;
+      ol.className="previewLogo";
+    }
+    pv.addEventListener("playing",onReady,true);
+    pv.addEventListener("canplay",onReady,true);
+    pv.addEventListener("timeupdate",function(){
+      try{
+        if((pv.currentTime||0)>0.01)onReady();
+      }catch(e){}
+    },true);
+  })();
   document.addEventListener("focusin",function(ev){
     var t=ev.target;
     if(!t)return;
@@ -1574,26 +1592,52 @@ function boot(){
         ps.textContent="LIVE"+(q?" · "+q:"");
       }
 
-      /* Mostrar logo 3s sobre el preview */
-      clearTimeout(logoTimer);
+      /* Tapa negra + logo (se oculta apenas avance el timer) */
       var ol=document.getElementById("previewLogo");
       var oi=document.getElementById("previewLogoImg");
       if(ol){
         if(oi&&it.logo){oi.src=it.logo;oi.style.display=""}
         else if(oi){oi.removeAttribute("src");oi.style.display="none"}
         ol.className="previewLogo show";
-        logoTimer=setTimeout(function(){ol.className="previewLogo"},3000);
       }
 
       var pv=document.getElementById("previewPlayer");
       if(!pv)return;
       try{
-        if(pv.getAttribute("src")===it.url)return;
+        if(pv.getAttribute("src")===it.url){
+          /* Si ya está reproduciendo este mismo canal, no dejes la tapa pegada */
+          try{
+            if(!pv.paused && ((pv.currentTime||0)>0.01 || (pv.readyState||0)>=2)){
+              var ol3=document.getElementById("previewLogo");
+              if(ol3)ol3.className="previewLogo";
+            }
+          }catch(e4){}
+          return;
+        }
+        previewShownUrl=it.url;
         pv.pause();
         pv.removeAttribute("src");
         pv.load();
         pv.setAttribute("src",it.url);
         pv.play();
+
+        /* Fallback: algunos WebView no disparan canplay/playing. Si el video avanza, ocultar igual */
+        (function(){
+          var tries=0;
+          function poll(){
+            tries++;
+            if(pv.getAttribute("src")!==previewShownUrl)return;
+            try{
+              if((pv.currentTime||0)>0.01 || (!pv.paused && (pv.readyState||0)>=2)){
+                var ol4=document.getElementById("previewLogo");
+                if(ol4)ol4.className="previewLogo";
+                return;
+              }
+            }catch(e){}
+            if(tries<20)setTimeout(poll,200);
+          }
+          setTimeout(poll,200);
+        })();
       }catch(e3){}
     },150);
   },true);
