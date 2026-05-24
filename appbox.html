@@ -398,44 +398,186 @@ body.light .logo{background:#f0f6ff;border-color:rgba(0,0,0,.08)}
 :root{--accent2:#22c7e6}
 .brand-dot{box-shadow:0 0 0 3px rgba(24,182,214,.12)}
 .bc-item.clickable{color:var(--accent2)}
-.accountPill{
+
+/* ===== LIVE TV PREMIUM (solo visual, SIMPLE) ===== */
+body:before{
+  content:"";
+  position:fixed;top:0;left:0;right:0;bottom:0;
+  z-index:-1;
+  background:linear-gradient(180deg, #08111c, #050a10);
+}
+.breadcrumb{display:none}
+.topbar{
+  background:rgba(10,20,34,.82);
+  border-bottom:1px solid rgba(255,255,255,.08);
+  box-shadow:0 10px 22px rgba(0,0,0,.32);
+  -webkit-backdrop-filter:blur(8px);
+  backdrop-filter:blur(8px);
+}
+.brand-title{letter-spacing:.7px}
+.topStatus{
   -webkit-flex-shrink:0;flex-shrink:0;
-  max-width:240px;min-width:0;
-  padding:6px 10px;
-  border-radius:999px;
-  border:1px solid var(--line);
-  background:rgba(255,255,255,.04);
   display:-webkit-box;
   display:-webkit-flex;
   display:flex;
-  -webkit-box-orient:vertical;
-  -webkit-flex-direction:column;
-  flex-direction:column;
-  gap:1px;
-  line-height:1.05;
+  -webkit-box-align:center;
+  -webkit-align-items:center;
+  align-items:center;
+  gap:8px;
 }
-.accountPill .email{font-weight:900;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.accountPill .days{font-weight:800;font-size:10px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.accountPill.warnOn{border-color:rgba(255,184,0,.35);background:rgba(255,184,0,.08)}
+.statPill,.clock{
+  display:inline-block;
+  padding:4px 10px;border-radius:999px;
+  border:1px solid rgba(255,255,255,.10);
+  background:rgba(255,255,255,.05);
+  color:rgba(234,243,255,.86);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.03);
+}
+.statPill{font-size:10px;font-weight:900;letter-spacing:.6px}
+.clock{font-size:11px;font-weight:900;letter-spacing:1.2px;font-variant-numeric:tabular-nums}
+.btnTheme,.btnView{
+  -webkit-flex-shrink:0;flex-shrink:0;
+  width:40px;height:36px;
+  border-radius:10px;border:1px solid rgba(255,255,255,.10);
+  background:rgba(255,255,255,.05);
+  color:var(--text);font-size:15px;cursor:pointer;outline:none;
+  box-shadow:0 1px 0 rgba(255,255,255,.05);
+}
+.btnTheme:focus,.btnView:focus{border-color:rgba(34,199,230,.85);box-shadow:0 0 0 2px rgba(34,199,230,.16)}
+.btnTheme:active,.btnView:active{transform:translateY(1px)}
 .search{
   -webkit-appearance:none;appearance:none;
+  background:rgba(255,255,255,.05);
   box-shadow:inset 0 0 0 1px rgba(255,255,255,.03);
 }
 .search:focus{
-  border-color:var(--accent2);
-  box-shadow:0 0 0 2px rgba(34,199,230,.18), inset 0 0 0 1px rgba(255,255,255,.03);
+  border-color:rgba(34,199,230,.85);
+  box-shadow:0 0 0 2px rgba(34,199,230,.16), inset 0 0 0 1px rgba(255,255,255,.03);
 }
-.btnTheme{box-shadow:0 1px 0 rgba(255,255,255,.05)}
-.btnTheme:focus{border-color:var(--accent2);box-shadow:0 0 0 2px rgba(34,199,230,.18)}
-.btnTheme:active{transform:translateY(1px)}
-.sideBtn{letter-spacing:.2px;box-shadow:0 6px 14px rgba(0,0,0,.18)}
-.sideBtn:focus{box-shadow:0 0 0 2px rgba(34,199,230,.18),0 8px 18px rgba(0,0,0,.18)}
-.card{background:linear-gradient(180deg, rgba(18,42,68,.98), rgba(12,31,50,.98))}
-.card:focus{box-shadow:0 0 0 2px rgba(34,199,230,.22),0 10px 22px rgba(0,0,0,.34)}
-.card:active{transform:translateY(1px)}
-.logo .ph{color:var(--accent2)}
-.card-badge{color:var(--accent2)}
-@media(max-width:480px){.breadcrumb{display:none}}
+
+/* "No sidebar": se oculta visualmente, pero se mantiene para no romper DPAD */
+.sidebar{
+  width:1px;
+  -webkit-flex:0 0 1px;
+  flex:0 0 1px;
+  padding:0;
+  border-right:0;
+  background:transparent;
+  overflow:visible;
+}
+.sideMenu{
+  position:fixed;
+  left:-9999px;top:0;
+  width:1px;height:1px;
+  overflow:hidden;
+}
+.sideFooter{display:none}
+
+/* Layout + preview pane */
+.mainRow{gap:0}
+.content{background:transparent}
+.catalog{
+  -webkit-box-flex:1;
+  -webkit-flex:1;
+  flex:1;
+  min-width:0;
+}
+.previewPane{
+  width:360px;
+  -webkit-flex:0 0 360px;
+  flex:0 0 360px;
+  padding:14px 14px 14px 0;
+  background:transparent;
+}
+.previewCard{
+  border-radius:16px;
+  border:1px solid rgba(255,255,255,.10);
+  background:rgba(10,20,34,.70);
+  -webkit-backdrop-filter:blur(8px);
+  backdrop-filter:blur(8px);
+  box-shadow:0 16px 32px rgba(0,0,0,.40);
+  padding:12px;
+}
+.previewVideoWrap{
+  border-radius:14px;
+  overflow:hidden;
+  border:1px solid rgba(34,199,230,.20);
+  box-shadow:0 0 0 4px rgba(34,199,230,.06);
+  background:rgba(0,0,0,.35);
+}
+.previewVideo{
+  width:100%;
+  height:202px;
+  background:#000;
+  display:block;
+}
+.previewMeta{margin-top:10px}
+.previewName{font-weight:900;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.previewSub{margin-top:3px;color:rgba(234,243,255,.68);font-weight:800;font-size:11px;letter-spacing:.4px}
+
+/* Grid / list views */
+.grid{padding:8px 8px 20px}
+.grid.list{display:block;padding:10px 10px 18px}
+.grid.list .card{width:auto;margin:8px 4px}
+.grid.list .card:before{display:none;padding-top:0}
+.grid.list .cardInner{
+  position:relative;left:auto;right:auto;top:auto;bottom:auto;
+  padding:10px 10px;
+  -webkit-box-orient:horizontal;
+  -webkit-flex-direction:row;
+  flex-direction:row;
+  -webkit-box-align:center;
+  -webkit-align-items:center;
+  align-items:center;
+  gap:10px;
+}
+.grid.list .logo{
+  height:46px;width:84px;
+  -webkit-flex:0 0 84px;
+  flex:0 0 84px;
+  border-radius:12px;
+}
+.grid.list .meta{
+  -webkit-box-flex:1;
+  -webkit-flex:1;
+  flex:1;
+  -webkit-box-pack:center;
+  -webkit-justify-content:center;
+  justify-content:center;
+}
+.grid.list .name{font-size:14px}
+.grid.list .group{margin-top:2px}
+
+/* Cards premium minimal */
+.card{
+  background:linear-gradient(180deg, rgba(16,30,48,.92), rgba(10,20,34,.92));
+  border:1px solid rgba(255,255,255,.10);
+  box-shadow:0 10px 22px rgba(0,0,0,.34);
+  -webkit-transform:translateZ(0);
+  transform:translateZ(0);
+  -webkit-transition:-webkit-transform .14s ease, box-shadow .14s ease, border-color .14s ease;
+  transition:transform .14s ease, box-shadow .14s ease, border-color .14s ease;
+  opacity:0;
+  -webkit-animation:cardIn .16s ease forwards;
+  animation:cardIn .16s ease forwards;
+}
+.card:focus{
+  border-color:rgba(34,199,230,.75);
+  box-shadow:0 0 0 2px rgba(34,199,230,.16),0 16px 30px rgba(0,0,0,.44);
+  -webkit-transform:scale(1.035);
+  transform:scale(1.035);
+  z-index:5;
+}
+.logo{background:rgba(255,255,255,.04)}
+.loader-ring{box-shadow:0 0 0 6px rgba(24,182,214,.06), 0 0 18px rgba(24,182,214,.18)}
+.toast{bottom:18px}
+
+@-webkit-keyframes cardIn{from{opacity:0;-webkit-transform:translateY(2px)}to{opacity:1;-webkit-transform:translateY(0)}}
+@keyframes cardIn{from{opacity:0;transform:translateY(2px)}to{opacity:1;transform:translateY(0)}}
+
+@media(max-width:980px){.previewPane{display:none}}
+@media(max-width:700px){.topStatus{display:none}}
+@media(max-width:480px){.topbar{padding:0 10px}.search{width:56vw}}
 </style>
 </head>
 <body>
@@ -450,18 +592,30 @@ body.light .logo{background:#f0f6ff;border-color:rgba(0,0,0,.08)}
     <div class="brand-dot"></div>
     <div class="brand-title">PRO-TV</div>
   </div>
-  <nav id="breadcrumb" class="breadcrumb" aria-label="Ruta"></nav>
-  <input id="search" class="search" placeholder="Buscar…" autocomplete="off" tabindex="0"/>
-  <button id="btnTheme" class="btnTheme" type="button" title="Tema">☀️</button>
-  <div class="accountPill" id="sideFooter" aria-label="Cuenta">
-    <div class="email" id="userEmail">—</div>
-    <div class="days" id="daysLeft">—</div>
-    <div class="warn" id="renewWarn" style="display:none"></div>
+  <div class="topStatus" aria-label="Estado">
+    <span class="statPill" id="chanCount">0 CANALES</span>
+    <span class="clock" id="clock">00:00</span>
   </div>
+  <input id="search" class="search" placeholder="Buscar…" autocomplete="off" tabindex="0"/>
+  <button id="btnView" class="btnView" type="button" title="Vista">▦</button>
+  <button id="btnTheme" class="btnTheme" type="button" title="Tema">☀️</button>
 </header>
 
 <div class="mainRow">
-  <main class="content" id="content">
+  <aside class="sidebar" aria-label="Categorías">
+    <div class="sideMenu">
+      <button class="sideBtn active" type="button" data-cat="tv en vivo">TV EN VIVO</button>
+      <button class="sideBtn" type="button" data-cat="peliculas">PELÍCULAS</button>
+      <button class="sideBtn" type="button" data-cat="series">SERIES</button>
+      <button class="sideBtn" type="button" data-cat="radios">RADIOS</button>
+    </div>
+    <div class="sideFooter" id="sideFooter">
+      <div class="email" id="userEmail">—</div>
+      <div class="days" id="daysLeft">—</div>
+      <div class="warn" id="renewWarn"></div>
+    </div>
+  </aside>
+  <main class="content catalog" id="content">
     <div class="section">
       <div id="sectionTitle" class="sectionTitle"></div>
       <div id="sectionMeta" class="sectionMeta"></div>
@@ -470,6 +624,17 @@ body.light .logo{background:#f0f6ff;border-color:rgba(0,0,0,.08)}
     <div class="grid" id="grid"></div>
     <div class="empty" id="empty" style="display:none"></div>
   </main>
+  <aside class="previewPane" aria-label="Preview">
+    <div class="previewCard">
+      <div class="previewVideoWrap">
+        <video id="previewPlayer" class="previewVideo" muted autoplay playsinline preload="none"></video>
+      </div>
+      <div class="previewMeta">
+        <div class="previewName" id="previewName">—</div>
+        <div class="previewSub" id="previewSub">LIVE</div>
+      </div>
+    </div>
+  </aside>
 </div>
 
 <div id="toast" class="toast"></div>
@@ -511,6 +676,7 @@ var CHUNK=30; /* más grande = menos rAF = menos foco intermedio */
 var CARD_W=190;
 var CARD_M=5; /* margin por lado */
 
+/* ===== VIEW MODE ===== */
 /* ===== KEYCODES ===== */
 var KC={LEFT:37,UP:38,RIGHT:39,DOWN:40,ENTER:13,DPAD_L:21,DPAD_U:19,DPAD_R:22,DPAD_D:20,DPAD_OK:23,BACK:4,ESC:27};
 function isL(k,c){return k==="ArrowLeft"||c===KC.LEFT||c===KC.DPAD_L}
@@ -567,6 +733,7 @@ function hideLoader(){
 function getCols(){
   var grid=$("grid");
   if(!grid)return 1;
+  try{if(grid.classList&&grid.classList.contains("list"))return 1}catch(e){}
   var gw=grid.clientWidth||300;
   var cellW=CARD_W+(CARD_M*2);
   var cols=Math.floor(gw/cellW);
@@ -630,16 +797,8 @@ function renderFooter(email,expMs){
   if(!expMs){if(dEl)dEl.textContent="—";return}
   var days=Math.max(0,Math.ceil((expMs-Date.now())/86400000));
   if(dEl)dEl.textContent="Vence en "+days+"d";
-  if(ft)ft.className="accountPill"+(days<=3?" warnOn":"");
-  if(wEl){
-    if(days<=3){
-      wEl.style.display="block";
-      wEl.textContent="Quedan "+days+" día"+(days===1?"":"s")+". Renovar.";
-    }else{
-      wEl.style.display="none";
-      wEl.textContent="";
-    }
-  }
+  if(ft)ft.className="sideFooter"+(days<=3?" warnOn":"");
+  if(wEl&&days<=3)wEl.textContent="Quedan "+days+" día"+(days===1?"":"s")+". Renovar.";
 }
 auth.onAuthStateChanged(function(user){
   if(!user){goLogin();return}
@@ -1122,8 +1281,7 @@ function focusByIdx(idx){
 }
 function focusSideBtn(){
   var b=document.querySelector('.sideBtn[data-cat="'+CURRENT_CATEGORY+'"]')||document.querySelector(".sideBtn");
-  if(!b)return false;
-  try{b.focus();return true}catch(e){return false}
+  if(b)try{b.focus()}catch(e){}
 }
 function moveSideFocus(d){
   var btns=[];
@@ -1177,9 +1335,7 @@ function enableRemoteNav(){
       if(!CURRENT_LIST.length)return;
       var cols=getCols();
       var atFirst=(cols<=1)?(ACTIVE_INDEX===0):((ACTIVE_INDEX%cols)===0);
-      if(atFirst){
-        if(focusSideBtn()){e.preventDefault();return}
-      }
+      if(atFirst){e.preventDefault();focusSideBtn();return}
     }
 
     /* Desde sidebar: derecha → grid */
@@ -1245,6 +1401,7 @@ function boot(){
       ALL=parseM3U(text);
       if(!ALL.length){hideLoader();setEmpty("Sin canales");return}
       buildIndexes(ALL);
+      /* Solo TV en vivo (catálogo directo) */
       setActiveCategory("tv en vivo");
       hideLoader();
       window.addEventListener("resize",function(){
@@ -1258,6 +1415,107 @@ function boot(){
       toast("Error de red");
     });
 }
+
+/* ===== UI: reloj + contador + vista + preview (solo visual) ===== */
+(function(){
+  function p2(n){n=parseInt(n,10)||0;return(n<10?"0":"")+n}
+  function qTag(name){
+    var s=String(name||"").toLowerCase();
+    if(s.indexOf("4k")>=0||s.indexOf("uhd")>=0)return"4K";
+    if(s.indexOf("fhd")>=0||s.indexOf("1080")>=0)return"FHD";
+    if(s.indexOf("hd")>=0||s.indexOf("720")>=0)return"HD";
+    return"";
+  }
+  function tick(){
+    var cEl=document.getElementById("clock");
+    if(cEl){
+      var d=new Date();
+      cEl.textContent=p2(d.getHours())+":"+p2(d.getMinutes());
+    }
+    var cnt=document.getElementById("chanCount");
+    if(cnt&&typeof window.CURRENT_LIST!=="undefined"){
+      var n=(CURRENT_LIST&&CURRENT_LIST.length)?CURRENT_LIST.length:0;
+      cnt.textContent=n+" CANALES";
+    }
+  }
+  tick();
+  setInterval(tick,1000);
+
+  function clearPreview(){
+    var pv=document.getElementById("previewPlayer");
+    if(!pv)return;
+    try{pv.pause()}catch(e){}
+    try{pv.removeAttribute("src")}catch(e2){}
+    try{pv.load()}catch(e3){}
+  }
+  function setView(mode){
+    var grid=document.getElementById("grid");
+    if(!grid)return;
+    var list=(mode==="list");
+    try{if(list)grid.classList.add("list");else grid.classList.remove("list")}catch(e){}
+    var b=document.getElementById("btnView");
+    if(b)b.textContent=list?"≡":"▦";
+    var pane=document.querySelector(".previewPane");
+    if(pane)pane.style.display=list?"none":"";
+    if(list)clearPreview();
+    try{localStorage.setItem("viewMode",list?"list":"grid")}catch(e2){}
+  }
+  (function(){
+    var vm=null;try{vm=localStorage.getItem("viewMode")}catch(e){}
+    setView(vm==="list"?"list":"grid");
+  })();
+  var bv=document.getElementById("btnView");
+  if(bv)bv.onclick=function(){
+    var grid=document.getElementById("grid");if(!grid)return;
+    var isList=false;try{isList=grid.classList.contains("list")}catch(e){}
+    setView(isList?"grid":"list");
+    try{renderView()}catch(e2){}
+  };
+
+  var previewTimer=0;
+  document.addEventListener("focusin",function(ev){
+    var t=ev.target;
+    if(!t)return;
+    if(!(t.classList&&t.classList.contains("card"))){
+      var tag=(t.tagName||"").toLowerCase();
+      if(tag==="input"||(t.classList&&t.classList.contains("sideBtn"))){
+        clearTimeout(previewTimer);
+        clearPreview();
+      }
+      return;
+    }
+    clearTimeout(previewTimer);
+    previewTimer=setTimeout(function(){
+      var grid=document.getElementById("grid");
+      if(!grid||!grid.classList||grid.classList.contains("list"))return;
+      if(window.innerWidth&&window.innerWidth<980)return;
+      if(document.activeElement!==t)return;
+      var idx=parseInt(t.getAttribute("data-idx"),10);
+      if(!(idx>=0))return;
+      var it=(window.CURRENT_LIST&&CURRENT_LIST[idx])?CURRENT_LIST[idx]:null;
+      if(!it||!it.url)return;
+
+      var pn=document.getElementById("previewName");
+      var ps=document.getElementById("previewSub");
+      if(pn)pn.textContent=it.name||"—";
+      if(ps){
+        var q=qTag(it.name||"");
+        ps.textContent="LIVE"+(q?" · "+q:"");
+      }
+
+      var pv=document.getElementById("previewPlayer");
+      if(!pv)return;
+      try{
+        if(pv.getAttribute("src")===it.url)return;
+        pv.pause();
+        pv.removeAttribute("src");
+        pv.load();
+        pv.setAttribute("src",it.url);
+        pv.play();
+      }catch(e3){}
+    },700);
+  },true);
+})();
 </script>
 </body>
 </html>
