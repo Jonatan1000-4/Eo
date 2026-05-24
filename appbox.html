@@ -655,7 +655,7 @@ body:before{
   <aside class="previewPane" aria-label="Preview">
     <div class="previewCard">
       <div class="previewVideoWrap">
-        <video id="previewPlayer" class="previewVideo" autoplay playsinline preload="none"></video>
+        <video id="previewPlayer" class="previewVideo" autoplay playsinline preload="none" style="visibility:hidden"></video>
         <div class="previewLogo" id="previewLogo">
           <img id="previewLogoImg" alt=""/>
         </div>
@@ -1489,6 +1489,7 @@ function boot(){
     try{pv.pause()}catch(e){}
     try{pv.removeAttribute("src")}catch(e2){}
     try{pv.load()}catch(e3){}
+    try{pv.style.visibility="hidden"}catch(e4){}
     var ol=document.getElementById("previewLogo");
     if(ol)ol.className="previewLogo";
   }
@@ -1551,6 +1552,8 @@ function boot(){
     function onReady(){
       var ol=document.getElementById("previewLogo");
       if(!ol||!ol.className||ol.className.indexOf("show")<0)return;
+      var pv=document.getElementById("previewPlayer");
+      if(pv)try{pv.style.visibility="visible"}catch(e0){}
       ol.className="previewLogo";
     }
     pv.addEventListener("playing",onReady,true);
@@ -1608,6 +1611,7 @@ function boot(){
           /* Si ya está reproduciendo este mismo canal, no dejes la tapa pegada */
           try{
             if(!pv.paused && ((pv.currentTime||0)>0.01 || (pv.readyState||0)>=2)){
+              try{pv.style.visibility="visible"}catch(e5){}
               var ol3=document.getElementById("previewLogo");
               if(ol3)ol3.className="previewLogo";
             }
@@ -1615,6 +1619,7 @@ function boot(){
           return;
         }
         previewShownUrl=it.url;
+        try{pv.style.visibility="hidden"}catch(e6){}
         pv.pause();
         pv.removeAttribute("src");
         pv.load();
