@@ -216,7 +216,6 @@ const ALLOWLIST_COLLECTION = "allowlist";
 const M3U_URL = "https://jonatan1000-4.github.io/mi_app_rv22/canales.m3u";
 const M3U_TEXT = "";
 const JSON_FALLBACK = ""; // opcional: podés poner JSON aquí si querés
-const HLS_RELAY_BASE = "http://192.168.2.104:8787";
 
 let ALL_CHANNELS = [];
 let CURRENT_CATEGORY = "ALL";
@@ -377,11 +376,6 @@ function showPlayerError(message){
   $("playerStatus").style.color="#ff9b9b";
 }
 
-function isIosDevice(){
-  return /iPad|iPhone|iPod/.test(navigator.userAgent)||
-    (navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
-}
-
 function startBrowserPlayer(channel){
   CURRENT_CHANNEL=channel;
   $("playerName").textContent=channel.name||"Canal";
@@ -419,14 +413,6 @@ function startBrowserPlayer(channel){
   }else if(isHls && video.canPlayType("application/vnd.apple.mpegurl")){
     video.src=url;
     video.play().then(()=>$("playerStatus").textContent="Reproduciendo").catch(()=>showPlayerError("El navegador bloqueó este stream HLS o el servidor no permite CORS."));
-  }else if(isMpegTs && isIosDevice()){
-    if(!HLS_RELAY_BASE){
-      showPlayerError("Este canal entrega MPEG-TS. Configura HLS_RELAY_BASE con la dirección del relay FFmpeg para reproducirlo en iPhone.");
-    }else{
-      const relayUrl=`${HLS_RELAY_BASE.replace(/\/$/,"")}/stream.m3u8?url=${encodeURIComponent(url)}`;
-      video.src=relayUrl;
-      video.play().then(()=>$("playerStatus").textContent="Reproduciendo HLS").catch(()=>showPlayerError("El relay HLS no responde o el iPhone no puede acceder a su dirección."));
-    }
   }else if(isMpegTs && window.mpegts && window.mpegts.isSupported()){
     mpegtsPlayer=window.mpegts.createPlayer({type:url.match(/\.flv(?:$|[?#])/i)?"flv":"mpegts",isLive:true,url});
     mpegtsPlayer.attachMediaElement(video);
