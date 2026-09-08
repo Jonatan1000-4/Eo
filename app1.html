@@ -193,6 +193,7 @@ body{
 <div id="toast" class="toast"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+<script src="https://cdn.jsdelivr.net/npm/mpegts.js@latest/dist/mpegts.min.js"></script>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
@@ -220,6 +221,7 @@ let ALL_CHANNELS = [];
 let CURRENT_CATEGORY = "ALL";
 let CURRENT_CHANNEL = null;
 let hlsPlayer = null;
+let mpegtsPlayer = null;
 
 const $ = id=>document.getElementById(id);
 const toast = t=>{
@@ -349,6 +351,10 @@ function closePlayer(){
     hlsPlayer.destroy();
     hlsPlayer=null;
   }
+  if(mpegtsPlayer){
+    mpegtsPlayer.destroy();
+    mpegtsPlayer=null;
+  }
   const video=$("playerVideo");
   video.pause();
   video.removeAttribute("src");
@@ -382,32 +388,43 @@ function startBrowserPlayer(channel){
     hlsPlayer.destroy();
     hlsPlayer=null;
   }
+  if(mpegtsPlayer){
+    mpegtsPlayer.destroy();
+    mpegtsPlayer=null;
+  }
   const video=$("playerVideo");
   video.pause();
   video.removeAttribute("src");
   video.load();
   const url=String(channel.url||"").trim();
   const isHls=/\.m3u8(?:$|[?#])/i.test(url);
+  const isMpegTs=/\.(ts|flv)(?:$|[?#])/i.test(url)||/:\d{2,5}(?:\/|$)/.test(url);
 
   if(isHls && window.Hls && window.Hls.isSupported()){
     hlsPlayer=new window.Hls({enableWorker:true});
     hlsPlayer.loadSource(url);
     hlsPlayer.attachMedia(video);
-    hlsPlayer.on(Hls.Events.MANIFEST_PARSED,()=>{
+    hlsPlayer.on(window.Hls.Events.MANIFEST_PARSED,()=>{
       video.play().catch(()=>{});
       $("playerStatus").textContent="Reproduciendo";
     });
-    hlsPlayer.on(Hls.Events.ERROR,(_,data)=>{
+    hlsPlayer.on(window.Hls.Events.ERROR,(_,data)=>{
       if(data.fatal) showPlayerError(`No se pudo reproducir: ${data.details||"error del stream"}`);
     });
   }else if(isHls && video.canPlayType("application/vnd.apple.mpegurl")){
     video.src=url;
-    video.play().catch(()=>{});
+    video.play().then(()=>$("playerStatus").textContent="Reproduciendo").catch(()=>showPlayerError("El navegador bloqueó este stream HLS o el servidor no permite CORS."));
+  }else if(isMpegTs && window.mpegts && window.mpegts.isSupported()){
+    mpegtsPlayer=window.mpegts.createPlayer({type:url.match(/\.flv(?:$|[?#])/i)?"flv":"mpegts",isLive:true,url});
+    mpegtsPlayer.attachMediaElement(video);
+    mpegtsPlayer.on(window.mpegts.Events.ERROR,(_,detail)=>showPlayerError(`No se pudo reproducir MPEG-TS: ${detail||"stream no disponible"}`));
+    mpegtsPlayer.load();
+    mpegtsPlayer.play().then(()=>$("playerStatus").textContent="Reproduciendo").catch(()=>showPlayerError("El navegador bloqueó este stream MPEG-TS o el servidor no permite CORS."));
   }else{
     video.src=url;
     video.play().then(()=>{
       $("playerStatus").textContent="Reproduciendo";
-    }).catch(()=>showPlayerError("El navegador bloqueó o no admite este formato de video."));
+    }).catch(()=>showPlayerError("Este formato no es compatible o el servidor bloquea la reproducción web (CORS)."));
   }
 }
 
