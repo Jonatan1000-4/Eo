@@ -4,24 +4,31 @@
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>TV | Canales</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
 
 <style>
 :root{
-  --bg:#f3f0e8;
-  --card:#ffffff;
-  --line:#e6dfcf;
-  --text:#1b1b1b;
-  --muted:#6b6b6b;
-  --accent:#b6db44;
-  --radius:14px;
-  --focus:#1a73e8;
+  --bg:#101412;
+  --panel:#171d1a;
+  --card:#1d2521;
+  --line:rgba(214,235,219,.12);
+  --text:#f2f7f1;
+  --muted:#9ba99d;
+  --accent:#c7f36b;
+  --accent-soft:rgba(199,243,107,.12);
+  --radius:18px;
+  --focus:#c7f36b;
 }
 *{box-sizing:border-box}
 body{
   margin:0;
-  font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
+  font-family:"DM Sans",sans-serif;
   background:var(--bg);
   color:var(--text);
+  min-height:100vh;
+  background-image:radial-gradient(circle at 12% 0%,rgba(199,243,107,.1),transparent 32%),linear-gradient(135deg,#101412 0%,#111816 55%,#0d100f 100%);
 }
 
 /* TOP BAR */
@@ -31,76 +38,99 @@ body{
   display:flex;
   align-items:center;
   gap:12px;
-  padding:12px;
-  background:#f3f0e8;
-  border-bottom:1px solid rgba(0,0,0,.05);
+  padding:16px max(16px,calc((100vw - 1180px)/2));
+  background:rgba(16,20,18,.88);
+  border-bottom:1px solid var(--line);
+  backdrop-filter:blur(18px);
   z-index:20;
 }
-.title{
-  font-weight:800;
-  font-size:16px;
-}
 .selectCat,.search{
-  padding:6px 10px;
+  padding:10px 12px;
   border-radius:10px;
-  border:1px solid rgba(0,0,0,.1);
-  background:#fff;
+  border:1px solid var(--line);
+  background:#202a25;
+  color:var(--text);
   font-weight:600;
   outline:none;
 }
+.selectCat:focus,.search:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
 .search{
   margin-left:auto;
-  width:220px;
+  width:min(260px,34vw);
 }
 
 /* GRID */
-.wrap{padding:14px;}
+.wrap{width:min(1180px,100%);margin:0 auto;padding:24px 16px 60px;}
 .grid{
   display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(150px,1fr));
-  gap:12px;
+  grid-template-columns:repeat(auto-fill,minmax(190px,1fr));
+  gap:14px;
 }
 .card{
-  background:#fff;
+  position:relative;
+  min-height:174px;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+  background:linear-gradient(145deg,rgba(255,255,255,.06),rgba(255,255,255,.015)),var(--card);
   border:1px solid var(--line);
   border-radius:var(--radius);
-  padding:10px;
+  padding:14px;
   cursor:pointer;
-  transition:.15s;
+  transition:transform .2s,border-color .2s,background .2s,box-shadow .2s;
   outline:none;
 }
+.card:hover,.card:focus{transform:translateY(-4px);border-color:rgba(199,243,107,.55);box-shadow:0 16px 32px rgba(0,0,0,.24);background:linear-gradient(145deg,rgba(199,243,107,.12),rgba(255,255,255,.025)),var(--card)}
 .card:focus{
-  border:2px solid var(--focus);
-  transform:scale(1.05);
+  box-shadow:0 0 0 3px var(--accent-soft),0 16px 32px rgba(0,0,0,.24);
 }
 .logo{
-  height:46px;
+  height:92px;
   display:flex;
   align-items:center;
   justify-content:center;
-  margin-bottom:6px;
+  margin-bottom:16px;
   border-radius:10px;
-  border:1px solid rgba(0,0,0,.06);
-  background:#fff;
+  border:1px solid var(--line);
+  background:radial-gradient(circle at 50% 20%,rgba(199,243,107,.12),transparent 58%),#121815;
+  color:var(--accent);
+  font-family:"Space Grotesk",sans-serif;
+  font-size:28px;
+  font-weight:700;
 }
 .logo img{
-  max-height:36px;
-  max-width:90%;
+  max-height:68px;
+  max-width:82%;
   object-fit:contain;
 }
 .name{
-  font-weight:800;
+  font-weight:700;
   font-size:13px;
   line-height:1.2;
-}
-.group{
-  font-size:11px;
-  color:var(--muted);
-  margin-top:2px;
   white-space:nowrap;
   overflow:hidden;
   text-overflow:ellipsis;
 }
+.group{
+  font-size:11px;
+  color:var(--muted);
+  margin-top:6px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.empty-state{
+  grid-column:1/-1;
+  display:grid;
+  gap:6px;
+  padding:48px 20px;
+  text-align:center;
+  border:1px dashed rgba(199,243,107,.28);
+  border-radius:var(--radius);
+  color:var(--muted);
+}
+.empty-state strong{color:var(--text);font-family:"Space Grotesk",sans-serif;font-size:18px}
+.empty-state span{font-size:13px}
 
 /* Toast */
 .toast{
@@ -108,7 +138,8 @@ body{
   left:50%;
   bottom:18px;
   transform:translateX(-50%);
-  background:rgba(0,0,0,.85);
+  background:#253027;
+  border:1px solid rgba(199,243,107,.3);
   color:#fff;
   padding:8px 12px;
   border-radius:10px;
@@ -154,14 +185,20 @@ body{
 .player-actions button{border:0;border-radius:9px;padding:8px 12px;cursor:pointer;font-weight:700}
 .player-retry{background:var(--accent);color:#111}
 .player-copy{background:#333;color:#fff}
-@media(max-width:600px){.topbar{flex-wrap:wrap}.search{margin-left:0;width:100%}.player-modal{padding:8px}}
+@media(max-width:600px){
+  .topbar{flex-wrap:wrap;padding:12px 14px}
+  .selectCat,.search{width:100%;margin-left:0}
+  .grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  .card{min-height:160px;padding:10px}
+  .logo{height:76px;margin-bottom:12px}
+  .player-modal{padding:8px}
+}
 </style>
 </head>
 
 <body>
 
 <header class="topbar">
-  <div class="title">Canales</div>
   <select id="categorySelect" class="selectCat">
     <option value="ALL">Todas</option>
   </select>
@@ -222,6 +259,7 @@ let CURRENT_CATEGORY = "ALL";
 let CURRENT_CHANNEL = null;
 let hlsPlayer = null;
 let mpegtsPlayer = null;
+let bootStarted = false;
 
 const $ = id=>document.getElementById(id);
 const toast = t=>{
@@ -288,7 +326,13 @@ async function loadChannels(){
       const res=await fetch(M3U_URL,{cache:"no-store"});
       text=await res.text();
     }
-    return parseM3U(text);
+    const seenUrls = new Set();
+    return parseM3U(text).filter(channel=>{
+      const key=String(channel.url||"").trim();
+      if(!key || seenUrls.has(key)) return false;
+      seenUrls.add(key);
+      return true;
+    });
   }catch(e){
     console.error(e);
     return [];
@@ -316,6 +360,10 @@ function renderChannels(){
     const okSearch=!search||c.name.toLowerCase().includes(search);
     return okCat&&okSearch;
   });
+  if(!list.length){
+    grid.innerHTML=`<div class="empty-state"><strong>No encontramos canales</strong><span>Prueba con otra búsqueda o categoría.</span></div>`;
+    return;
+  }
 
   list.forEach((c,index)=>{
     const card=document.createElement("div");
@@ -323,7 +371,7 @@ function renderChannels(){
     card.tabIndex=0;
     card.innerHTML=`
       <div class="logo">
-        ${c.logo?`<img src="${c.logo}">`:"TV"}
+        ${c.logo?`<img src="${c.logo}" alt="" onerror="this.remove();this.parentElement.textContent='TV'">`:"TV"}
       </div>
       <div class="name">${c.name}</div>
       <div class="group">${c.group}</div>
@@ -439,6 +487,8 @@ function playChannel(selected,list){
 }
 
 async function boot(){
+  if(bootStarted) return;
+  bootStarted = true;
   toast("Cargando...");
   ALL_CHANNELS=await loadChannels();
   if(!ALL_CHANNELS.length){
