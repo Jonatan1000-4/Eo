@@ -1,0 +1,457 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>TV | Canales</title>
+
+<style>
+:root{
+  --bg:#f3f0e8;
+  --card:#ffffff;
+  --line:#e6dfcf;
+  --text:#1b1b1b;
+  --muted:#6b6b6b;
+  --accent:#b6db44;
+  --radius:14px;
+  --focus:#1a73e8;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
+  background:var(--bg);
+  color:var(--text);
+}
+
+/* TOP BAR */
+.topbar{
+  position:sticky;
+  top:0;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:12px;
+  background:#f3f0e8;
+  border-bottom:1px solid rgba(0,0,0,.05);
+  z-index:20;
+}
+.title{
+  font-weight:800;
+  font-size:16px;
+}
+.selectCat,.search{
+  padding:6px 10px;
+  border-radius:10px;
+  border:1px solid rgba(0,0,0,.1);
+  background:#fff;
+  font-weight:600;
+  outline:none;
+}
+.search{
+  margin-left:auto;
+  width:220px;
+}
+
+/* GRID */
+.wrap{padding:14px;}
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(150px,1fr));
+  gap:12px;
+}
+.card{
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  padding:10px;
+  cursor:pointer;
+  transition:.15s;
+  outline:none;
+}
+.card:focus{
+  border:2px solid var(--focus);
+  transform:scale(1.05);
+}
+.logo{
+  height:46px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  margin-bottom:6px;
+  border-radius:10px;
+  border:1px solid rgba(0,0,0,.06);
+  background:#fff;
+}
+.logo img{
+  max-height:36px;
+  max-width:90%;
+  object-fit:contain;
+}
+.name{
+  font-weight:800;
+  font-size:13px;
+  line-height:1.2;
+}
+.group{
+  font-size:11px;
+  color:var(--muted);
+  margin-top:2px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+/* Toast */
+.toast{
+  position:fixed;
+  left:50%;
+  bottom:18px;
+  transform:translateX(-50%);
+  background:rgba(0,0,0,.85);
+  color:#fff;
+  padding:8px 12px;
+  border-radius:10px;
+  font-size:11px;
+  opacity:0;
+  pointer-events:none;
+  transition:.2s;
+}
+.toast.show{opacity:1}
+.player-modal{
+  position:fixed;
+  inset:0;
+  z-index:40;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:16px;
+  background:rgba(0,0,0,.82);
+}
+.player-modal.open{display:flex}
+.player-box{
+  width:min(900px,100%);
+  background:#171717;
+  color:#fff;
+  border-radius:16px;
+  overflow:hidden;
+  box-shadow:0 18px 60px rgba(0,0,0,.4);
+}
+.player-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:12px 14px;
+}
+.player-title{min-width:0}
+.player-name{font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.player-url{font-size:10px;color:#aaa;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.player-close{border:0;background:transparent;color:#fff;font-size:25px;cursor:pointer;line-height:1}
+.player-video{display:block;width:100%;aspect-ratio:16/9;background:#000}
+.player-status{min-height:36px;padding:10px 14px;font-size:12px;color:#bbb}
+.player-actions{display:flex;gap:8px;padding:0 14px 14px}
+.player-actions button{border:0;border-radius:9px;padding:8px 12px;cursor:pointer;font-weight:700}
+.player-retry{background:var(--accent);color:#111}
+.player-copy{background:#333;color:#fff}
+@media(max-width:600px){.topbar{flex-wrap:wrap}.search{margin-left:0;width:100%}.player-modal{padding:8px}}
+</style>
+</head>
+
+<body>
+
+<header class="topbar">
+  <div class="title">Canales</div>
+  <select id="categorySelect" class="selectCat">
+    <option value="ALL">Todas</option>
+  </select>
+  <input id="search" class="search" placeholder="Buscar"/>
+</header>
+
+<main class="wrap">
+  <div class="grid" id="grid"></div>
+</main>
+
+<section id="playerModal" class="player-modal" role="dialog" aria-modal="true" aria-labelledby="playerName">
+  <div class="player-box">
+    <div class="player-head">
+      <div class="player-title">
+        <div id="playerName" class="player-name">Canal</div>
+        <div id="playerUrl" class="player-url"></div>
+      </div>
+      <button id="playerClose" class="player-close" type="button" aria-label="Cerrar reproductor">&times;</button>
+    </div>
+    <video id="playerVideo" class="player-video" controls autoplay playsinline></video>
+    <div id="playerStatus" class="player-status">Preparando reproducción...</div>
+    <div class="player-actions">
+      <button id="playerRetry" class="player-retry" type="button">Reintentar</button>
+      <button id="playerCopy" class="player-copy" type="button">Copiar URL</button>
+    </div>
+  </div>
+</section>
+
+<div id="toast" class="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBKSdaRAQTN-Gen0k4WerLu1GvBLKzjZlQ",
+  authDomain: "aweme-46b1e.firebaseapp.com",
+  projectId: "aweme-46b1e",
+  storageBucket: "aweme-46b1e.firebasestorage.app",
+  messagingSenderId: "762479825387",
+  appId: "1:762479825387:web:8ffb3a629c0eb9f52fc9ae"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const ALLOWLIST_COLLECTION = "allowlist";
+
+const M3U_URL = "https://jonatan1000-4.github.io/mi_app_rv22/canales.m3u";
+const M3U_TEXT = "";
+const JSON_FALLBACK = ""; // opcional: podés poner JSON aquí si querés
+
+let ALL_CHANNELS = [];
+let CURRENT_CATEGORY = "ALL";
+let CURRENT_CHANNEL = null;
+let hlsPlayer = null;
+
+const $ = id=>document.getElementById(id);
+const toast = t=>{
+  const el=$("toast");
+  el.textContent=t;
+  el.classList.add("show");
+  setTimeout(()=>el.classList.remove("show"),1200);
+};
+
+async function isAllowlisted(uid){
+  const snap = await getDoc(doc(db,ALLOWLIST_COLLECTION,uid));
+  return snap.exists() && snap.data()?.enabled===true;
+}
+
+onAuthStateChanged(auth, async user=>{
+  if(!user){ location.href="login.html"; return;}
+  if(!(await isAllowlisted(user.uid))){
+    await signOut(auth);
+    location.href="login.html";
+    return;
+  }
+  boot();
+});
+
+/* PARSER TOLERANTE */
+function parseM3U(text){
+  const lines=text.split(/\r?\n/);
+  const out=[];
+  let name="",logo="",group="",id="";
+  for(let i=0;i<lines.length;i++){
+    const line=lines[i].trim();
+    if(line.startsWith("#EXTINF")){
+      name=line.split(",").slice(1).join(",").trim();
+      const attrs=line.match(/(\w+(?:-\w+)*)="([^"]*)"/g)||[];
+      attrs.forEach(a=>{
+        const parts=a.split("=");
+        const key=parts[0];
+        const val=parts[1].replace(/"/g,"");
+        if(key==="tvg-logo") logo=val;
+        if(key==="group-title") group=val;
+        if(key==="tvg-id") id=val;
+      });
+    } else if(line && !line.startsWith("#")){
+      out.push({
+        id:id||name,
+        name:name||"Canal",
+        logo:logo||"",
+        group:group||"Otros",
+        url:line
+      });
+      name="";logo="";group="";id="";
+    }
+  }
+  return out;
+}
+
+async function loadChannels(){
+  try{
+    if(JSON_FALLBACK){
+      return JSON.parse(JSON_FALLBACK);
+    }
+    let text=M3U_TEXT;
+    if(!text){
+      const res=await fetch(M3U_URL,{cache:"no-store"});
+      text=await res.text();
+    }
+    return parseM3U(text);
+  }catch(e){
+    console.error(e);
+    return [];
+  }
+}
+
+function populateCategories(){
+  const select=$("categorySelect");
+  select.innerHTML=`<option value="ALL">Todas</option>`;
+  const groups=[...new Set(ALL_CHANNELS.map(c=>c.group))];
+  groups.sort().forEach(g=>{
+    const opt=document.createElement("option");
+    opt.value=g;
+    opt.textContent=g;
+    select.appendChild(opt);
+  });
+}
+
+function renderChannels(){
+  const grid=$("grid");
+  grid.innerHTML="";
+  const search=$("search").value.toLowerCase();
+  const list=ALL_CHANNELS.filter(c=>{
+    const okCat=CURRENT_CATEGORY==="ALL"||c.group===CURRENT_CATEGORY;
+    const okSearch=!search||c.name.toLowerCase().includes(search);
+    return okCat&&okSearch;
+  });
+
+  list.forEach((c,index)=>{
+    const card=document.createElement("div");
+    card.className="card";
+    card.tabIndex=0;
+    card.innerHTML=`
+      <div class="logo">
+        ${c.logo?`<img src="${c.logo}">`:"TV"}
+      </div>
+      <div class="name">${c.name}</div>
+      <div class="group">${c.group}</div>
+    `;
+
+    card.onclick=()=>playChannel(c,list);
+
+    card.onkeydown=(e)=>{
+      const cards=[...document.querySelectorAll(".card")];
+      const i=cards.indexOf(card);
+      if(e.key==="Enter") playChannel(c,list);
+      if(e.key==="ArrowRight" && cards[i+1]) cards[i+1].focus();
+      if(e.key==="ArrowLeft" && cards[i-1]) cards[i-1].focus();
+      if(e.key==="ArrowDown" && cards[i+4]) cards[i+4].focus();
+      if(e.key==="ArrowUp" && cards[i-4]) cards[i-4].focus();
+    };
+
+    grid.appendChild(card);
+    if(index===0) setTimeout(()=>card.focus(),150);
+  });
+}
+
+function closePlayer(){
+  if(hlsPlayer){
+    hlsPlayer.destroy();
+    hlsPlayer=null;
+  }
+  const video=$("playerVideo");
+  video.pause();
+  video.removeAttribute("src");
+  video.load();
+  $("playerModal").classList.remove("open");
+}
+
+async function copyChannelUrl(url){
+  try{
+    await navigator.clipboard.writeText(url);
+    toast("URL copiada");
+  }catch(e){
+    window.prompt("Copia la URL con Ctrl+C",url);
+  }
+}
+
+function showPlayerError(message){
+  $("playerStatus").textContent=message;
+  $("playerStatus").style.color="#ff9b9b";
+}
+
+function startBrowserPlayer(channel){
+  CURRENT_CHANNEL=channel;
+  $("playerName").textContent=channel.name||"Canal";
+  $("playerUrl").textContent=channel.url;
+  $("playerStatus").textContent="Conectando...";
+  $("playerStatus").style.color="#bbb";
+  $("playerModal").classList.add("open");
+
+  if(hlsPlayer){
+    hlsPlayer.destroy();
+    hlsPlayer=null;
+  }
+  const video=$("playerVideo");
+  video.pause();
+  video.removeAttribute("src");
+  video.load();
+  const url=String(channel.url||"").trim();
+  const isHls=/\.m3u8(?:$|[?#])/i.test(url);
+
+  if(isHls && window.Hls && window.Hls.isSupported()){
+    hlsPlayer=new window.Hls({enableWorker:true});
+    hlsPlayer.loadSource(url);
+    hlsPlayer.attachMedia(video);
+    hlsPlayer.on(Hls.Events.MANIFEST_PARSED,()=>{
+      video.play().catch(()=>{});
+      $("playerStatus").textContent="Reproduciendo";
+    });
+    hlsPlayer.on(Hls.Events.ERROR,(_,data)=>{
+      if(data.fatal) showPlayerError(`No se pudo reproducir: ${data.details||"error del stream"}`);
+    });
+  }else if(isHls && video.canPlayType("application/vnd.apple.mpegurl")){
+    video.src=url;
+    video.play().catch(()=>{});
+  }else{
+    video.src=url;
+    video.play().then(()=>{
+      $("playerStatus").textContent="Reproduciendo";
+    }).catch(()=>showPlayerError("El navegador bloqueó o no admite este formato de video."));
+  }
+}
+
+function playChannel(selected,list){
+  const payload={
+    url:selected.url,
+    channels:list.map(c=>({name:c.name,url:c.url}))
+  };
+  startBrowserPlayer(selected);
+  if(window.AndroidBridge && AndroidBridge.playChannel){
+    AndroidBridge.playChannel(JSON.stringify(payload));
+  }
+}
+
+async function boot(){
+  toast("Cargando...");
+  ALL_CHANNELS=await loadChannels();
+  if(!ALL_CHANNELS.length){
+    toast("No hay canales");
+    return;
+  }
+  populateCategories();
+  renderChannels();
+  $("search").addEventListener("input",renderChannels);
+  $("categorySelect").addEventListener("change",e=>{
+    CURRENT_CATEGORY=e.target.value;
+    renderChannels();
+  });
+  $("playerClose").addEventListener("click",closePlayer);
+  $("playerRetry").addEventListener("click",()=>{
+    if(CURRENT_CHANNEL) startBrowserPlayer(CURRENT_CHANNEL);
+  });
+  $("playerCopy").addEventListener("click",()=>{
+    if(CURRENT_CHANNEL) copyChannelUrl(CURRENT_CHANNEL.url);
+  });
+  $("playerModal").addEventListener("click",e=>{
+    if(e.target.id==="playerModal") closePlayer();
+  });
+  document.addEventListener("keydown",e=>{
+    if(e.key==="Escape" && $("playerModal").classList.contains("open")) closePlayer();
+  });
+  toast("Listo");
+}
+</script>
+
+</body>
+</html>
