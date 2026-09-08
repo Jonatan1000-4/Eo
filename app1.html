@@ -381,6 +381,12 @@ function isIosDevice(){
     (navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
 }
 
+function getHlsCandidate(url){
+  if(/\.m3u8(?:$|[?#])/i.test(url)) return url;
+  const match=url.match(/^([^?#]*)([?#].*)?$/);
+  return `${match[1]}.m3u8${match[2]||""}`;
+}
+
 function startBrowserPlayer(channel){
   CURRENT_CHANNEL=channel;
   $("playerName").textContent=channel.name||"Canal";
@@ -404,6 +410,7 @@ function startBrowserPlayer(channel){
   const url=String(channel.url||"").trim();
   const isHls=/\.m3u8(?:$|[?#])/i.test(url);
   const isMpegTs=/\.(ts|flv)(?:$|[?#])/i.test(url)||/:\d{2,5}(?:\/|$)/.test(url);
+  const hlsUrl=getHlsCandidate(url);
 
   if(isHls && window.Hls && window.Hls.isSupported()){
     hlsPlayer=new window.Hls({enableWorker:true});
@@ -420,7 +427,10 @@ function startBrowserPlayer(channel){
     video.src=url;
     video.play().then(()=>$("playerStatus").textContent="Reproduciendo").catch(()=>showPlayerError("El navegador bloqueó este stream HLS o el servidor no permite CORS."));
   }else if(isMpegTs && isIosDevice()){
-    showPlayerError("iPhone no reproduce MPEG-TS directo. Este canal necesita una URL HLS .m3u8 para funcionar en Safari.");
+    video.src=hlsUrl;
+    video.play().then(()=>{
+      $("playerStatus").textContent="Reproduciendo HLS";
+    }).catch(()=>showPlayerError("El proveedor no ofrece HLS para este canal. La URL debe terminar en .m3u8 y permitir HTTPS/CORS para funcionar en iPhone."));
   }else if(isMpegTs && window.mpegts && window.mpegts.isSupported()){
     mpegtsPlayer=window.mpegts.createPlayer({type:url.match(/\.flv(?:$|[?#])/i)?"flv":"mpegts",isLive:true,url});
     mpegtsPlayer.attachMediaElement(video);
