@@ -63,7 +63,7 @@
 <body>
   <div class="shell">
     <header>
-      <div class="brand"><span class="brand-mark">TV</span> Canales</div>
+      <div class="brand"><span class="brand-mark">J</span> TV</div>
       <span class="header-label">Tu televisión, en un lugar</span>
       <time id="clock" class="clock" aria-label="Hora actual"></time>
     </header>
@@ -111,7 +111,7 @@ const JSON_FALLBACK = ""; // opcional: podés poner JSON aquí si querés
 
 // Se conserva el contrato de reproducción del APK: { url, channels: [{ name, url }] }.
 const $ = id => document.getElementById(id);
-const PAGE_SIZE = 24;
+const PAGE_SIZE = 50;
 let channels = [], filtered = [], category = null, page = 0, authorized = false;
 let toastTimer, searchTimer;
 const normalize = value => String(value).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
