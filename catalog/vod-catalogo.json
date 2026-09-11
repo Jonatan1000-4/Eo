@@ -1,0 +1,711 @@
+{
+      "id": 212,
+      "title": "KIDS | BABY FIRST",
+      "category": "Infantiles",
+      "poster": "http://redworld.pro:8880/images/3b3a23dcc02f40038cfc34d8c58c313f.png",
+      "originalPoster": "http://redworld.pro:8880/images/3b3a23dcc02f40038cfc34d8c58c313f.png",
+      "posterStatus": "ok",
+      "source": "http://redworld.pro:8880/live/J34r/WnpFfyLacZA8/321968.m3u8"
+    },
+    {
+      "id": 213,
+      "title": "KIDS | BABY TV",
+      "category": "Infantiles",
+      "poster": "http://redworld.pro:8880/images/637e562dbf5fd427957eb42dcd838054.png",
+      "originalPoster": "http://redworld.pro:8880/images/637e562dbf5fd427957eb42dcd838054.png",
+      "posterStatus": "ok",
+      "source": "http://redworld.pro:8880/live/J34r/WnpFfyLacZA8/321969.m3u8"
+    },
+    {
+      "id": 214,
+      "title": "KIDS | CARTOON NETWORK | OPC2",
+      "category": "Infantiles",
+      "poster": null,
+      "originalPoster": "http://redworld.pro:8880/images/c67ab172eb643fea7070b0a3514f4459.png",
+      "posterStatus": "suspicious",
+      "source": "http://redworld.pro:8880/live/J34r/WnpFfyLacZA8/321973.m3u8"
+    },
+    {
+      "id": 215,
+      "title": "KIDS | CARTOON NETWORK",
+      "category": "Infantiles",
+      "poster": null,
+      "originalPoster": "http://redworld.pro:8880/images/c67ab172eb643fea7070b0a3514f4459.png",
+      "posterStatus": "suspicious",
+      "source": "http://redworld.pro:8880/live/J34r/WnpFfyLacZA8/321974.m3u8"
+    },
+    {
+      "id": 216,
+      "title": "KIDS | CARTOONITO",
+      "category": "Infantiles",
+      "poster": "http://redworld.pro:8880/images/be37514186ea0e9928444db722509319.png",
+      "originalPoster": "http://redworld.pro:8880/images/be37514186ea0e9928444db722509319.png",
+      "posterStatus": "ok",
+      "source": "http://redworld.pro:8880/live/J34r/WnpFfyLacZA8/321975.m3u8"
+    },
+    {
+      "id": 217,
+      "title": "KIDS | DISCOVERY KIDS",
+      "category": "Infantiles",
+      "poster": "http://redworld.pro:8880/images/9616dc155d8f864cd00ba06266376b5e.png",
+      "originalPoster": "http://redworld.pro:8880/images/9616dc155d8f864cd00ba06266376b5e.png",
+      "posterStatus": "ok",
+      "source": "http://redworld.pro:8880/live/J34r/WnpFfyLacZA8/321976.m3u8"
+    },
+    {
+      "id": 218,
+      "title": "KIDS | DISNEY CHANNEL",
+      "category": "Infantiles",
+      "poster": "http://redworld.pro:8880/images/0b2fee0f1f24fda95232e562d8326026.png",
+      "originalPoster": "http://redworld.pro:8880/images/0b2fee0f1f24fda95232e562d8326026.png",
+      "posterStatus": "ok",
+      "source": "http://redworld.pro:8880/live/J34r/WnpFfyLacZA8/321978.m3u8"
+    },
+    {
+      "id": 219,
+      "title": "KIDS | DISNEY JUNIOR",
+      "category": "Infantiles",
+      "poster": "http://redworld.pro:8880/images/69ee308370f166ebd34ee64895d1c9a8.png",
+      "originalPoster": "http://redworld.pro:8880/images/69ee308370f166ebd34ee64895d1c9a8.png",
+      "posterStatus": "ok",
+      "source": "http://redworld.pro:8880/live/J34r/WnpFfyLacZA8/321981.m3u8"
+    },
+    {
+      "id": 220,
+      "title": "KIDS | NICK",
+      "category": "Infantiles",
+      "poster": "http://redworld.pro:8880/images/3b20a55bd85dcd304da6ac81000a30c7.png",
+      "originalPoster": "http://redworld.pro:8880/images/3b20a55bd85dcd304da6ac81000a30c7.png",
+      "posterStatus": "ok",
+      "source": "http://redworld.pro:8880/live/J34r/WnpFfyLacZA8/321982.m3u8"
+    },
+    {
+      "id": 221,
+      "title": "KIDS | NICKELODEON",
+      "category": "Infantiles",
+      "poster": "http://redworld.pro:8880/images/5a9d428b61a7941c724e7c16747e0390.png",
+      "originalPoster": "http://redworld.pro:8880/images/5a9d428b61a7941c724e7c16747e0390.png",
+      "posterStatus": "ok",
+      "source": "http://redworld.pro:8880/live/J34r/WnpFfyLacZA8/321984.m3u8"
+    },
+    {
+      "id": 222,
+      "title": "KIDS | NICKTOONS",
+      "category": "Infantiles",
+      "poster": "http://redworld.pro:8880/images/2c60790cd9470a61cf2e3c265f9589de.png",
+      "originalPoster": "http://redworld.pro:8880/images/2c60790cd9470a61cf2e3c265f9589de.png",
+      "posterStatus": "ok",
+      "source": "http://redworld.pro:8880/live/J34r/WnpFfyLacZA8/321985.m3u8"
+    },
+    {
+      "id": 615,
+      "title": "CINE  | A&E FHD",
+      "category": "CINE PREMIUM",
+      "poster": null,
+      "originalPoster": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQQjV-u5jw-GdHMR9tjbDC9wxDWINx3jLXRUQ&usqp=CAU",
+      "posterStatus": "suspicious",
+      "source": "http://redworld.pro:8880/live/J34r/WnpFfyLacZA8/414453.m3u8"
+    },
+    {
+      "id": 616,
+      "title": "CINE  | A&E HD",
+      "category": "CINE PREMIUM",
+      "poster": null,
+      "originalPoster": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQQjV-u5jw-GdHMR9tjbDC9wxDWINx3jLXRUQ&usqp=CAU",
+      "posterStatus": "suspicious",
+      "source": "http://redworld.pro:8880/live/J34r/WnpFfyLacZA8/414454.m3u8"
+    },
+    {
+      "id": 617,
+      "title": "CINE  | A&E SD",
+      "category": "CINE PREMIUM",
+      "poster": null,
+      "originalPoster": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQQjV-u5jw-GdHMR9tjbDC9wxDWINx3jLXRUQ&usqp=CAU",
+      "posterStatus": "suspicious",
+      "source": "http://redworld.pro:8880/live/J34r/WnpFfyLacZA8/414455.m3u8"
+    },
+    {
+      "id": 618,
+      "title": "CINE  | *C1NEMAX* HD",
+      "category": "CINE PREMIUM",
+      "poster": null,
+      "originalPoster": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTkxewXQeeMqr4uYRrmID1JE2WWx2qoDvNddQ&usqp=CAU",
+      "posterStatus": "suspicious",
+      "source": "http://redworld.pro:8880/live/J34r/WnpFfyLacZA8/414457.m3u8"
+    },
+    {
+      "id": 619,
+      "title": "CINE  | *C1NEMAX* SD",
+      "category": "CINE PREMIUM",
+      "poster": null,
+      "originalPoster": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTkxewXQeeMqr4uYRrmID1JE2WWx2qoDvNddQ&usqp=CAU",
+      "posterStatus": "suspicious",
+      "source": "http://redworld.pro:8880/live/J34r/WnpFfyLacZA8/414458.m3u8"
+    },
+    {
+      "id": 620,
+      "title": "CINE | STAR CHANNEL  HD",
+      "category": "CINE PREMIUM",
+      "poster": null,
+      "originalPoster": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRpUSC9j9pUIeP68TVeZFtU_BOi3beYtu0zAw&usqp=CAU",
+      "posterStatus": "suspicious",
+      "source": "http://redworld.pro:8880/live/J34r/WnpFfyLacZA8/414459.m3u8"
+    },
+    {
+      "id": 621,
+      "title": "CINE | STAR CHANNEL  SD",
+      "category": "CINE PREMIUM",
+      "poster": null,
+      "originalPoster": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRpUSC9j9pUIeP68TVeZFtU_BOi3beYtu0zAw&usqp=CAU",
+      "posterStatus": "suspicious",
+      "source": "http://redworld.pro:8880/live/J34r/WnpFfyLacZA8/414460.m3u8"
+    },
+    {
+      "id": 622,
+      "title": "CINE  | *HBÖ* 2 HD",
+      "category": "CINE PREMIUM",
+      "poster": null,
+      "originalPoster": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT8lZ0U7y83aMg8VcxHcLWyr8k4eK-vVK_TPw&usqp=CAU",
+      "posterStatus": "suspicious",
+      "source": "http://redworld.pro:8880/live/J34r/WnpFfyLacZA8/414462.m3u8"
+    },
+    {
+      "id": 623,
+      "title": "CINE | *HBÖ* 2 SD",
+      "category": "CINE PREMIUM",
+      "poster": null,
+      "originalPoster": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT8lZ0U7y83aMg8VcxHcLWyr8k4eK-vVK_TPw&usqp=CAU",
+      "posterStatus": "suspicious",
+      "source": "http://redworld.pro:8880/live/J34r/WnpFfyLacZA8/414463.m3u8"
+    },
+    {
+      "id": 624,
+      "title": "CINE | STAR CHANNEL  FHD",
+      "category": "CINE PREMIUM",
+      "poster": null,
+      "originalPoster": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRpUSC9j9pUIeP68TVeZFtU_BOi3beYtu0zAw&usqp=CAU",
+      "posterStatus": "suspicious",
+      "source": "http://redworld.pro:8880/live/J34r/WnpFfyLacZA8/414464.m3u8"
+    },
+    {
+      "id": 625,
+      "title": "CINE | *HBO* F@MILY  HD",
+      "category": "CINE PREMIUM",
+      "poster": null,
+      "originalPoster": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTA4WC_DVLdy7I-kMJhcpStbdiBOe00hos0AA&usqp=CAU",
+      "posterStatus": "suspicious",
+      "source": "http://redworld.pro:8880/live/J34r/WnpFfyLacZA8/414465.m3u8"
+    },
+    {
+      "id": 626,
+      "title": "CINE | *HBO* F@MILY  SD",
+      "category": "CINE PREMIUM",
+      "poster": null,
+      "originalPoster": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTA4WC_DVLdy7I-kMJhcpStbdiBOe00hos0AA&usqp=CAU",
+      "posterStatus": "suspicious",
+      "source": "http://redworld.pro:8880/live/J34r/WnpFfyLacZA8/414466.m3u8"
+    },
+    {
+      "id": 627,
+      "title": "CINE | *HBO* HD",
+      "category": "CINE PREMIUM",
+      "poster": null,
+      "originalPoster": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRUtbjnKsynnCmmwzyL97_V5eVimvq_l9nScg&usqp=CAU",
+      "posterStatus": "suspicious",
+      "source": "http://redworld.pro:8880/live/J34r/WnpFfyLacZA8/414468.m3u8"
+    },
+    {
+      "id": 628,
+      "title": "CINE  | *HBO* SD",
+      "category": "CINE PREMIUM",
+      "poster": null,
+      "originalPoster": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRUtbjnKsynnCmmwzyL97_V5eVimvq_l9nScg&usqp=CAU",
+      "posterStatus": "suspicious",
+      "source": "http://redworld.pro:8880/live/J34r/WnpFfyLacZA8/414469.m3u8"
+    },
+    {
+      "id": 629,
+      "title": "CINE  | *HBO* POP  HD",
+      "category": "CINE PREMIUM",
+      "poster": null,
+      "originalPoster": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQUrjaVQ_67o7XMUHTLunr3MrCREj8_Mfn_-g&usqp=CAU",
+      "posterStatus": "suspicious",
+      "source": "http://redworld.pro:8880/live/J34r/WnpFfyLacZA8/414471.m3u8"
+    },
+    {
+      "id": 630,
+      "title": "CINE  | *HBO* POP SD",
+      "category": "CINE PREMIUM",
+      "poster": null,
+      "originalPoster": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQUrjaVQ_67o7XMUHTLunr3MrCREj8_Mfn_-g&usqp=CAU",
+      "posterStatus": "suspicious",
+      "source": "http://redworld.pro:8880/live/J34r/WnpFfyLacZA8/414472.m3u8"
+    },
+    {
+      "id": 631,
+      "title": "CINE  | TNT  FHD",
+      "category": "CINE PREMIUM",
+      "poster": null,
+      "originalPoster": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcREx6xag_8jHvToBLGBqlHfK3Y6oMAi5cqnLw&usqp=CAU",
+      "posterStatus": "suspicious",
+      "source": "http://redworld.pro:8880/live/J34r/WnpFfyLacZA8/414473.m3u8"
+    },
+    {
+      "id": 632,
+      "title": "CINE  | TNT  HD",
+      "category": "CINE PREMIUM",
+      "poster": null,
+      "originalPoster": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcREx6xag_8jHvToBLGBqlHfK3Y6oMAi5cqnLw&usqp=CAU",
+      "posterStatus": "suspicious",
+      "source": "http://redworld.pro:8880/live/J34r/WnpFfyLacZA8/414474.m3u8"
+    },
+    {
+      "id": 633,
+      "title": "CINE  | TNT  SD",
+      "category": "CINE PREMIUM",
+      "poster": null,
+      "originalPoster": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcREx6xag_8jHvToBLGBqlHfK3Y6oMAi5cqnLw&usqp=CAU",
+      "posterStatus": "suspicious",
+      "source": "http://redworld.pro:8880/live/J34r/WnpFfyLacZA8/414475.m3u8"
+    },
+    {
+      "id": 634,
+      "title": "CINE  | TNT SERIES  FHD",
+      "category": "CINE PREMIUM",
+      "poster": null,
+      "originalPoster": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS412_DLemKjbNR286Bqh-5--md7yWlo7F9sw&usqp=CAU",
+      "posterStatus": "suspicious",
+      "source": "http://redworld.pro:8880/live/J34r/WnpFfyLacZA8/414476.m3u8"
+    },
+    {
+      "id": 635,
+      "title": "CINE | TNT SERIES  HD",
+      "category": "CINE PREMIUM",
+      "poster": null,
+      "originalPoster": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS412_DLemKjbNR286Bqh-5--md7yWlo7F9sw&usqp=CAU",
+      "posterStatus": "suspicious",
+      "source": "http://redworld.pro:8880/live/J34r/WnpFfyLacZA8/414477.m3u8"
+    },
+    {
+      "id": 636,
+      "title": "CINE |  TNT SERIES  SD",
+      "category": "CINE PREMIUM",
+      "poster": null,
+      "originalPoster": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS412_DLemKjbNR286Bqh-5--md7yWlo7F9sw&usqp=CAU",
+      "posterStatus": "suspicious",
+      "source": "http://redworld.pro:8880/live/J34r/WnpFfyLacZA8/414478.m3u8"
+    },
+    {
+      "id": 637,
+      "title": "CINE | CINECANAL  FHD",
+      "category": "CINE PREMIUM",
+      "poster": null,
+      "originalPoster": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSfY_V6-B2g_kEqycv8FnYBzZZca7242M3uLw&usqp=CAU",
+      "posterStatus": "suspicious",
+      "source": "http://redworld.pro:8880/live/J34r/WnpFfyLacZA8/414479.m3u8"
+    },
+    {
+      "id": 638,
+      "title": "CINE | CINECANAL  HD",
+      "category": "CINE PREMIUM",
+      "poster": null,
+      "originalPoster": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSfY_V6-B2g_kEqycv8FnYBzZZca7242M3uLw&usqp=CAU",
+      "posterStatus": "suspicious",
+      "source": "http://redworld.pro:8880/live/J34r/WnpFfyLacZA8/414480.m3u8"
+    },
+    {
+      "id": 639,
+      "title": "CINE | CINECANAL  SD",
+      "category": "CINE PREMIUM",
+      "poster": null,
+      "originalPoster": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSfY_V6-B2g_kEqycv8FnYBzZZca7242M3uLw&usqp=CAU",
+      "posterStatus": "suspicious",
+      "source": "http://redworld.pro:8880/live/J34r/WnpFfyLacZA8/414481.m3u8"
+    },
+    {
+      "id": 640,
+      "title": "CINE | AXN  HD",
+      "category": "CINE PREMIUM",
+      "poster": null,
+      "originalPoster": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRFDesPfe1ZHPS8Manr4Gh-S3dP6FhllqYVjg&usqp=CAU",
+      "posterStatus": "suspicious",
+      "source": "http://redworld.pro:8880/live/J34r/WnpFfyLacZA8/414483.m3u8"
+    },
+    {
+      "id": 641,
+      "title": "CINE | AXN  SD",
+      "category": "CINE PREMIUM",
+      "poster": null,
+      "originalPoster": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRFDesPfe1ZHPS8Manr4Gh-S3dP6FhllqYVjg&usqp=CAU",
+      "posterStatus": "suspicious",
+      "source": "http://redworld.pro:8880/live/J34r/WnpFfyLacZA8/414484.m3u8"
+    },
+    {
+      "id": 642,
+      "title": "CINE | WARNER  FHD",
+      "category": "CINE PREMIUM",
+      "poster": null,
+      "originalPoster": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSHNIfv7VLUeS2w8eoF4b-k5psDxmpHYqkxew&usqp=CAU",
+      "posterStatus": "suspicious",
+      "source": "http://redworld.pro:8880/live/J34r/WnpFfyLacZA8/414485.m3u8"
+    },
+    {
+      "id": 643,
+      "title": "CINE | WARNER  HD",
+      "category": "CINE PREMIUM",
+      "poster": null,
+      "originalPoster": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSHNIfv7VLUeS2w8eoF4b-k5psDxmpHYqkxew&usqp=CAU",
+      "posterStatus": "suspicious",
+      "source": "http://redworld.pro:8880/live/J34r/WnpFfyLacZA8/414486.m3u8"
+    },
+    {
+      "id": 644,
+      "title": "CINE | SONY  FHD",
+      "category": "CINE PREMIUM",
+      "poster": null,
+      "originalPoster": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQmUM5s02mVJaBsX8VO8xATB9ivrYta859D9g&usqp=CAU",
+      "posterStatus": "suspicious",
+      "source": "http://redworld.pro:8880/live/J34r/WnpFfyLacZA8/414488.m3u8"
+    },
+    {
+      "id": 645,
+      "title": "CINE | SONY  HD",
+      "category": "CINE PREMIUM",
+      "poster": null,
+      "originalPoster": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQmUM5s02mVJaBsX8VO8xATB9ivrYta859D9g&usqp=CAU",
+      "posterStatus": "suspicious",
+      "source": "http://redworld.pro:8880/live/J34r/WnpFfyLacZA8/414489.m3u8"
+    },
+    {
+      "id": 646,
+      "title": "CINE | SONY  SD",
+      "category": "CINE PREMIUM",
+      "poster": null,
+      "originalPoster": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQmUM5s02mVJaBsX8VO8xATB9ivrYta859D9g&usqp=CAU",
+      "posterStatus": "suspicious",
+      "source": "http://redworld.pro:8880/live/J34r/WnpFfyLacZA8/414490.m3u8"
+    },
+    {
+      "id": 647,
+      "title": "CINE | TCM  FHD",
+      "category": "CINE PREMIUM",
+      "poster": null,
+      "originalPoster": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ5C2mxnbZhloXPJ9g7G5nwhyJmJNq06VlqpQ&usqp=CAU",
+      "posterStatus": "suspicious",
+      "source": "http://redworld.pro:8880/live/J34r/WnpFfyLacZA8/414491.m3u8"
+    },
+    {
+      "id": 648,
+      "title": "CINE | TCM  HD",
+      "category": "CINE PREMIUM",
+      "poster": null,
+      "originalPoster": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ5C2mxnbZhloXPJ9g7G5nwhyJmJNq06VlqpQ&usqp=CAU",
+      "posterStatus": "suspicious",
+      "source": "http://redworld.pro:8880/live/J34r/WnpFfyLacZA8/414492.m3u8"
+    },
+    {
+      "id": 649,
+      "title": "CINE |  TCM  SD",
+      "category": "CINE PREMIUM",
+      "poster": null,
+      "originalPoster": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ5C2mxnbZhloXPJ9g7G5nwhyJmJNq06VlqpQ&usqp=CAU",
+      "posterStatus": "suspicious",
+      "source": "http://redworld.pro:8880/live/J34r/WnpFfyLacZA8/414493.m3u8"
+    },
+    {
+      "id": 650,
+      "title": "CINE | UNIVERSAL CHANEL  FHD",
+      "category": "CINE PREMIUM",
+      "poster": null,
+      "originalPoster": "http://127.0.0.1/",
+      "posterStatus": "suspicious",
+      "source": "http://redworld.pro:8880/live/J34r/WnpFfyLacZA8/414494.m3u8"
+    },
+    {
+      "id": 651,
+      "title": "CINE | UNIVERSAL CHANEL  HD",
+      "category": "CINE PREMIUM",
+      "poster": null,
+      "originalPoster": "http://127.0.0.1/",
+      "posterStatus": "suspicious",
+      "source": "http://redworld.pro:8880/live/J34r/WnpFfyLacZA8/414495.m3u8"
+    },
+    {
+      "id": 652,
+      "title": "CINE | UNIVERSAL CHANEL  SD",
+      "category": "CINE PREMIUM",
+      "poster": null,
+      "originalPoster": "http://127.0.0.1/",
+      "posterStatus": "suspicious",
+      "source": "http://redworld.pro:8880/live/J34r/WnpFfyLacZA8/414496.m3u8"
+    },
+    {
+      "id": 653,
+      "title": "CINE | FX  FHD",
+      "category": "CINE PREMIUM",
+      "poster": null,
+      "originalPoster": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRJq1YUknstlcWYR_a39Pbh-VKNQP_noF_rDg&usqp=CAU",
+      "posterStatus": "suspicious",
+      "source": "http://redworld.pro:8880/live/J34r/WnpFfyLacZA8/414497.m3u8"
+    },
+    {
+      "id": 654,
+      "title": "CINE | FX  HD",
+      "category": "CINE PREMIUM",
+      "poster": null,
+      "originalPoster": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRJq1YUknstlcWYR_a39Pbh-VKNQP_noF_rDg&usqp=CAU",
+      "posterStatus": "suspicious",
+      "source": "http://redworld.pro:8880/live/J34r/WnpFfyLacZA8/414498.m3u8"
+    },
+    {
+      "id": 655,
+      "title": "CINE | FX  SD",
+      "category": "CINE PREMIUM",
+      "poster": null,
+      "originalPoster": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRJq1YUknstlcWYR_a39Pbh-VKNQP_noF_rDg&usqp=CAU",
+      "posterStatus": "suspicious",
+      "source": "http://redworld.pro:8880/live/J34r/WnpFfyLacZA8/414499.m3u8"
+    },
+    {
+      "id": 656,
+      "title": "CINE | SPACE CHANEL  FHD",
+      "category": "CINE PREMIUM",
+      "poster": null,
+      "originalPoster": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTaPteTsp2zPkNGIK2aC8M1_bKG7FUZBaFHrg&usqp=CAU",
+      "posterStatus": "suspicious",
+      "source": "http://redworld.pro:8880/live/J34r/WnpFfyLacZA8/414500.m3u8"
+    },
+    {
+      "id": 657,
+      "title": "CINE | SPACE CHANEL  HD",
+      "category": "CINE PREMIUM",
+      "poster": null,
+      "originalPoster": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTaPteTsp2zPkNGIK2aC8M1_bKG7FUZBaFHrg&usqp=CAU",
+      "posterStatus": "suspicious",
+      "source": "http://redworld.pro:8880/live/J34r/WnpFfyLacZA8/414501.m3u8"
+    },
+    {
+      "id": 658,
+      "title": "CINE | SPACE CHANEL  SD",
+      "category": "CINE PREMIUM",
+      "poster": null,
+      "originalPoster": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTaPteTsp2zPkNGIK2aC8M1_bKG7FUZBaFHrg&usqp=CAU",
+      "posterStatus": "suspicious",
+      "source": "http://redworld.pro:8880/live/J34r/WnpFfyLacZA8/414502.m3u8"
+    },
+    {
+      "id": 659,
+      "title": "CINE | AMC  FHD",
+      "category": "CINE PREMIUM",
+      "poster": null,
+      "originalPoster": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTRPXbkxZVQKnNqZ0tcPBhMhdHUgLcP3Kw0fw&usqp=CAU",
+      "posterStatus": "suspicious",
+      "source": "http://redworld.pro:8880/live/J34r/WnpFfyLacZA8/414503.m3u8"
+    },
+    {
+      "id": 660,
+      "title": "CINE | AMC HD",
+      "category": "CINE PREMIUM",
+      "poster": null,
+      "originalPoster": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTRPXbkxZVQKnNqZ0tcPBhMhdHUgLcP3Kw0fw&usqp=CAU",
+      "posterStatus": "suspicious",
+      "source": "http://redworld.pro:8880/live/J34r/WnpFfyLacZA8/414504.m3u8"
+    },
+    {
+      "id": 661,
+      "title": "CINE | AMC  SD",
+      "category": "CINE PREMIUM",
+      "poster": null,
+      "originalPoster": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTRPXbkxZVQKnNqZ0tcPBhMhdHUgLcP3Kw0fw&usqp=CAU",
+      "posterStatus": "suspicious",
+      "source": "http://redworld.pro:8880/live/J34r/WnpFfyLacZA8/414505.m3u8"
+    },
+    {
+      "id": 662,
+      "title": "CINE | GOLDEN  FHD",
+      "category": "CINE PREMIUM",
+      "poster": null,
+      "originalPoster": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTxytfwU0t7hq8tWkwnq1tr0_J-NnCk_nV1Ow&usqp=CAU",
+      "posterStatus": "suspicious",
+      "source": "http://redworld.pro:8880/live/J34r/WnpFfyLacZA8/414506.m3u8"
+    },
+    {
+      "id": 663,
+      "title": "CINE | GOLDEN  HD",
+      "category": "CINE PREMIUM",
+      "poster": null,
+      "originalPoster": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTxytfwU0t7hq8tWkwnq1tr0_J-NnCk_nV1Ow&usqp=CAU",
+      "posterStatus": "suspicious",
+      "source": "http://redworld.pro:8880/live/J34r/WnpFfyLacZA8/414507.m3u8"
+    },
+    {
+      "id": 664,
+      "title": "CINE | GOLDEN  SD",
+      "category": "CINE PREMIUM",
+      "poster": null,
+      "originalPoster": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTxytfwU0t7hq8tWkwnq1tr0_J-NnCk_nV1Ow&usqp=CAU",
+      "posterStatus": "suspicious",
+      "source": "http://redworld.pro:8880/live/J34r/WnpFfyLacZA8/414508.m3u8"
+    },
+    {
+      "id": 665,
+      "title": "CINE | GOLDEN EDG  FHD",
+      "category": "CINE PREMIUM",
+      "poster": null,
+      "originalPoster": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQw_MXCN8YTJUs_t4zTDTivh73cIHqA2A3Drw&usqp=CAU",
+      "posterStatus": "suspicious",
+      "source": "http://redworld.pro:8880/live/J34r/WnpFfyLacZA8/414509.m3u8"
+    },
+    {
+      "id": 666,
+      "title": "CINE | GOLDEN EDG  HD",
+      "category": "CINE PREMIUM",
+      "poster": null,
+      "originalPoster": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQw_MXCN8YTJUs_t4zTDTivh73cIHqA2A3Drw&usqp=CAU",
+      "posterStatus": "suspicious",
+      "source": "http://redworld.pro:8880/live/J34r/WnpFfyLacZA8/414510.m3u8"
+    },
+    {
+      "id": 667,
+      "title": "CINE | GOLDEN EDG  SD",
+      "category": "CINE PREMIUM",
+      "poster": null,
+      "originalPoster": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQw_MXCN8YTJUs_t4zTDTivh73cIHqA2A3Drw&usqp=CAU",
+      "posterStatus": "suspicious",
+      "source": "http://redworld.pro:8880/live/J34r/WnpFfyLacZA8/414511.m3u8"
+    },
+    {
+      "id": 668,
+      "title": "CINE | PARAMOUNT CHANEL FHD",
+      "category": "CINE PREMIUM",
+      "poster": null,
+      "originalPoster": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRoLcVhN7sW34YgTU8sCI6EtLwRAeGUp9-h_A&usqp=CAU",
+      "posterStatus": "suspicious",
+      "source": "http://redworld.pro:8880/live/J34r/WnpFfyLacZA8/414512.m3u8"
+    },
+    {
+      "id": 669,
+      "title": "CINE | PARAMOUNT CHANEL HD",
+      "category": "CINE PREMIUM",
+      "poster": null,
+      "originalPoster": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRoLcVhN7sW34YgTU8sCI6EtLwRAeGUp9-h_A&usqp=CAU",
+      "posterStatus": "suspicious",
+      "source": "http://redworld.pro:8880/live/J34r/WnpFfyLacZA8/414513.m3u8"
+    },
+    {
+      "id": 670,
+      "title": "CINE | PARAMOUNT CHANEL SD",
+      "category": "CINE PREMIUM",
+      "poster": null,
+      "originalPoster": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRoLcVhN7sW34YgTU8sCI6EtLwRAeGUp9-h_A&usqp=CAU",
+      "posterStatus": "suspicious",
+      "source": "http://redworld.pro:8880/live/J34r/WnpFfyLacZA8/414514.m3u8"
+    },
+    {
+      "id": 671,
+      "title": "CINE GOLDEN PLUS FHD",
+      "category": "CINE PREMIUM",
+      "poster": null,
+      "originalPoster": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQEUkFenrLxGFpEKOzzTEl2crLHBNePJehWFQ&usqp=CAU",
+      "posterStatus": "suspicious",
+      "source": "http://redworld.pro:8880/live/J34r/WnpFfyLacZA8/414515.m3u8"
+    },
+    {
+      "id": 672,
+      "title": "CINE | GOLDEN PLUS HD",
+      "category": "CINE PREMIUM",
+      "poster": null,
+      "originalPoster": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQEUkFenrLxGFpEKOzzTEl2crLHBNePJehWFQ&usqp=CAU",
+      "posterStatus": "suspicious",
+      "source": "http://redworld.pro:8880/live/J34r/WnpFfyLacZA8/414516.m3u8"
+    },
+    {
+      "id": 673,
+      "title": "CINE | GOLDEN PLUS SD",
+      "category": "CINE PREMIUM",
+      "poster": null,
+      "originalPoster": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQEUkFenrLxGFpEKOzzTEl2crLHBNePJehWFQ&usqp=CAU",
+      "posterStatus": "suspicious",
+      "source": "http://redworld.pro:8880/live/J34r/WnpFfyLacZA8/414517.m3u8"
+    },
+    {
+      "id": 674,
+      "title": "CINE | CINE LATINO",
+      "category": "CINE PREMIUM",
+      "poster": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRYLWKA2w7UzyAaT3-EA29E7bvcPQ9SsvHoMQ&usqp=CAU",
+      "originalPoster": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRYLWKA2w7UzyAaT3-EA29E7bvcPQ9SsvHoMQ&usqp=CAU",
+      "posterStatus": "ok",
+      "source": "http://redworld.pro:8880/live/J34r/WnpFfyLacZA8/414518.m3u8"
+    },
+    {
+      "id": 675,
+      "title": "P | Universal Comedy",
+      "category": "CINE PREMIUM",
+      "poster": "http://daleplay.club:8080/images/10960c1507792b39f21c3a1066a426a9.png",
+      "originalPoster": "http://daleplay.club:8080/images/10960c1507792b39f21c3a1066a426a9.png",
+      "posterStatus": "ok",
+      "source": "http://redworld.pro:8880/live/J34r/WnpFfyLacZA8/414519.m3u8"
+    },
+    {
+      "id": 676,
+      "title": "P | Universal Crime Este",
+      "category": "CINE PREMIUM",
+      "poster": "http://goldfull.pro:8880/images/5f9bdadd92cc63bf5567b22706b25391.png",
+      "originalPoster": "http://goldfull.pro:8880/images/5f9bdadd92cc63bf5567b22706b25391.png",
+      "posterStatus": "ok",
+      "source": "http://redworld.pro:8880/live/J34r/WnpFfyLacZA8/414520.m3u8"
+    },
+    {
+      "id": 677,
+      "title": "P | Universal Premier Este",
+      "category": "CINE PREMIUM",
+      "poster": "http://redworld.pro:8880/images/f8ad17fe253c743c4d755af0d8675f77.png",
+      "originalPoster": "http://redworld.pro:8880/images/f8ad17fe253c743c4d755af0d8675f77.png",
+      "posterStatus": "ok",
+      "source": "http://redworld.pro:8880/live/J34r/WnpFfyLacZA8/414521.m3u8"
+    },
+    {
+      "id": 678,
+      "title": "P | Universal Reality",
+      "category": "CINE PREMIUM",
+      "poster": "http://daleplay.club:8080/images/b5cd18267789d07c58596bcae4f0055f.png",
+      "originalPoster": "http://daleplay.club:8080/images/b5cd18267789d07c58596bcae4f0055f.png",
+      "posterStatus": "ok",
+      "source": "http://redworld.pro:8880/live/J34r/WnpFfyLacZA8/414522.m3u8"
+    },
+    {
+      "id": 679,
+      "title": "P | Universal Cinema",
+      "category": "CINE PREMIUM",
+      "poster": "http://daleplay.club:8080/images/2f9119fd3e55f3968f4c683b2e9916d9.png",
+      "originalPoster": "http://daleplay.club:8080/images/2f9119fd3e55f3968f4c683b2e9916d9.png",
+      "posterStatus": "ok",
+      "source": "http://redworld.pro:8880/live/J34r/WnpFfyLacZA8/414523.m3u8"
+    },
+    {
+      "id": 680,
+      "title": "P | Universal Crime Oeste",
+      "category": "CINE PREMIUM",
+      "poster": "http://daleplay.club:8080/images/ddab0de6d960b6f7ce2b83fcf5c7392d.png",
+      "originalPoster": "http://daleplay.club:8080/images/ddab0de6d960b6f7ce2b83fcf5c7392d.png",
+      "posterStatus": "ok",
+      "source": "http://redworld.pro:8880/live/J34r/WnpFfyLacZA8/414524.m3u8"
+    },
+    {
+      "id": 681,
+      "title": "P | Universal Premier Oeste",
+      "category": "CINE PREMIUM",
+      "poster": "http://todoen1.xyz:8080/Altoquetv83/ALt3Q34Re9372/149705",
+      "originalPoster": "http://todoen1.xyz:8080/Altoquetv83/ALt3Q34Re9372/149705",
+      "posterStatus": "ok",
+      "source": "http://redworld.pro:8880/live/J34r/WnpFfyLacZA8/414525.m3u8"
+    },
+    {
+      "id": 951,
+      "title": "CINE PARAMOUNT+",
+      "category": "CINE PREMIUM",
+      "poster": "http://redworld.pro:8880/images/29938cae6727790a47491882e556fce7.png",
+      "originalPoster": "http://redworld.pro:8880/images/29938cae6727790a47491882e556fce7.png",
+      "posterStatus": "ok",
+      "source": "http://redworld.pro:8880/live/J34r/WnpFfyLacZA8/449493.m3u8"
+    },
